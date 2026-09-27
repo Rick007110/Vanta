@@ -12,7 +12,7 @@ internal sealed class MainForm : Form
 {
     private const string Origin = "https://" + Branding.UiHost;
     private const string WebView2Download = "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
-    private const string Csp = "default-src 'self'; img-src 'self' https://vanta.example data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'none'";
+    private const string Csp = "default-src 'self'; img-src 'self' https://vanta.example https://cdn.discordapp.com data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'none'";
     private readonly WebView2 _web = new() { Dock = DockStyle.Fill, DefaultBackgroundColor = Color.FromArgb(10, 12, 16) };
     private Host? _host;
     private AppUpdater? _updater;

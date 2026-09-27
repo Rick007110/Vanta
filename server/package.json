@@ -1,0 +1,23 @@
+{
+  "name": "vanta-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "wrangler d1 migrations apply vanta --local",
+    "db:migrate:remote": "wrangler d1 migrations apply vanta --remote",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20260927.1",
+    "@vitest/runner": "4.1",
+    "@vitest/snapshot": "4.1",
+    "typescript": "^5.9.3",
+    "vitest": "4.1",
+    "wrangler": "^4.124.0"
+  }
+}

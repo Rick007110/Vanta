@@ -24,6 +24,18 @@
   const tryBtn = () => `<button class="try" type="button" data-action="try-anyway" title="${esc(t('row.try.title'))}">${I('flask', 12)}${esc(t('row.try'))}</button>`;
   const swatch = (g) => { const a = Art.artOf(g); return `background:linear-gradient(160deg, ${a.sky[1]}, ${a.sky[0]} 60%, ${a.ground})`; };
 
+  // "12 gebruikers melden: werkt niet" (community counts for this game version)
+  const commLine = (e) => {
+    if (!e) return '';
+    if (e.status === 'fixed') return e.fixedInVersion ? t('comm.fixed', { v: e.fixedInVersion }) : t('comm.fixed0');
+    if (e.status === 'cant_reproduce' && !e.broken) return t('comm.cnr');
+    const b = e.broken || 0, w = e.works || 0;
+    if (!b && !w) return '';
+    const bt = b === 1 ? t('comm.broken1') : t('comm.broken', { n: b }), wt = w === 1 ? t('comm.works1') : t('comm.works', { n: w });
+    return b >= w ? bt + (w ? ` · ${w}× ${t('rep.works').toLowerCase()}` : '') : wt + (b ? ` · ${b}× ${t('rep.broken').toLowerCase()}` : '');
+  };
+  const accErr = (code) => code ? (window.I18N.has && window.I18N.has('acc.err.' + code) ? t('acc.err.' + code) : t('acc.err', { c: code })) : '';
+
   const T = {
     libraryGroup: (g, items, n) => `
       <div class="lib-group"><div class="lib-head"><span>${esc(g.title)}</span><span class="lib-count">${n}</span></div>
@@ -137,7 +149,7 @@
             </span></div>`;
         }).join('')}</div>
       </div>`,
-    notes: (g, list) => `
+    notes: (g, list, comm) => `
       <div class="pane">
         <div class="pane-head"><div><h3>${esc(t('notes.title'))}</h3>
           <p>${g.version ? `${esc(t('notes.version'))}: <b>${esc(g.version)}</b>` : ''}</p></div></div>
@@ -146,7 +158,7 @@
         <div class="conf-list">${list.map((c) => `
           <div class="conf-row" data-cheat-note="${esc(c.id)}" data-conf="${esc(c.confidence || 'untested')}"><span class="row-ic">${I(c.icon, 15)}</span><span class="conf-name">${esc(c.name)}</span>
             <span class="badge badge-${esc(c.confidence || 'untested')}${c.localStatus ? ' is-local' : ''}"${c.localStatus ? ` title="${esc(t('conf.local') + ' · ' + t('conf.base', { c: t('conf.' + (c.baseConfidence || 'untested')) }))}"` : ''}>${c.localStatus ? '<i class="badge-dot"></i>' : ''}${esc(t('conf.' + (c.confidence || 'untested')))}</span>
-            <span class="conf-note">${esc(c.description || '')}${c.note || c.confidence === 'broken' ? ` <em class="conf-warn">${esc(c.note || t('conf.warn.broken'))}</em>` : ''}</span></div>`).join('')}</div>
+            <span class="conf-note">${esc(c.description || '')}${c.note || c.confidence === 'broken' ? ` <em class="conf-warn">${esc(c.note || t('conf.warn.broken'))}</em>` : ''}${comm && commLine(comm[c.id]) ? `<span class="conf-comm" data-bind="community" data-comm="${esc((comm[c.id] || {}).status || '')}"${(comm[c.id] || {}).broken > (comm[c.id] || {}).works ? ' data-hot=""' : ''}>${I('globe', 12)}${esc(commLine(comm[c.id]))}</span>` : ''}</span></div>`).join('')}</div>
       </div>`,
     updLine: (u) => updLine(u),
     contextMenu: (c) => {
@@ -159,6 +171,7 @@
         ${item('works', 'check')}${item('broken', 'ban')}${item('untested', 'info')}
         <div class="ctx-sep"></div>
         ${item('default', 'refresh')}
+        ${c.canReport ? `<div class="ctx-sep"></div><button class="ctx-item ctx-report-item" type="button" role="menuitem" data-action="report-open"><span class="ctx-ic ctx-report">${I('globe', 13)}</span><span class="ctx-label">${esc(t('ctx.report'))}</span></button>` : ''}
       </div>`;
     },
     // The toast root is created once (enter animation plays once); state changes swap only its children, progress
@@ -198,6 +211,9 @@
               <input class="input mono" data-set="catalogUrl" value="${esc(s.catalogUrl || '')}" placeholder="https://…/catalog" spellcheck="false">
               <span class="field-help">${esc(t('set.url.help'))}</span></label>
             <label class="check"><input type="checkbox" data-set="autoAttach"${s.autoAttach !== false ? ' checked' : ''}><span>${esc(t('set.auto'))}</span></label>
+            <div class="field acct-field"><span class="field-k">${esc(t('acc.title'))}</span><div data-slot="account">${T.account(info.account || {}, info.confirmDelete)}</div></div>
+            ${info.account && info.account.configured ? `<label class="check"><input type="checkbox" data-set="shareUsage"${s.shareUsage ? ' checked' : ''}><span>${esc(t('acc.usage'))}</span></label>
+            <span class="field-help check-help">${esc(t('acc.usage.help'))}</span>` : ''}
             <div class="field"><span class="field-k">${esc(t('set.data'))}</span><span class="input mono ro">${esc(info.dataDir || '%LOCALAPPDATA%\\Vanta')}</span></div>
             <div class="field"><span class="field-k">${esc(t('upd.title'))}</span>
               <div class="upd-row"><span class="input mono ro">${esc(Brand.name)} ${esc(info.version)}</span>
@@ -212,6 +228,53 @@
           <footer class="modal-foot">
             <button class="btn-ghost" type="button" data-action="modal-close">${esc(t('set.cancel'))}</button>
             <button class="btn" data-kind="primary" type="button" data-action="modal-save">${I('check', 16)}<span>${esc(t('set.save'))}</span></button>
+          </footer>
+        </div>
+      </div>`,
+    account: (a, confirmDelete) => {
+      if (!a.configured) return `<span class="field-help" data-bind="acct-state" data-state="off">${esc(t('acc.notConfigured'))}</span>`;
+      const err = a.error ? `<span class="field-help acct-err" data-bind="acct-error">${esc(accErr(a.error))}</span>` : '';
+      if (!a.loggedIn) return `
+        <div class="acct" data-bind="acct-state" data-state="${a.busy ? 'busy' : 'out'}">
+          <div class="upd-row"><span class="field-help grow">${esc(a.busy ? t('acc.waiting') : t('acc.help'))}</span>
+            ${a.busy ? `<button class="btn-ghost sm" type="button" data-action="account-cancel">${esc(t('acc.cancel'))}</button>`
+                     : `<button class="btn sm acct-login" data-kind="primary" type="button" data-action="account-login">${I('user', 14)}<span>${esc(t('acc.login'))}</span></button>`}${a.privacyUrl ? `<button class="btn-ghost sm acct-privacy" type="button" data-action="open-url" data-url="${esc(a.privacyUrl)}">${esc(t('acc.privacy'))}</button>` : ''}</div>
+          ${err}</div>`;
+      const u = a.user || {};
+      return `
+        <div class="acct" data-bind="acct-state" data-state="in">
+          <div class="acct-user"><span class="acct-avatar">${u.avatarUrl ? `<img src="${esc(u.avatarUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}${I('user', 16)}</span>
+            <span class="acct-name" data-bind="acct-name">${esc(t('acc.as', { n: u.username || '' }))}</span>
+            ${confirmDelete ? '' : `<button class="btn-ghost sm" type="button" data-action="account-logout"${a.busy ? ' disabled' : ''}>${esc(t('acc.logout'))}</button>
+            <button class="btn-ghost sm acct-del" type="button" data-action="account-delete"${a.busy ? ' disabled' : ''}>${esc(t('acc.delete'))}</button>
+            ${a.privacyUrl ? `<button class="btn-ghost sm acct-privacy" type="button" data-action="open-url" data-url="${esc(a.privacyUrl)}">${esc(t('acc.privacy'))}</button>` : ''}`}</div>
+          ${confirmDelete ? `<div class="acct-confirm" role="alertdialog"><span>${esc(t('acc.confirm'))}</span>
+            <button class="btn-ghost sm" type="button" data-action="account-delete-cancel">${esc(t('acc.cancel'))}</button>
+            <button class="btn sm acct-del-yes" data-kind="danger" type="button" data-action="account-delete-confirm"${a.busy ? ' disabled' : ''}>${esc(t('acc.confirm.yes'))}</button></div>` : ''}
+          ${a.pending ? `<span class="field-help">${esc(t('acc.pending', { n: a.pending }))}</span>` : ''}
+          ${err}</div>`;
+    },
+    report: (c, r, a, comm, g) => `
+      <div class="modal-backdrop" data-action="modal-backdrop">
+        <div class="modal modal-report" role="dialog" aria-modal="true" aria-labelledby="rep-title">
+          <header class="modal-head"><span class="modal-logo">${Brand.mark(28)}</span><h3 id="rep-title">${esc(t('rep.title', { n: c.name }))}</h3>
+            <button class="winbtn modal-x" type="button" data-action="modal-close" aria-label="${esc(t('win.close'))}">${I('x', 16)}</button></header>
+          <div class="modal-body">
+            ${g && g.version ? `<span class="field-help">${esc(t('rep.version', { v: g.version }))}</span>` : ''}
+            <div class="rep-seg" role="radiogroup" aria-label="${esc(t('ctx.title'))}">
+              ${['works', 'broken'].map((s) => `<button type="button" role="radio" class="rep-opt" data-action="report-pick" data-status="${s}" aria-checked="${r.status === s}"><span class="ctx-ic ctx-${s}">${I(s === 'works' ? 'check' : 'ban', 13)}</span>${esc(t('rep.' + s))}</button>`).join('')}
+            </div>
+            ${a.loggedIn ? `<label class="field" data-bind="rep-note-field"${r.status === 'broken' ? '' : ' hidden'}><span class="field-k">${esc(t('rep.note'))}</span>
+              <textarea class="input rep-note" data-role="report-note" maxlength="300" rows="3" placeholder="${esc(t('rep.note.ph'))}" spellcheck="true">${esc(r.note || '')}</textarea>
+              <span class="field-help"><span data-bind="rep-count">${(r.note || '').length}</span>/300 · ${esc(t('rep.note.help'))}</span></label>`
+            : `<p class="rep-login" data-bind="rep-login">${esc(t('rep.login'))}</p>`}
+            ${commLine(comm) ? `<p class="conf-comm">${I('globe', 12)}${esc(commLine(comm))}</p>` : ''}
+            ${r.error ? `<span class="field-help acct-err" data-bind="rep-error">${esc(accErr(r.error))}</span>` : ''}
+          </div>
+          <footer class="modal-foot">
+            <button class="btn-ghost" type="button" data-action="modal-close">${esc(t(a.loggedIn ? 'rep.skip' : 'set.cancel'))}</button>
+            ${a.loggedIn ? `<button class="btn" data-kind="primary" type="button" data-action="report-send"${r.sending ? ' disabled' : ''}>${I('check', 16)}<span>${esc(t(r.sending ? 'rep.sending' : 'rep.send'))}</span></button>`
+              : `<button class="btn acct-login" data-kind="primary" type="button" data-action="account-login"${a.busy ? ' disabled' : ''}>${I('user', 16)}<span>${esc(a.busy ? t('acc.waiting') : t('acc.login'))}</span></button>`}
           </footer>
         </div>
       </div>`,

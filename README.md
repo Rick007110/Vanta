@@ -48,6 +48,12 @@ Een game is één JSON-bestand: `games/<id>/game.json` (schema: [`schema/game.sc
 
 Details: [README-DEV.md](README-DEV.md).
 
+## Community-meldingen (optioneel)
+
+Met een Discord-account kun je melden of een cheat werkt of niet; Vanta toont dan per cheat wat andere spelers melden.
+Inloggen is nooit verplicht: zonder account werkt alles zoals altijd. De backend (Cloudflare Worker, [`server/`](server/)) en de
+Discord-bot ([`bot/`](bot/)) zijn los te hosten. Installatie: [docs/SETUP.md](docs/SETUP.md). Privacy: [docs/privacy.md](docs/privacy.md).
+
 ## Bouwen
 
 `./build.sh` (dotnet 8 SDK; mingw voor het selftest-programma). Tests: `dotnet test tests/Vanta.Tests`,
@@ -60,5 +66,8 @@ anti-cheat are refused. It detects installs from Steam, Ubisoft Connect, Epic, G
 AOB pattern matches exactly once, restores every byte on disable/exit, can verify a game build offline
 (`Vanta.exe --verify <game>`), and updates itself from GitHub Releases (SHA-256 verified, with rollback). Download the zip from
 [Releases](https://github.com/Rick007110/Vanta/releases/latest). Far Cry 5/6 cheats are for the solo campaign only.
+
+Optional community reports: sign in with Discord to report whether a cheat works; see [docs/SETUP.md](docs/SETUP.md) (Dutch)
+and [docs/privacy.md](docs/privacy.md). Signing in is never required.
 
 MIT License.

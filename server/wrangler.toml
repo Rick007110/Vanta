@@ -1,0 +1,24 @@
+# Vanta community backend. Secrets are NOT in this file: set them with `wrangler secret put` (see SETUP.md)
+# or, for local development, in .dev.vars (git-ignored; see .dev.vars.example).
+name = "vanta-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vanta"
+# Replace with the id printed by `npx wrangler d1 create vanta`.
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[vars]
+# Public https URL of this worker, e.g. https://vanta-api.<subdomain>.workers.dev (no trailing slash).
+PUBLIC_URL = "http://127.0.0.1:8787"
+DISCORD_CLIENT_ID = ""
+DISCORD_API = "https://discord.com/api/v10"
+DISCORD_AUTHORIZE_URL = "https://discord.com/oauth2/authorize"
+
+[triggers]
+# Hourly: clean up expired sessions, pending logins, rate-limit rows and old bot events.
+# (The weekly digest is posted by the Discord bot itself.)
+crons = ["17 * * * *"]

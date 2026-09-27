@@ -7,7 +7,7 @@ namespace Vanta.Core;
 /// <summary>Command-line tools shared by vanta-tool (dev) and Vanta.exe (end users): validate, index, import.</summary>
 public static class Cli
 {
-    public static readonly string[] Commands = { "validate", "index", "import", "asm", "selftest", "verify" };
+    public static readonly string[] Commands = { "validate", "index", "import", "asm", "selftest", "verify", "account-selftest" };
 
     public static int Run(string[] args, TextWriter o)
     {
@@ -24,6 +24,7 @@ public static class Cli
                 "asm" => Asm(rest, o),
                 "uifixture" => UiFixture(rest, o),
                 "verify" => Verify(rest, o),
+                "account-selftest" => new Account.AccountSelfTest(o).Run(rest.FirstOrDefault()),
                 "selftest" => rest.Length >= 2 ? new Win.SelfTest(o).Run(rest[0], File.ReadAllText(rest[1])) : Fail(o, "selftest <vanta_dummy.exe> <selftest.game.json>"),
                 _ => Fail(o, $"onbekend commando '{args[0]}'"),
             };
@@ -43,6 +44,7 @@ public static class Cli
   verify <game-id|game.json> [pad]   zoekt elke AOB van de game in de module op schijf (pad = module-bestand of
                                      installatiemap; zonder pad: automatisch via Steam/Ubisoft/Epic/GOG/EA/Xbox)
   verify <game-id> --live            hetzelfde in de draaiende game (alleen lezen)
+  account-selftest [backend-url]     controleert DPAPI-opslag en inloggen (loopback + PKCE) op deze pc
   opties: --games <map>              andere catalogusmap (standaard: games naast Vanta.exe)");
 
     private static IEnumerable<string> GameFiles(string path)

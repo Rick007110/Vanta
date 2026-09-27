@@ -26,6 +26,7 @@
   const state = {
     selectedId: D.selectedGameId, query: '', category: '', tab: 'cheats',
     status: {}, cheats: {}, dismissedUpdates: new Set(), log: D.log, settings: null, catalog: null, dataDir: '', capture: null, modal: null,
+    account: { configured: false, loggedIn: false, user: null, busy: false, error: null, pending: 0 }, community: {}, report: null, confirmDelete: false,
   };
   D.games.forEach((g) => { state.cheats[g.id] = {}; (g.cheats || []).forEach((c) => (state.cheats[g.id][c.id] = Object.assign({}, c))); });
 
@@ -115,7 +116,8 @@
     } else if (state.tab === 'hotkeys') {
       panel.innerHTML = g.lazy ? T.loading() : T.hotkeys(g, hotkeyRows(), state.capture);
     } else {
-      panel.innerHTML = g.lazy ? T.loading() : T.notes(g, cheatList());
+      panel.innerHTML = g.lazy ? T.loading() : T.notes(g, cheatList(), (state.community[g.id] || {}).cheats || null);
+      if (!g.lazy) requestCommunity(g.id);
     }
   }
 
@@ -212,7 +214,7 @@
   // broken = greyed + locked, unless it is already on (so it can be switched off) or "toch proberen" was chosen
   function isBroken(c) { return c.confidence === 'broken' && !c.enabled && !c._tryAnyway; }
   function noteFor(conf) { return conf === 'confirmed' ? null : conf === 'broken' ? t('conf.warn.broken') : conf === 'experimental' ? t('conf.warn.experimental') : t('conf.warn.untested'); }
-  function setStatus(id, status /* works|broken|untested|null */) {
+  function setStatus(id, status /* works|broken|untested|null */, opts) {
     const c = cheat(id); if (!c) return;
     const base = baseConf(c);
     c.localStatus = status || null;
@@ -222,6 +224,69 @@
     root.Bridge.send({ type: 'setStatus', gameId: state.selectedId, id, status: status || null });
     state.log = { time: '', text: t('ctx.saved', { n: c.name, s: t('ctx.' + (status || 'default')) }), level: 'info' }; patchLog();
     renderTab();
+    if (!(opts && opts.local)) shareStatus(id, status);
+  }
+
+  // ---------- community reports (optional Discord account) ----------
+  // Logged in: "Werkt niet" opens the report dialog (optional note), "Werkt" is sent right away,
+  // "Niet getest" / "Standaard" withdraws a previous report. Not logged in: local status only.
+  function shareStatus(id, status) {
+    const a = state.account; if (!a.configured || !a.loggedIn) return;
+    if (status === 'broken') return openReport(id, 'broken');
+    if (status === 'works') return sendReport(id, 'works', null);
+    root.Bridge.send({ type: 'withdraw', gameId: state.selectedId, id });
+  }
+  function openReport(id, status) {
+    const c = cheat(id); if (!c) return;
+    state.report = { id, gameId: state.selectedId, status: status || (c.localStatus === 'works' ? 'works' : 'broken'), note: '', sending: false, error: null };
+    state.modal = 'report'; renderModal();
+    if (state.account.configured) requestCommunity(state.selectedId);
+  }
+  function sendReport(id, status, note) {
+    const r = state.report && state.report.id === id ? state.report : null;
+    if (r) { r.sending = true; r.error = null; renderModal(); }
+    root.Bridge.send({ type: 'report', gameId: (r && r.gameId) || state.selectedId, id, status, note: note || null }).then((ack) => {
+      if (ack && ack.ok === false && state.report === r && r) { r.sending = false; r.error = ack.error || 'failed'; renderModal(); }
+    });
+  }
+  function sendReportFromModal() {
+    const r = state.report; if (!r || r.sending) return;
+    const c = cheat(r.id);
+    const note = (($('[data-role=report-note]') || {}).value || '').trim().slice(0, 300);
+    r.note = note;
+    if (c && c.localStatus !== r.status) setStatus(r.id, r.status, { local: true });   // keep the local mark in line with what is reported
+    sendReport(r.id, r.status, r.status === 'broken' ? note : null);
+  }
+  const communityAsked = {};
+  function requestCommunity(gid, force) {
+    if (!state.account.configured || !gid) return;
+    const now = Date.now();
+    if (!force && communityAsked[gid] && now - communityAsked[gid] < 60000) return;
+    communityAsked[gid] = now;
+    root.Bridge.send({ type: 'getCommunity', gameId: gid, force: !!force });
+  }
+  const accErrText = (code) => code ? (root.I18N.has('acc.err.' + code) ? t('acc.err.' + code) : t('acc.err', { c: code })) : '';
+  function patchAccount() {
+    if (state.modal === 'settings') {
+      const slot = $('[data-slot=account]'); if (slot && T.account) slot.innerHTML = T.account(state.account, state.confirmDelete);
+    } else if (state.modal === 'report') renderModal();
+  }
+  function onReportResult(m) {
+    const map = state.cheats[m.gameId] || {}, c = map[m.id], name = c ? c.name : m.id;
+    if (m.community) {
+      const e = state.community[m.gameId] || (state.community[m.gameId] = { fingerprint: m.fingerprint, cheats: {} });
+      if (!e.cheats) e.cheats = {};
+      e.cheats[m.id] = m.community;
+    } else if (m.ok && m.status == null && state.community[m.gameId]) communityAsked[m.gameId] = 0;
+    const r = state.report;
+    const text = m.ok ? (m.status == null ? t('rep.withdrawn', { n: name }) : t('rep.sent', { n: name })) : m.queued ? t('rep.queued', { n: name }) : t('rep.failed', { e: accErrText(m.error) });
+    if (r && r.id === m.id && r.gameId === m.gameId && m.status != null) {
+      if (m.ok || m.queued) { state.report = null; closeModal(); }
+      else { r.sending = false; r.error = m.error || 'failed'; renderModal(); }
+    }
+    state.log = { time: '', text, level: m.ok ? 'info' : m.queued ? 'warn' : 'error' }; patchLog();
+    if (m.gameId === state.selectedId && state.tab === 'notes') renderTab();
+    if (m.error === 'not_logged_in' || m.error === 'session_expired') { state.account.loggedIn = false; patchAccount(); }
   }
   let ctxFor = null;
   function openContextMenu(id, x, y) {
@@ -229,7 +294,7 @@
     closeContextMenu();
     ctxFor = id;
     const host = document.createElement('div');
-    host.className = 'ctx-slot'; host.innerHTML = T.contextMenu(Object.assign({ baseConfidence: baseConf(c) }, c));
+    host.className = 'ctx-slot'; host.innerHTML = T.contextMenu(Object.assign({ baseConfidence: baseConf(c), canReport: !!state.account.configured }, c));
     R.appendChild(host);
     const m = host.firstElementChild, r = m.getBoundingClientRect();
     const vw = window.innerWidth, vh = window.innerHeight;
@@ -392,10 +457,21 @@
     const slot = $('[data-slot=modal]');
     if (!state.modal) { slot.innerHTML = ''; slot.hidden = true; return; }
     slot.hidden = false;
-    slot.innerHTML = T.settings(state.settings || { language: root.I18N.lang, catalogDir: '', catalogUrl: '', autoAttach: true }, { catalog: state.catalog, dataDir: state.dataDir, version: D.app.version, update: state.updateCheck });
+    if (state.modal === 'report' && T.report) {
+      const r = state.report, c = r && (state.cheats[r.gameId] || {})[r.id];
+      if (!c) { state.modal = null; slot.innerHTML = ''; slot.hidden = true; return; }
+      const prevNote = $('[data-role=report-note]', slot);
+      if (prevNote) r.note = prevNote.value;
+      const g = D.games.find((x) => x.id === r.gameId);
+      slot.innerHTML = T.report(c, r, state.account, ((state.community[r.gameId] || {}).cheats || {})[r.id], g);
+      const f = $('[data-role=report-note]', slot) || $('[data-action=report-send]', slot) || $('.acct-login', slot);
+      if (f) { f.focus(); if (f.setSelectionRange && f.value) f.setSelectionRange(f.value.length, f.value.length); }
+      return;
+    }
+    slot.innerHTML = T.settings(state.settings || { language: root.I18N.lang, catalogDir: '', catalogUrl: '', autoAttach: true }, { catalog: state.catalog, dataDir: state.dataDir, version: D.app.version, update: state.updateCheck, account: state.account, confirmDelete: state.confirmDelete });
     const first = $('[data-set=language]', slot); if (first) first.focus();
   }
-  function closeModal() { state.modal = null; renderModal(); }
+  function closeModal() { state.modal = null; state.report = null; state.confirmDelete = false; renderModal(); }
   function saveSettingsFromModal() {
     const slot = $('[data-slot=modal]');
     const s = {
@@ -404,6 +480,7 @@
       catalogUrl: $('[data-set=catalogUrl]', slot).value.trim(),
       autoAttach: $('[data-set=autoAttach]', slot).checked,
     };
+    const su = $('[data-set=shareUsage]', slot); if (su) s.shareUsage = su.checked;
     const langChanged = s.language !== root.I18N.lang;
     state.settings = Object.assign({}, state.settings, s);
     root.Bridge.send({ type: 'saveSettings', settings: s });
@@ -468,6 +545,7 @@
       if (ctxFor) {
         const id = ctxFor;
         if (a === 'set-status') { closeContextMenu(); return setStatus(id, act.dataset.status === 'default' ? null : act.dataset.status); }
+        if (a === 'report-open') { closeContextMenu(); return openReport(id); }
         closeContextMenu();
         return;                                                  // a click outside the menu only closes it
       }
@@ -479,6 +557,19 @@
       if (a === 'open-hotkeys') { state.tab = 'hotkeys'; return renderTab(); }
       if (a === 'open-settings') return openSettings();
       if (a === 'modal-close') return closeModal();
+      if (a === 'account-login') { state.account = Object.assign({}, state.account, { busy: true, error: null }); patchAccount(); return root.Bridge.send({ type: 'accountLogin' }); }
+      if (a === 'account-cancel') return root.Bridge.send({ type: 'accountCancel' });
+      if (a === 'account-logout') return root.Bridge.send({ type: 'accountLogout' });
+      if (a === 'account-delete') { state.confirmDelete = true; return patchAccount(); }
+      if (a === 'account-delete-cancel') { state.confirmDelete = false; return patchAccount(); }
+      if (a === 'account-delete-confirm') { state.confirmDelete = false; state.account = Object.assign({}, state.account, { busy: true }); patchAccount(); return root.Bridge.send({ type: 'accountDelete' }); }
+      if (a === 'report-pick' && state.report) {
+        state.report.status = act.dataset.status;
+        $$('[data-action=report-pick]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.status === state.report.status)));
+        const nf = $('[data-bind=rep-note-field]'); if (nf) nf.hidden = state.report.status !== 'broken';
+        return;
+      }
+      if (a === 'report-send') return sendReportFromModal();
       if (a === 'modal-save') return saveSettingsFromModal();
       if (a === 'modal-backdrop' && e.target === act) return closeModal();
       if (a === 'hk-change') return setCapture(state.capture === act.dataset.key ? null : act.dataset.key);
@@ -523,6 +614,7 @@
     R.addEventListener('keydown', (e) => {
       const b = e.target.closest && e.target.closest('[data-action=step]');
       if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); const c = cheat(b.closest('[data-cheat]').dataset.cheat); setValue(c.id, c.value + Number(b.dataset.dir) * (c.step || 1)); }
+      if (e.target.matches && e.target.matches('[data-role=report-note]') && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); return sendReportFromModal(); }
       const inp = e.target.closest && e.target.closest('[data-role=value-input]');
       if (inp && e.key === 'Enter') inp.blur();
       if (inp && e.key === 'Escape') { const c = cheat(inp.closest('[data-cheat]').dataset.cheat); inp.value = fmt(c.value); inp.blur(); }
@@ -531,6 +623,7 @@
     R.addEventListener('input', (e) => {
       const tg = e.target;
       if (tg.matches('[data-role=search]')) { state.query = tg.value; renderLibrary(); }
+      if (tg.matches('[data-role=report-note]')) { const n = $('[data-bind=rep-count]'); if (n) n.textContent = String(tg.value.length); if (state.report) state.report.note = tg.value; }
       if (tg.matches('[data-role=value-input]')) tg.value = tg.value.replace(/[^\d.,-]/g, '');
       if (tg.matches('[data-role=slider]')) setValue(tg.closest('[data-cheat]').dataset.cheat, Number(tg.value), { commit: false });
     });
@@ -621,6 +714,23 @@
       renderToast();
     });
     root.Bridge.on('statusExport', onStatusExport);
+    root.Bridge.on('account', (m) => {
+      const was = state.account;
+      state.account = { configured: !!m.configured, loggedIn: !!m.loggedIn, user: m.user || null, busy: !!m.busy, error: m.error || null, pending: m.pending || 0, shareUsage: !!m.shareUsage, privacyUrl: /^https:\/\//.test(m.privacyUrl || '') ? m.privacyUrl : '' };
+      if (!was.loggedIn && state.account.loggedIn && was.configured) { state.log = { time: '', text: t('acc.loggedin', { n: (m.user || {}).username || '' }), level: 'info' }; patchLog(); }
+      else if (was.loggedIn && !state.account.loggedIn && !m.error) { state.log = { time: '', text: t('acc.loggedout'), level: 'info' }; patchLog(); }
+      else if (m.error && m.error !== was.error) { state.log = { time: '', text: accErrText(m.error), level: 'warn' }; patchLog(); }
+      patchAccount();
+      if (state.account.configured && !was.configured && state.tab === 'notes') requestCommunity(state.selectedId);
+    });
+    root.Bridge.on('accountDeleted', () => { state.community = {}; state.log = { time: '', text: t('acc.deleted'), level: 'info' }; patchLog(); if (state.tab === 'notes') renderTab(); });
+    root.Bridge.on('reportResult', onReportResult);
+    root.Bridge.on('community', (m) => {
+      if (!m.available) return;
+      state.community[m.gameId] = { fingerprint: m.fingerprint, cheats: m.cheats || {} };
+      if (m.gameId === state.selectedId && state.tab === 'notes') renderTab();
+      if (state.modal === 'report' && state.report && state.report.gameId === m.gameId) renderModal();
+    });
     root.Bridge.on('updateStatus', (m) => onUpdateStatus(typeof m.state === 'object' ? m.state : m));
     root.Bridge.on('settings', (m) => {
       state.settings = m.settings; state.catalog = m.catalog; state.dataDir = m.dataDir || '';
@@ -667,6 +777,6 @@
       document.documentElement.classList.add('is-ready');
     },
     util: { esc, fmt, STATUS, artUrl, keyName, comboOf },
-    state, toggle, flash, setValue, select, setStatus, openContextMenu, closeContextMenu, production: PROD,
+    state, toggle, flash, setValue, select, setStatus, openContextMenu, closeContextMenu, openReport, production: PROD,
   };
 })(window);

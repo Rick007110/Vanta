@@ -11,6 +11,10 @@ public sealed class Settings
     public List<string> Recent { get; set; } = new();
     public double AttachDelaySec { get; set; } = 4;
     public bool AutoAttach { get; set; } = true;
+    /// <summary>Community backend (Cloudflare Worker) URL; null = the built-in <see cref="Branding.BackendUrl"/>.</summary>
+    public string? BackendUrl { get; set; }
+    /// <summary>Opt-in: send anonymous per-day counts of enabled cheats. Off by default.</summary>
+    public bool ShareUsage { get; set; }
 
     public static string DataDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Branding.DataFolder);
     public static string DefaultFile => Path.Combine(DataDir, "settings.json");

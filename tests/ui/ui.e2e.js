@@ -10,14 +10,14 @@ const puppeteer = require(process.env.PUPPETEER_CORE || 'puppeteer-core');
 const UI = path.join(__dirname, '..', '..', 'ui');
 const OUT = process.env.OUT || path.join(__dirname, 'out');
 const VER = process.env.VER || 'v0.2';
-const CSP = "default-src 'self'; img-src 'self' https://vanta.example data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'none'";
+const CSP = "default-src 'self'; img-src 'self' https://vanta.example https://cdn.discordapp.com data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'none'";
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.ttf': 'font/ttf', '.png': 'image/png', '.jpg': 'image/jpeg' };
 
 global.window = {};
 eval(fs.readFileSync(path.join(UI, 'shared', 'devdata.js'), 'utf8'));
 const DEV = global.window.VantaDev;
 
-function hostScript({ many = 0, status = 'attached', blocked = false } = {}) {
+function hostScript({ many = 0, status = 'attached', blocked = false, account = null } = {}) {
   const lib = JSON.parse(JSON.stringify(DEV.library));
   for (let i = 0; i < many; i++) lib.games.push({ id: `game-${i}`, name: `Testgame ${String(i + 1).padStart(4, '0')}`, short: 'TG', badge: 'v1.' + (i % 9), version: '', cheatCount: 3 + (i % 20),
     steamAppId: null, categories: [['survival', 'rpg', 'shooter', 'strategy', 'racing', 'sim'][i % 6]], antiCheat: i % 97 === 0, onlineOnly: false, group: 'all', art: null, process: `Game${i}.exe`, cheats: [], lazy: true });
@@ -36,6 +36,9 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
   const listeners = [];
   const send = (m) => setTimeout(() => listeners.forEach((fn) => fn({ data: m })), 10);
   const st = { status: ${JSON.stringify(status)} };
+  const acc = ${JSON.stringify(account)};
+  const accMsg = () => Object.assign({ type: 'account', busy: false, error: null, pending: 0, shareUsage: false }, acc, { user: acc && acc.loggedIn ? { id: '400000000000000001', username: 'tester', avatarUrl: 'https://cdn.discordapp.com/embed/avatars/1.png' } : null });
+  const COMM = { inf_health: { works: 3, broken: 12, status: 'open', fixedInVersion: null }, no_weight: { works: 0, broken: 0, status: 'fixed', fixedInVersion: '0.2.3' } };
   window.__hostSend = send;
   window.chrome = { webview: {
     addEventListener: (t, fn) => { if (t === 'message') listeners.push(fn); },
@@ -52,6 +55,7 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
         if (games[id] && st.status === 'attached') send({ type: 'state', gameId: id, cheats: [
           { id: 'inf_battery', enabled: true, error: null }, { id: 'no_weight', enabled: true, error: null },
           { id: 'xp_value', value: 12450, hint: null, error: null }, { id: 'xp_mult', value: 3, hint: null, error: null } ] });
+        if (m.type === 'ready' && acc) send(accMsg());
         if (m.type === 'ready') send({ type: 'settings', settings: { language: 'nl', catalogDir: '', catalogUrl: '', attachDelaySec: 4, autoAttach: true }, catalog: { source: 'C:\\\\Games\\\\Vanta\\\\games', games: window.vantaHost.library.games.length }, dataDir: '%LOCALAPPDATA%\\\\Vanta', version: '0.1.0' });
         return ack();
       }
@@ -88,6 +92,17 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
         send({ type: 'statusExport', json: JSON.stringify(out, null, 2), path: '%LOCALAPPDATA%\\\\Vanta\\\\teststatus-export-20260927-150000.json' });
         return ack();
       }
+      if (acc && m.type === 'accountLogin') { acc.busy = true; send(accMsg()); setTimeout(() => { acc.busy = false; acc.loggedIn = true; send(accMsg()); }, 300); return ack(); }
+      if (acc && m.type === 'accountLogout') { acc.loggedIn = false; send(accMsg()); return ack(); }
+      if (acc && m.type === 'accountDelete') { acc.busy = true; send(accMsg()); setTimeout(() => { acc.busy = false; acc.loggedIn = false; send(accMsg()); send({ type: 'accountDeleted' }); }, 200); return ack(); }
+      if (acc && (m.type === 'report' || m.type === 'withdraw')) {
+        const offline = m.note && /offline/.test(m.note);
+        const status = m.type === 'withdraw' ? null : m.status;
+        const community = offline || !status ? null : status === 'broken' ? { works: 3, broken: 13, status: 'open', fixedInVersion: null } : { works: 4, broken: 12, status: 'open', fixedInVersion: null };
+        setTimeout(() => send({ type: 'reportResult', gameId: gid, id: m.id, status, ok: !offline, queued: !!offline, error: offline ? 'offline' : null, fingerprint: 'fileVersion=0.8.5.651238', community }), 120);
+        return ack();
+      }
+      if (acc && m.type === 'getCommunity') { send({ type: 'community', gameId: gid, fingerprint: 'fileVersion=0.8.5.651238', available: true, cheats: COMM }); return ack(); }
       if (m.type === 'checkUpdate') { send({ type: 'updateStatus', state: { state: 'uptodate', version: '0.2.0' } }); return ack(); }
       if (m.type === 'updateNow') { send({ type: 'updateStatus', state: 'downloading', progress: 0.42, version: '0.3.0' }); return ack(); }
       if (m.type === 'getSettings') { send({ type: 'settings', settings: { language: 'nl', catalogDir: '', catalogUrl: '', autoAttach: true }, catalog: { source: 'games', games: window.vantaHost.library.games.length }, dataDir: '%LOCALAPPDATA%\\\\Vanta', version: '0.1.0' }); return ack(); }
@@ -119,7 +134,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const page = await browser.newPage();
   await page.setViewport({ width: 1320, height: 860, deviceScaleFactor: 1 });
   await page.setRequestInterception(true);
-  const artHits = [];
+  const artHits = [], avatarHits = [];
   page.on('request', (r) => {
     const m = r.url().match(/^https:\/\/vanta\.example\/art\/(\d+)\/(cover|hero|logo)/);
     if (m) {
@@ -128,6 +143,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       if (fs.existsSync(f)) return r.respond({ status: 200, contentType: f.endsWith('png') ? 'image/png' : 'image/jpeg', body: fs.readFileSync(f) });
       return r.respond({ status: 404, body: '' });
     }
+    if (r.url().startsWith('https://cdn.discordapp.com/')) { avatarHits.push(r.url()); return r.respond({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64') }); }
     if (!r.url().startsWith('http://127.0.0.1')) return r.abort();
     r.continue();
   });
@@ -396,6 +412,74 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   check('Exporteer teststatus: bericht naar host + pad getoond', () => assert.ok(ex.sent === 1 && !ex.hidden && /teststatus-export-20260927-150000\.json/.test(ex.line), JSON.stringify(ex)));
   check('Exporteer teststatus: JSON op het klembord', () => assert.ok(ex.copied === 'true' && (ex.clip == null || (/"inf_health"/.test(ex.clip) && /"works"/.test(ex.clip))), JSON.stringify(ex)));
   await shot(`vanta-${VER}-exporteer-teststatus.png`);
+  await page.click('[data-action=modal-close]');
+
+
+  // 6b. community reports with a Discord account (fake host)
+  await load({ account: { configured: true, loggedIn: false, privacyUrl: 'https://github.com/Rick007110/Vanta/blob/main/docs/privacy.md' } });
+  const pickA = async (id, status) => { await page.click(`[data-cheat=${id}] .row-name`, { button: 'right' }); await sleep(150); await page.click(`.ctx-item[data-status=${status}]`); await sleep(300); };
+  await page.click('[data-cheat=inf_health] .row-name', { button: 'right' }); await sleep(150);
+  const menuA = await page.$$eval('.ctx-menu .ctx-item .ctx-label', (e) => e.map((x) => x.textContent));
+  check('met backend: rechtsklikmenu heeft "Melden…"', () => assert.deepStrictEqual(menuA, ['Werkt', 'Werkt niet', 'Niet getest', 'Standaard (uit game.json)', 'Melden…']));
+  await page.keyboard.press('Escape'); await sleep(100);
+  await pickA('inf_health', 'broken');
+  const lo = await page.evaluate(() => ({ modal: !!document.querySelector('.modal-report'), rep: window.__posted.filter((m) => m.type === 'report').length }));
+  check('niet ingelogd: Werkt niet blijft lokaal (geen dialoog, geen melding)', () => assert.deepStrictEqual(lo, { modal: false, rep: 0 }));
+  await page.click('[data-action=open-settings]'); await sleep(250);
+  const acc0 = await page.evaluate(() => ({ state: document.querySelector('[data-bind=acct-state]').dataset.state, btn: (document.querySelector('[data-action=account-login]') || {}).textContent, usage: !!document.querySelector('[data-set=shareUsage]') }));
+  check('instellingen: "Inloggen met Discord" + anoniem-gebruik-schakelaar', () => assert.deepStrictEqual([acc0.state, (acc0.btn || '').trim(), acc0.usage], ['out', 'Inloggen met Discord', true]));
+  const priv = await page.$eval('.acct-privacy', (e) => [e.dataset.action, e.dataset.url.endsWith('/docs/privacy.md'), e.textContent.trim()]).catch(() => null);
+  check('instellingen: privacy-link naar docs/privacy.md', () => assert.deepStrictEqual(priv, ['open-url', true, 'Privacy']));
+  await shot(`vanta-${VER}-account-uitgelogd.png`);
+  await page.click('[data-action=account-login]'); await sleep(80);
+  const busy = await page.$eval('[data-bind=acct-state]', (e) => e.dataset.state);
+  await sleep(500);
+  const acc1 = await page.evaluate(() => ({ sent: window.__posted.filter((m) => m.type === 'accountLogin').length, state: document.querySelector('[data-bind=acct-state]').dataset.state, name: document.querySelector('[data-bind=acct-name]').textContent, img: (document.querySelector('.acct-avatar img') || {}).src }));
+  check('inloggen: accountLogin naar host, wachten, daarna naam + avatar', () => assert.deepStrictEqual([busy, acc1.sent, acc1.state, acc1.name, acc1.img], ['busy', 1, 'in', 'Ingelogd als tester', 'https://cdn.discordapp.com/embed/avatars/1.png']));
+  check('avatar van cdn.discordapp.com geladen (CSP staat het toe)', () => assert.ok(avatarHits.length >= 1));
+  await page.click('[data-set=shareUsage]');
+  await page.click('[data-action=modal-save]'); await sleep(200);
+  const su = await page.evaluate(() => window.__posted.filter((m) => m.type === 'saveSettings').pop());
+  check('anoniem gebruik delen: shareUsage in saveSettings', () => assert.strictEqual(su && su.settings.shareUsage, true));
+  await pickA('inf_health', 'broken');
+  const dlg = await page.evaluate(() => ({ modal: !!document.querySelector('.modal-report'), title: (document.querySelector('#rep-title') || {}).textContent, checked: (document.querySelector('.rep-opt[aria-checked=true]') || { dataset: {} }).dataset.status, focus: document.activeElement && document.activeElement.dataset.role }));
+  check('ingelogd: Werkt niet opent meld-dialoog, focus in opmerking', () => assert.deepStrictEqual([dlg.modal, dlg.title, dlg.checked, dlg.focus], [true, 'Melden: Infinite Health', 'broken', 'report-note']));
+  await page.type('[data-role=report-note]', 'Health zakt toch na val <b>schade</b>');
+  const cnt = await text('[data-bind=rep-count]');
+  check('opmerking: tekenteller', () => assert.strictEqual(cnt, '37'));
+  await shot(`vanta-${VER}-melden.png`);
+  await page.click('[data-action=report-send]'); await sleep(400);
+  const sent = await page.evaluate(() => ({ msg: window.__posted.filter((m) => m.type === 'report').pop(), modal: !!document.querySelector('.modal-report'), log: document.querySelector('[data-bind=log-text]').textContent }));
+  check('Versturen: report {broken, note} naar host, dialoog dicht, bevestiging', () => assert.deepStrictEqual([sent.msg.id, sent.msg.status, sent.msg.note, sent.modal, sent.log], ['inf_health', 'broken', 'Health zakt toch na val <b>schade</b>', false, 'Melding verstuurd: Infinite Health']));
+  await pickA('inf_health', 'works');
+  const w = await page.evaluate(() => ({ msg: window.__posted.filter((m) => m.type === 'report').pop(), modal: !!document.querySelector('.modal-report') }));
+  check('Werkt: melding direct verstuurd, zonder dialoog', () => assert.deepStrictEqual([w.msg.status, w.msg.note, w.modal], ['works', null, false]));
+  await pickA('no_weight', 'untested');
+  const wd = await page.evaluate(() => window.__posted.filter((m) => m.type === 'withdraw').pop());
+  check('Niet getest: eerdere melding ingetrokken (withdraw)', () => assert.deepStrictEqual([wd && wd.id, wd && wd.gameId], ['no_weight', 'the-last-caretaker']));
+  await page.click('[data-action=tab][data-value=notes]'); await sleep(250);
+  const comm = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-cheat-note]')].map((e) => [e.dataset.cheatNote, (e.querySelector('[data-bind=community]') || {}).textContent || ''])));
+  check('notities: community-regel "12 gebruikers melden: werkt niet" (bijgewerkt na eigen melding)', () => assert.strictEqual(comm.inf_health, '12 gebruikers melden: werkt niet · 4× werkt'));
+  check('notities: gerepareerd-regel met versie', () => assert.strictEqual(comm.no_weight, 'Gerepareerd in Vanta 0.2.3'));
+  const gc = await page.evaluate(() => window.__posted.filter((m) => m.type === 'getCommunity').pop());
+  check('getCommunity naar host bij openen notities', () => assert.strictEqual(gc && gc.gameId, 'the-last-caretaker'));
+  await shot(`vanta-${VER}-community.png`);
+  await page.click('[data-action=tab][data-value=cheats]'); await sleep(200);
+  await page.click('[data-cheat=inf_ammo] .row-name', { button: 'right' }); await sleep(150);
+  await page.click('[data-action=report-open]'); await sleep(200);
+  await page.click('.rep-opt[data-status=broken]');
+  await page.type('[data-role=report-note]', 'offline test');
+  await page.keyboard.down('Control'); await page.keyboard.press('Enter'); await page.keyboard.up('Control'); await sleep(400);
+  const q = await page.evaluate(() => ({ log: document.querySelector('[data-bind=log-text]').textContent, level: document.querySelector('[data-bind=log-text]').dataset.level, modal: !!document.querySelector('.modal-report'), local: (window.__posted.filter((m) => m.type === 'setStatus' && m.id === 'inf_ammo').pop() || {}).status }));
+  check('Melden… via menu + Ctrl+Enter; offline: "wordt later verstuurd"', () => assert.deepStrictEqual(q, { log: 'Geen verbinding: Infinite Ammo wordt later verstuurd', level: 'warn', modal: false, local: 'broken' }));
+  await page.click('[data-action=open-settings]'); await sleep(250);
+  await page.click('[data-action=account-delete]'); await sleep(100);
+  const conf = await page.$eval('.acct-confirm', (e) => e.textContent.replace(/\s+/g, ' ').trim());
+  check('Account verwijderen vraagt bevestiging', () => assert.ok(/definitief verwijderd/.test(conf), conf));
+  await shot(`vanta-${VER}-account-verwijderen.png`);
+  await page.click('[data-action=account-delete-confirm]'); await sleep(500);
+  const del = await page.evaluate(() => ({ sent: window.__posted.filter((m) => m.type === 'accountDelete').length, state: document.querySelector('[data-bind=acct-state]').dataset.state, log: document.querySelector('[data-bind=log-text]').textContent }));
+  check('na bevestigen: accountDelete, weer uitgelogd', () => assert.deepStrictEqual([del.sent, del.state, del.log], [1, 'out', 'Account en meldingen verwijderd']));
   await page.click('[data-action=modal-close]');
 
   // 7. catalog scale: 1200 games, search + category + blocked game

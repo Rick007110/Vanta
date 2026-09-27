@@ -50,6 +50,8 @@ public sealed class TrainerController
     public int LaunchTimeoutSec { get; set; } = 60;
     public Action<string>? HostLog { get; set; }
     public event Action? HotkeysChanged;
+    /// <summary>Accounts, community reports and anonymous usage (null = feature off, e.g. in tests).</summary>
+    public Account.AccountService? Account { get; set; }
 
     public TrainerController(ICatalogSource catalog, IProcessProvider procs, Settings settings, Action<object> send,
         Func<string, Task>? openUrl = null, Action<Settings>? saveSettings = null, StoreDetector? stores = null, StatusStore? status = null)
@@ -125,6 +127,56 @@ public sealed class TrainerController
             status == null ? Strings.Get("status.default") : Strings.Get("status." + status)));
         _send(UiGame(gameId));
         PushState(gameId);
+        return null;
+    }
+
+    // ---------------- community reports ----------------
+    /// <summary>The report for the current game version: fingerprint (printable, hashed if needed) + version label.</summary>
+    public (string fingerprint, string? label) ReportVersion(GameDef g)
+    {
+        var key = StatusKey(g);
+        string? label = key.StartsWith("label:") ? key[6..] : null;
+        if (label == null && _status.Data.Games.TryGetValue(g.Id, out var ge) && ge.Versions.TryGetValue(key, out var ve)) label = ve.Label;
+        label ??= g.SupportedVersions.FirstOrDefault()?.Label;
+        return (Vanta.Core.Account.AccountService.ReportFingerprint(key), label);
+    }
+
+    /// <summary>Sends (status works|broken) or withdraws (status null) the community report; the result arrives as "reportResult".</summary>
+    private string? Report(string gameId, string cheatId, string? status, string? note)
+    {
+        if (Account == null) return "account niet beschikbaar";
+        if (status != null && status is not ("works" or "broken")) return "onbekende status " + status;
+        var g = Game(gameId);
+        var c = g.Cheats.FirstOrDefault(x => x.Id == cheatId) ?? throw new CheatException(Strings.Get("cheat.unknown", cheatId));
+        var (fp, label) = ReportVersion(g);
+        note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+        if (note is { Length: > 300 }) note = note[..300];
+        var item = new Vanta.Core.Account.ReportItem(g.Id, c.Id, fp, status ?? "works", status == "broken" ? note : null, Branding.Version, label, g.Name, c.Name);
+        var shown = c.Names != null && c.Names.TryGetValue(_settings.Language, out var ln) ? ln : c.Name;
+        _ = Task.Run(async () =>
+        {
+            var r = await Account.ReportAsync(item, withdraw: status == null).ConfigureAwait(false);
+            _send(new { type = "reportResult", gameId, id = cheatId, status, r.ok, r.queued, r.error, fingerprint = fp,
+                community = r.community == null ? null : new { works = r.community.Works, broken = r.community.Broken, status = r.community.Status, fixedInVersion = r.community.FixedInVersion } });
+            if (status == null) return;
+            if (r.ok) Log(Strings.Get("report.sent", shown));
+            else if (r.queued) Log(Strings.Get("report.queued", shown), "warn");
+            else Log(Strings.Get("report.failed", r.error ?? "?"), "warn");
+        });
+        return null;
+    }
+
+    private string? Community(string gameId, bool force)
+    {
+        if (Account == null) return "account niet beschikbaar";
+        var g = Game(gameId);
+        var (fp, _) = ReportVersion(g);
+        _ = Task.Run(async () =>
+        {
+            var d = await Account.CommunityAsync(g.Id, fp, force).ConfigureAwait(false);
+            _send(new { type = "community", gameId, fingerprint = fp, available = d != null,
+                cheats = d?.ToDictionary(x => x.Key, x => (object)new { works = x.Value.Works, broken = x.Value.Broken, status = x.Value.Status, fixedInVersion = x.Value.FixedInVersion }) });
+        });
         return null;
     }
 
@@ -231,6 +283,7 @@ public sealed class TrainerController
                     foreach (var e in _catalog.Entries.Where(e => e.AntiCheat || e.OnlineOnly || _rt.ContainsKey(e.Id))) SendStatus(e.Id, true);
                     if (SelectedId != null) { _send(UiGame(SelectedId)); SendStatus(SelectedId, true); PushState(SelectedId); }
                     _send(SettingsPayload());
+                    if (Account != null) _send(Account.Payload());
                     return Ack(true);
                 case "selectGame":
                 case "getGame":
@@ -270,7 +323,30 @@ public sealed class TrainerController
                 case "exportStatus":
                     ExportStatus(); return Ack(true);
                 case "getSettings":
-                    _send(SettingsPayload()); return Ack(true);
+                    _send(SettingsPayload()); if (Account != null) _send(Account.Payload()); return Ack(true);
+                case "accountLogin":
+                    if (Account == null) return Ack(false, "account niet beschikbaar");
+                    _ = Account.LoginAsync(); return Ack(true);
+                case "accountCancel":
+                    Account?.CancelLogin(); return Ack(true);
+                case "accountLogout":
+                    if (Account == null) return Ack(false, "account niet beschikbaar");
+                    _ = Account.LogoutAsync(); return Ack(true);
+                case "accountDelete":
+                    if (Account == null) return Ack(false, "account niet beschikbaar");
+                    _ = Account.DeleteAsync(); return Ack(true);
+                case "report":
+                case "withdraw":
+                {
+                    string? st = m.TryGetProperty("status", out var rs) && rs.ValueKind == JsonValueKind.String ? rs.GetString() : null;
+                    string? note = m.TryGetProperty("note", out var rn) && rn.ValueKind == JsonValueKind.String ? rn.GetString() : null;
+                    return Report(gameId!, cheatId!, type == "withdraw" ? null : st, note) is string e7 ? Ack(false, e7) : Ack(true);
+                }
+                case "getCommunity":
+                {
+                    bool force = m.TryGetProperty("force", out var fc) && fc.ValueKind == JsonValueKind.True;
+                    return Community(gameId!, force) is string e8 ? Ack(false, e8) : Ack(true);
+                }
                 case "saveSettings":
                     SaveSettings(m.GetProperty("settings")); return Ack(true);
                 default:
@@ -286,7 +362,7 @@ public sealed class TrainerController
     public object SettingsPayload() => new
     {
         type = "settings",
-        settings = new { language = _settings.Language, catalogDir = _settings.CatalogDir ?? "", catalogUrl = _settings.CatalogUrl ?? "", attachDelaySec = _settings.AttachDelaySec, autoAttach = _settings.AutoAttach },
+        settings = new { language = _settings.Language, catalogDir = _settings.CatalogDir ?? "", catalogUrl = _settings.CatalogUrl ?? "", attachDelaySec = _settings.AttachDelaySec, autoAttach = _settings.AutoAttach, shareUsage = _settings.ShareUsage },
         catalog = new { source = _catalog.Describe, games = _catalog.Entries.Count },
         dataDir = Settings.DataDir, version = Branding.Version,
     };
@@ -296,6 +372,7 @@ public sealed class TrainerController
         if (s.TryGetProperty("language", out var l) && l.GetString() is "nl" or "en") { _settings.Language = l.GetString()!; Strings.Lang = _settings.Language; }
         if (s.TryGetProperty("catalogDir", out var cd)) _settings.CatalogDir = string.IsNullOrWhiteSpace(cd.GetString()) ? null : cd.GetString();
         if (s.TryGetProperty("catalogUrl", out var cu)) _settings.CatalogUrl = string.IsNullOrWhiteSpace(cu.GetString()) ? null : cu.GetString();
+        if (s.TryGetProperty("shareUsage", out var su) && su.ValueKind is JsonValueKind.True or JsonValueKind.False) _settings.ShareUsage = su.GetBoolean();
         if (s.TryGetProperty("autoAttach", out var aa) && aa.ValueKind is JsonValueKind.True or JsonValueKind.False) _settings.AutoAttach = aa.GetBoolean();
         if (s.TryGetProperty("hotkeys", out var hk) && hk.ValueKind == JsonValueKind.Object && s.TryGetProperty("gameId", out var hg))
         {
@@ -337,6 +414,7 @@ public sealed class TrainerController
         try
         {
             if (enabled) r.Session.Enable(cheatId); else r.Session.Disable(cheatId);
+            if (enabled) Account?.CountUsage(gameId, cheatId);   // opt-in anonymous counts; no-op when off
             Log(Strings.Get(enabled ? "enabled" : "disabled", c.Name));
             return null;
         }

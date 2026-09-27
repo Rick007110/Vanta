@@ -58,6 +58,15 @@ internal sealed class Host : IDisposable
             new Vanta.Core.Stores.StoreDetector(new WinStoreEnv()))
         { HostLog = t => Log.Write("engine", t) };
         Controller.HotkeysChanged += () => HotkeysChanged?.Invoke(Controller.HotkeyBindings());
+        try
+        {
+            Controller.Account = new Vanta.Core.Account.AccountService(Settings, new Vanta.Core.Account.DpapiTokenStore(),
+                Path.Combine(Settings.DataDir, "report-queue.json"),
+                url => { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); return Task.CompletedTask; },
+                Send, log: t => Log.Write("account", t));
+            Log.Info(Controller.Account.Configured ? "account: backend " + Controller.Account.Client!.BaseUrl : "account: geen backend ingesteld");
+        }
+        catch (Exception e) { Log.Error("account: " + e.Message); }
         ((ManualResetEventSlim)readyObj!).Set();
         var nextTick = DateTime.UtcNow; var nextPoll = DateTime.UtcNow;
         while (!_stopped)
@@ -100,6 +109,7 @@ internal sealed class Host : IDisposable
         Log.Info("shutdown: restoring games");
         if (Thread.CurrentThread == _thread) { try { Controller.Shutdown(); } catch (Exception e) { Log.Error("shutdown: " + e.Message); } }
         else if (!Invoke(Controller.Shutdown, 8000)) Log.Error("shutdown: restore timed out");
+        try { Controller.Account?.Shutdown(); Controller.Account?.Dispose(); } catch (Exception e) { Log.Error("account shutdown: " + e.Message); }
         _stopped = true;
     }
 

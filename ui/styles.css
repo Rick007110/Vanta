@@ -474,3 +474,30 @@ select.input { cursor: pointer; }
 .field-help.grow { flex: 1; }
 [data-bind=export-status] { word-break: break-all; }
 [data-bind=export-status][data-copied=true] { color: var(--ok); }
+
+/* account + community reports */
+.acct { display: grid; gap: 8px; }
+.acct-user { display: flex; align-items: center; gap: 10px; }
+.acct-avatar { position: relative; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; background: var(--accent-soft); color: var(--accent-hi); flex: none; }
+.acct-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.acct-name { flex: 1; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-err { color: var(--warn); }
+.acct-del { color: var(--err); }
+.acct-confirm { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: var(--r); background: var(--err-soft); border: 1px solid var(--err-line); font-size: 12.5px; color: var(--text); }
+.acct-confirm > span { flex: 1; line-height: 1.45; }
+.btn.sm { height: 30px; padding: 0 12px; font-size: 12.5px; gap: 6px; }
+.btn[data-kind=danger] { background: var(--err); border-color: var(--err); color: #fff; box-shadow: none; }
+.check-help { margin: -10px 0 0 26px; }
+.ctx-report { color: var(--accent-hi); background: var(--accent-soft); }
+.modal-report { width: min(480px, calc(100vw - 48px)); }
+.rep-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rep-opt { height: 40px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: var(--r); border: 1px solid var(--line-2); background: rgba(255,255,255,.02); color: var(--text-2); font-size: 13px; transition: border-color var(--t), background var(--t), color var(--t); }
+.rep-opt:hover { color: var(--text); background: rgba(255,255,255,.05); }
+.rep-opt[aria-checked=true] { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+.rep-opt:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+textarea.input { height: auto; min-height: 76px; padding: 9px 12px; resize: vertical; line-height: 1.45; display: block; }
+.rep-login { font-size: 13px; color: var(--text-2); line-height: 1.5; margin: 0; }
+.conf-comm { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 11.5px; color: var(--text-3); }
+.conf-comm[data-hot] { color: var(--err); }
+.conf-comm[data-comm=fixed] { color: var(--ok); }
+p.conf-comm { margin: 0; }
