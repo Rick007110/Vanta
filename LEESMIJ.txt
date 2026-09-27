@@ -1,8 +1,15 @@
-VANTA v0.2.1 - trainer voor singleplayer-games
+VANTA v0.2.2 - trainer voor singleplayer-games
 =============================================
 
 Vanta is een losstaand programma (geen Cheat Engine nodig). Het werkt alleen voor
 singleplayer/offline games. Games met online anti-cheat worden bewust geweigerd.
+
+NIEUW IN v0.2.2
+  - Updates worden ook gevonden terwijl Vanta al open staat: bij het starten, elke
+    30 minuten en als je het venster weer activeert (hoogstens eens per 5 minuten).
+    Na "Later" komt dezelfde versie deze sessie niet opnieuw in beeld.
+  - De update-melding rechtsonder knippert en verspringt niet meer tijdens het
+    downloaden en is niet meer doorzichtig.
 
 NIEUW IN v0.2.1
   - Nieuwe status "Werkt niet": zo'n cheat is grijs en kan niet aangezet worden
@@ -78,7 +85,8 @@ SNELTOETSEN
   Ctrl+Numpad (zie het tabblad per game).
 
 UPDATES
-  Vanta kijkt bij het starten en daarna elke 6 uur op GitHub of er een nieuwe versie is.
+  Vanta kijkt bij het starten, daarna elke 30 minuten en als je het venster activeert
+  (hoogstens eens per 5 minuten) op GitHub of er een nieuwe versie is.
   "Nu updaten": cheats worden uitgezet, de update wordt gedownload en gecontroleerd
   (SHA-256), Vanta herstart vanzelf. "Later": de update wordt op de achtergrond
   klaargezet en bij de volgende start geinstalleerd. Start de nieuwe versie niet, dan

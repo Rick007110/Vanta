@@ -161,25 +161,27 @@
         ${item('default', 'refresh')}
       </div>`;
     },
-    updateToast: (u) => {
+    // The toast root is created once (enter animation plays once); state changes swap only its children, progress
+    // only touches the bar transform and the percentage text (see core.js renderToast).
+    updateToast: (u) => `<div class="toast" role="status" data-state="${esc(u.state)}">${T.updateToastInner(u)}</div>`,
+    updateToastInner: (u) => {
       const busy = u.state === 'downloading' || u.state === 'installing';
       const title = { available: t('upd.available', { v: u.version }), downloading: t('upd.downloading', { v: u.version }), installing: t('upd.installing'),
         pending: t('upd.pending', { v: u.version }), updated: t('upd.updated', { v: u.version }), failed: t('upd.failed', { v: u.version }), error: t('upd.error') }[u.state] || '';
       const body = u.state === 'available' ? (u.notes || '') : u.state === 'error' ? (u.message || '') : u.state === 'pending' ? t('upd.pending.body') : u.state === 'failed' ? t('upd.failed.body') : u.state === 'installing' ? t('upd.installing.body') : '';
+      const p = u.state === 'installing' ? 1 : Math.max(0, Math.min(1, u.progress || 0));
       return `
-      <div class="toast" role="status" data-state="${esc(u.state)}">
         <span class="toast-ic">${I(u.state === 'error' || u.state === 'failed' ? 'alert' : u.state === 'updated' ? 'check' : 'sparkles', 18)}</span>
         <div class="toast-main">
-          <p class="toast-title">${esc(title)}</p>
+          <p class="toast-title"><span class="toast-title-text">${esc(title)}</span>${u.state === 'downloading' ? `<span class="toast-pct" data-bind="toast-pct">${Math.round(p * 100)}%</span>` : ''}</p>
           ${body ? `<div class="toast-body">${esc(body).replace(/\n/g, '<br>')}</div>` : ''}
-          ${busy ? `<div class="toast-bar"><i style="width:${Math.round((u.progress || (u.state === 'installing' ? 1 : 0)) * 100)}%"></i></div>` : ''}
+          ${busy ? `<div class="toast-bar${u.state === 'installing' ? ' is-indeterminate' : ''}"><i data-bind="toast-bar" style="transform:scaleX(${p})"></i></div>` : ''}
           ${u.state === 'available' ? `<div class="toast-actions">
             <button class="btn" data-kind="primary" type="button" data-action="update-now">${I('refresh', 15)}<span>${esc(t('upd.now'))}</span></button>
             <button class="btn-ghost" type="button" data-action="update-later">${esc(t('upd.later'))}</button>
             ${u.url ? `<button class="btn-ghost" type="button" data-action="open-url" data-url="${esc(u.url)}">${esc(t('upd.notes'))}</button>` : ''}</div>` : ''}
         </div>
-        ${busy ? '' : `<button class="winbtn toast-x" type="button" data-action="update-close" aria-label="${esc(t('win.close'))}">${I('x', 14)}</button>`}
-      </div>`;
+        ${busy ? '' : `<button class="winbtn toast-x" type="button" data-action="update-close" aria-label="${esc(t('win.close'))}">${I('x', 14)}</button>`}`;
     },
     settings: (s, info) => `
       <div class="modal-backdrop" data-action="modal-backdrop">

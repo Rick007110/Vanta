@@ -2,9 +2,9 @@
   <!-- Branding + version live here and in src/Vanta.Core/Branding.cs (rename = edit both + ui/shared/brand.js + icon). -->
   <PropertyGroup>
     <BrandName>Vanta</BrandName>
-    <Version>0.2.1</Version>
-    <FileVersion>0.2.1.0</FileVersion>
-    <InformationalVersion>0.2.1</InformationalVersion>
+    <Version>0.2.2</Version>
+    <FileVersion>0.2.2.0</FileVersion>
+    <InformationalVersion>0.2.2</InformationalVersion>
     <Product>$(BrandName)</Product>
     <Company>Rick007110</Company>
     <Authors>Rick007110</Authors>

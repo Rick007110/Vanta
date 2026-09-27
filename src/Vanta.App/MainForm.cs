@@ -32,6 +32,7 @@ internal sealed class MainForm : Form
         MinimumSize = new Size(1040, 680);
         Controls.Add(_web);
         Load += async (_, _) => await InitAsync();
+        Activated += (_, _) => _updater?.OnActivated();              // focus: re-check (throttled to once per 5 min)
         FormClosing += (_, _) => { _hotkeys?.UnregisterAll(); _host?.Shutdown(); _updater?.Dispose(); };
         Microsoft.Win32.SystemEvents.SessionEnding += (_, _) => _host?.Shutdown();
     }
@@ -152,6 +153,9 @@ internal sealed class MainForm : Form
                 Ack(); return;
             case "updateLater":
                 if (_updater != null) _ = _updater.LaterAsync();
+                Ack(); return;
+            case "updateDismiss":
+                _updater?.Dismiss(m.TryGetProperty("version", out var dv) && dv.ValueKind == JsonValueKind.String ? dv.GetString() : null);
                 Ack(); return;
             case "updateNow":
                 Ack(); _ = UpdateNowAsync(); return;

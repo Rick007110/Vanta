@@ -272,8 +272,56 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await shot(`vanta-${VER}-update.png`);
   await page.click('[data-action=update-now]');
   await sleep(250);
-  const dl = await page.evaluate(() => ({ sent: window.__posted.filter((m) => m.type === 'updateNow').length, title: document.querySelector('.toast-title').textContent, bar: (document.querySelector('.toast-bar i') || { style: {} }).style.width }));
-  check('Nu updaten: bericht naar host + voortgang', () => assert.deepStrictEqual(dl, { sent: 1, title: 'v0.3.0 downloaden…', bar: '42%' }));
+  const dl = await page.evaluate(() => ({ sent: window.__posted.filter((m) => m.type === 'updateNow').length, title: document.querySelector('.toast-title-text').textContent, pct: document.querySelector('[data-bind=toast-pct]').textContent, bar: (document.querySelector('.toast-bar i') || { style: {} }).style.transform }));
+  check('Nu updaten: bericht naar host + voortgang', () => assert.deepStrictEqual(dl, { sent: 1, title: 'v0.3.0 downloaden…', pct: '42%', bar: 'scaleX(0.42)' }));
+
+  // 6c2. 200 rapid progress messages: same toast element, enter animation not restarted, no jumping, opaque, on top
+  const fl = await page.evaluate(async () => {
+    const slot = document.querySelector('[data-slot=toast]');
+    const el = slot.querySelector('.toast');
+    await new Promise((r) => setTimeout(r, 400));                       // let the single enter animation finish
+    let starts = 0, childSwaps = 0, sampling = true;
+    slot.addEventListener('animationstart', () => starts++, true);
+    new MutationObserver((ms) => ms.forEach((m) => { if (m.target === slot) childSwaps++; })).observe(slot, { childList: true });
+    const tops = new Set(), heights = new Set(); let minOp = 1;
+    const sample = () => { if (!sampling) return; const r = el.getBoundingClientRect(); tops.add(Math.round(r.top)); heights.add(Math.round(r.height)); minOp = Math.min(minOp, Number(getComputedStyle(el).opacity)); requestAnimationFrame(sample); };
+    requestAnimationFrame(sample);
+    const pct = el.querySelector('[data-bind=toast-pct]'), bar = el.querySelector('[data-bind=toast-bar]');
+    for (let i = 1; i <= 200; i++) { window.__hostSend({ type: 'updateStatus', state: 'downloading', progress: i / 200, version: '0.3.0' }); if (i % 20 === 0) await new Promise((r) => setTimeout(r, 16)); }
+    await new Promise((r) => setTimeout(r, 500));
+    const mid = { same: slot.querySelector('.toast') === el, sameParts: el.querySelector('[data-bind=toast-pct]') === pct && el.querySelector('[data-bind=toast-bar]') === bar,
+      starts, childSwaps, running: el.getAnimations().length, tops: tops.size, heights: heights.size, minOp, pct: pct.textContent, bar: bar.style.transform, tabular: getComputedStyle(pct).fontVariantNumeric };
+    window.__hostSend({ type: 'updateStatus', state: 'installing', version: '0.3.0' });
+    await new Promise((r) => setTimeout(r, 300));
+    sampling = false;
+    const cs = getComputedStyle(el), zs = Number(getComputedStyle(slot).zIndex), zModal = 50;
+    return Object.assign(mid, { sameAfterInstall: slot.querySelector('.toast') === el, startsAfterInstall: starts, installTitle: el.querySelector('.toast-title-text').textContent,
+      bg: cs.backgroundColor, bgImg: cs.backgroundImage, backdrop: cs.backdropFilter, z: zs > zModal });
+  });
+  check('toast: 200 snelle voortgangsberichten, zelfde element (niet opnieuw aangemaakt)', () => assert.deepStrictEqual([fl.same, fl.sameParts, fl.childSwaps], [true, true, 0], JSON.stringify(fl)));
+  check('toast: enter-animatie start niet opnieuw, geen knipperen (opacity 1)', () => assert.deepStrictEqual([fl.starts, fl.running, fl.minOp], [0, 0, 1], JSON.stringify(fl)));
+  check('toast: springt niet (vaste positie en hoogte)', () => assert.deepStrictEqual([fl.tops, fl.heights], [1, 1], JSON.stringify(fl)));
+  check('toast: alleen balk (scaleX) + percentage bijgewerkt, tabular-nums', () => assert.deepStrictEqual([fl.pct, fl.bar, fl.tabular], ['100%', 'scaleX(1)', 'tabular-nums'], JSON.stringify(fl)));
+  check('toast: Installeren in hetzelfde element, geen nieuwe animatie', () => assert.deepStrictEqual([fl.sameAfterInstall, fl.startsAfterInstall, fl.installTitle], [true, 0, 'Vanta wordt bijgewerkt…'], JSON.stringify(fl)));
+  check('toast: ondoorzichtige achtergrond, geen backdrop-filter, boven alles', () => assert.ok(/^rgb\(/.test(fl.bg) && fl.backdrop === 'none' && fl.z && /linear-gradient\(rgb\(/.test(fl.bgImg), JSON.stringify(fl)));
+  await page.mouse.move(0, 0);
+  await shot(`vanta-${VER}-update-installeren.png`);
+
+  // 6c3. "Later" = not offered again this session (a manual check still shows it)
+  await load();
+  const offer = () => page.evaluate(() => window.__hostSend({ type: 'update', manual: false, current: '0.2.1', release: { state: 'available', version: '0.3.0', notes: '- x', url: '', size: 1 } }));
+  await offer(); await sleep(250);
+  await page.click('[data-action=update-later]'); await sleep(150);
+  await offer(); await sleep(250);
+  const later = await page.evaluate(() => ({ toast: !!document.querySelector('.toast'), sent: window.__posted.filter((m) => m.type === 'updateLater').map((m) => m.version) }));
+  check('Later: bericht met versie, zelfde versie niet opnieuw getoond', () => assert.deepStrictEqual(later, { toast: false, sent: ['0.3.0'] }));
+  await page.evaluate(() => window.__hostSend({ type: 'update', manual: true, current: '0.2.1', release: { state: 'available', version: '0.3.0', notes: '- x', url: '', size: 1 } }));
+  await sleep(250);
+  const manualShown = await page.$('.toast');
+  check('handmatige controle toont uitgestelde update opnieuw', () => assert.ok(manualShown));
+  await page.click('[data-action=update-close]'); await sleep(150);
+  const dis = await page.evaluate(() => window.__posted.filter((m) => m.type === 'updateDismiss').map((m) => m.version));
+  check('sluitknop: updateDismiss met versie naar host', () => assert.deepStrictEqual(dis, ['0.3.0']));
   await load();
   await page.click('[data-action=open-settings]');
   await sleep(200);

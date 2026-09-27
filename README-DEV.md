@@ -1,4 +1,4 @@
-# Vanta v0.2.1 (developer notes)
+# Vanta v0.2.2 (developer notes)
 
 Standalone Windows trainer for **single-player/offline** games. It has no Cheat Engine dependency.
 Games marked `antiCheat` or `onlineOnly` are listed but refused (never opened, never launched).
@@ -163,8 +163,12 @@ UI messages: `{type:'setStatus', gameId, id, status|null}` and `{type:'exportSta
 the JSON to the clipboard. The export lists per game/version/cheat the local `status` and the `gameJson` value.
 
 ## Auto-updater (v0.2)
-* `AppUpdater` checks `https://api.github.com/repos/Rick007110/Vanta/releases/latest` 5 s after the UI is ready and every
-  6 h. It is unauthenticated (60 requests/h per IP is plenty) and quiet when offline, rate-limited (403 with
+* `AppUpdater` checks `https://api.github.com/repos/Rick007110/Vanta/releases/latest` 5 s after the UI is ready, every
+  30 min, and when the window is activated (at most once per 5 min; `UpdatePolicy`). A version is offered at most once per
+  session; "Later" or the toast's close button (`updateDismiss`) suppresses it until the next start, a manual check always
+  shows it. Download progress is throttled to ~10 messages/s (`ProgressThrottle`). The UI creates the toast element once
+  (single enter animation); state changes swap its children and progress only sets the bar's `scaleX` and the percentage
+  text. It is unauthenticated (60 requests/h per IP is plenty) and quiet when offline, rate-limited (403 with
   `x-ratelimit-remaining: 0` or 429) or when no release exists. Drafts and pre-releases are ignored; versions are compared
   as SemVer against the assembly version.
 * A release must have `Vanta-v<version>.zip` plus `Vanta-v<version>.zip.sha256` (sha256sum format). Without a matching hash

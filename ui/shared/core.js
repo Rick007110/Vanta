@@ -25,7 +25,7 @@
 
   const state = {
     selectedId: D.selectedGameId, query: '', category: '', tab: 'cheats',
-    status: {}, cheats: {}, log: D.log, settings: null, catalog: null, dataDir: '', capture: null, modal: null,
+    status: {}, cheats: {}, dismissedUpdates: new Set(), log: D.log, settings: null, catalog: null, dataDir: '', capture: null, modal: null,
   };
   D.games.forEach((g) => { state.cheats[g.id] = {}; (g.cheats || []).forEach((c) => (state.cheats[g.id][c.id] = Object.assign({}, c))); });
 
@@ -413,11 +413,39 @@
   }
 
   // ---------- updates ----------
+  // The toast element is created once per appearance: its enter animation must not restart on every progress message
+  // (that caused the flicker/jumping while downloading). A state change swaps only the children; progress updates only
+  // the bar transform and the percentage text.
+  const toastKey = (u) => [u.state, u.version, u.message || '', u.notes || '', u.url || ''].join('|');
   function renderToast() {
     const slot = $('[data-slot=toast]'); if (!slot || !T.updateToast) return;
     const u = state.update;
+    let el = slot.firstElementChild;
     if (!u) { slot.innerHTML = ''; slot.hidden = true; return; }
-    slot.hidden = false; slot.innerHTML = T.updateToast(u);
+    slot.hidden = false;
+    if (!el || !el.classList.contains('toast')) {
+      slot.innerHTML = T.updateToast(u);
+      el = slot.firstElementChild; el._key = toastKey(u);
+      el.addEventListener('animationend', () => el.classList.add('is-in'), { once: true });
+      return;
+    }
+    const key = toastKey(u);
+    if (el._key !== key) {
+      el._key = key; el.dataset.state = u.state;
+      el.innerHTML = T.updateToastInner ? T.updateToastInner(u) : T.updateToast(u);
+      return;
+    }
+    patchToastProgress(el, u);
+  }
+  function patchToastProgress(el, u) {
+    const p = u.state === 'installing' ? 1 : clamp(Number(u.progress) || 0, 0, 1);
+    const bar = $('[data-bind=toast-bar]', el); if (bar) bar.style.transform = `scaleX(${p})`;
+    const pct = $('[data-bind=toast-pct]', el); if (pct) { const txt = Math.round(p * 100) + '%'; if (pct.textContent !== txt) pct.textContent = txt; }
+  }
+  function dismissUpdate() {
+    const v = state.update && state.update.version;
+    if (v) state.dismissedUpdates.add(v);
+    return v;
   }
   function onUpdateStatus(s) {
     state.updateCheck = s;
@@ -426,6 +454,7 @@
       const b = $('[data-action=check-update]'); if (b) b.disabled = s.state === 'checking';
     }
     if (['downloading', 'installing', 'pending', 'updated', 'failed', 'error'].includes(s.state) && (state.update || ['updated', 'failed', 'pending'].includes(s.state))) {
+      if (!state.update && s.state === 'pending' && s.version && state.dismissedUpdates.has(s.version)) return;   // already postponed this session
       state.update = Object.assign({}, state.update || {}, s);
       renderToast();
     }
@@ -464,8 +493,8 @@
       if (a === 'open-url') return root.Bridge.send({ type: 'openUrl', url: act.dataset.url });
       if (a === 'check-update') { onUpdateStatus({ state: 'checking' }); return root.Bridge.send({ type: 'checkUpdate' }); }
       if (a === 'update-now') { state.update = Object.assign({}, state.update, { state: 'downloading', progress: 0 }); renderToast(); return root.Bridge.send({ type: 'updateNow' }); }
-      if (a === 'update-later') { state.update = null; renderToast(); return root.Bridge.send({ type: 'updateLater' }); }
-      if (a === 'update-close') { state.update = null; return renderToast(); }
+      if (a === 'update-later') { const v = dismissUpdate(); state.update = null; renderToast(); return root.Bridge.send({ type: 'updateLater', version: v }); }
+      if (a === 'update-close') { const v = dismissUpdate(); state.update = null; renderToast(); if (v) root.Bridge.send({ type: 'updateDismiss', version: v }); return; }
       if (a === 'step') return;
       const card = e.target.closest('[data-cheat][data-type=toggle]');
       if (card && !card.hasAttribute('data-disabled') && (!act || a === 'toggle')) toggle(card.dataset.cheat);
@@ -584,6 +613,8 @@
     root.Bridge.on('hotkey', (m) => { if (!m.gameId || m.gameId === state.selectedId) flash(m.id); });
     root.Bridge.on('update', (m) => {
       const r = m.release || {};
+      if (!m.manual && r.version && state.dismissedUpdates.has(r.version)) return;              // "Later" = not again this session
+      if (state.update && state.update.version === r.version && state.update.state !== 'available' && !m.manual) return;   // already downloading/installing
       state.update = { state: 'available', version: r.version, notes: r.notes, url: r.url, size: r.size };
       onUpdateStatus({ state: 'available', version: r.version });
       if (state.modal === 'settings') renderModal();

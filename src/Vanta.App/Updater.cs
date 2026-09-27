@@ -7,12 +7,12 @@ using Vanta.Core.Update;
 namespace Vanta.App;
 
 /// <summary>
-/// In-app side of the auto-updater: checks GitHub at start and every 6 h (unauthenticated, silent when offline or
-/// rate-limited), downloads + verifies the release zip, and hands over to the helper (<see cref="UpdateHelper"/>).
+/// In-app side of the auto-updater: checks GitHub at start, every 30 min and on window activation (at most once per 5 min;
+/// unauthenticated, silent when offline or rate-limited), offers a version once per session (see <see cref="UpdatePolicy"/>), downloads + verifies the release zip, and hands over to the helper (<see cref="UpdateHelper"/>).
 /// </summary>
 internal sealed class AppUpdater : IDisposable
 {
-    private static readonly TimeSpan Interval = TimeSpan.FromHours(6);
+    public UpdatePolicy Policy { get; } = new();
     private readonly Action<object> _post;
     private readonly HttpClient _http;
     private readonly UpdateChecker _checker;
@@ -28,11 +28,26 @@ internal sealed class AppUpdater : IDisposable
         _http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true }) { Timeout = TimeSpan.FromMinutes(10) };
         _http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(Branding.Name, Branding.Version));
         _checker = new UpdateChecker(Current, GetAsync);
-        _timer = new System.Threading.Timer(_ => _ = CheckAsync(manual: false), null, Timeout.Infinite, Timeout.Infinite);
+        _timer = new System.Threading.Timer(_ => { Policy.MarkChecked(); _ = CheckAsync(manual: false); }, null, Timeout.Infinite, Timeout.Infinite);
     }
 
-    /// <summary>Start the schedule: first check shortly after the UI is ready, then every 6 hours.</summary>
-    public void Start() => _timer.Change(TimeSpan.FromSeconds(5), Interval);
+    /// <summary>Start the schedule: first check shortly after the UI is ready, then every 30 minutes.</summary>
+    public void Start() { _started = true; _timer.Change(UpdatePolicy.StartDelay, UpdatePolicy.Interval); }
+    private bool _started;
+
+    /// <summary>Window activated: check again when the last check is at least 5 minutes old (never during a download).</summary>
+    public void OnActivated()
+    {
+        if (!_started || Volatile.Read(ref _busy) == 1) return;
+        if (Policy.TryFocusCheck()) _ = CheckAsync(manual: false);
+    }
+
+    /// <summary>"Later" or the toast's close button: don't offer this version again during this session.</summary>
+    public void Dismiss(string? version)
+    {
+        version ??= _last?.Release?.Version.ToString();
+        if (version != null) { Policy.Dismiss(version); Log.Info("update " + version + ": uitgesteld voor deze sessie"); }
+    }
 
     private async Task<HttpResult> GetAsync(string url, CancellationToken ct)
     {
@@ -47,7 +62,8 @@ internal sealed class AppUpdater : IDisposable
 
     public async Task CheckAsync(bool manual)
     {
-        if (manual) _post(new { type = "updateStatus", state = "checking" });
+        if (manual) { _post(new { type = "updateStatus", state = "checking" }); Policy.MarkChecked(); }
+        if (!manual && Volatile.Read(ref _busy) == 1) return;                   // downloading: the toast shows progress
         UpdateCheck c;
         try { c = await _checker.CheckAsync().ConfigureAwait(false); }
         catch (Exception e) { c = new UpdateCheck(UpdateState.Error, Message: e.Message); }
@@ -58,7 +74,12 @@ internal sealed class AppUpdater : IDisposable
             var v = c.Release.Version.ToString();
             if (Store.IsFailed(v) && !manual) return;                           // rolled back before: don't nag
             var pending = Store.LoadPending();
-            if (pending?.Version == v && !manual) { _post(new { type = "updateStatus", state = "pending", version = v }); return; }
+            if (pending?.Version == v && !manual)
+            {
+                if (Policy.ShouldShowPending(v, manual)) _post(new { type = "updateStatus", state = "pending", version = v });
+                return;
+            }
+            if (!Policy.ShouldOffer(v, manual)) { Log.Info($"update {v}: al aangeboden deze sessie"); return; }
             _post(new { type = "update", manual, current = Current.ToString(), release = c.ToUi() });
         }
         else if (manual) _post(new { type = "updateStatus", state = c.ToUi() });
@@ -71,8 +92,9 @@ internal sealed class AppUpdater : IDisposable
         var rel = _last?.Release;
         if (rel == null || _last!.State != UpdateState.Available) { await CheckAsync(manual: false).ConfigureAwait(false); rel = _last?.Release; }
         if (rel == null || rel.Version <= Current) { _post(new { type = "updateStatus", state = "uptodate" }); return null; }
-        var last = -1;
-        var progress = new Progress<double>(p => { var pct = (int)(p * 100); if (pct != last) { last = pct; _post(new { type = "updateStatus", state = "downloading", progress = p, version = rel.Version.ToString() }); } });
+        var throttle = new ProgressThrottle(TimeSpan.FromMilliseconds(100));        // max ~10 UI messages per second
+        var ver = rel.Version.ToString();
+        var progress = new SyncProgress(p => { if (throttle.ShouldReport(p)) _post(new { type = "updateStatus", state = "downloading", progress = Math.Round(p, 4), version = ver }); });
         return await Store.DownloadAsync(rel, (u, ct) => _http.GetStringAsync(u, ct), DownloadFileAsync, progress).ConfigureAwait(false);
     }
 
@@ -103,17 +125,27 @@ internal sealed class AppUpdater : IDisposable
     /// <summary>"Later": download + verify in the background; the next start installs it before the UI opens.</summary>
     public async Task LaterAsync()
     {
+        Dismiss(null);
         if (Interlocked.Exchange(ref _busy, 1) == 1) return;
         try
         {
             var p = await DownloadAsync().ConfigureAwait(false);
-            if (p != null) _post(new { type = "updateStatus", state = "pending", version = p.Version });
+            if (p != null && Policy.ShouldShowPending(p.Version, manual: true)) _post(new { type = "updateStatus", state = "pending", version = p.Version });
         }
         catch (Exception e) { Log.Error("update download: " + e.Message); _post(new { type = "updateStatus", state = "error", message = e.Message }); }
         finally { Interlocked.Exchange(ref _busy, 0); }
     }
 
     public void Dispose() { _timer.Dispose(); _http.Dispose(); }
+
+    /// <summary>IProgress that reports on the calling thread (Progress&lt;T&gt; posts every report to the thread pool, which
+    /// can deliver them out of order and defeats the throttle).</summary>
+    private sealed class SyncProgress : IProgress<double>
+    {
+        private readonly Action<double> _a; private readonly object _l = new();
+        public SyncProgress(Action<double> a) => _a = a;
+        public void Report(double v) { lock (_l) _a(v); }
+    }
 }
 
 /// <summary>
