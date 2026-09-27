@@ -126,16 +126,21 @@
     const st = c.error ? 'error' : isVal && c.hint ? 'hint' : c.type === 'toggle' ? (c.enabled ? 'on' : 'off') : 'value';
     el.dataset.state = st;
     el.classList.toggle('is-pending', !!c._pending);
-    const dis = !interactive() || (isVal && (!!c.hint && c.value == null));
+    const broken = isBroken(c);
+    el.dataset.conf = c.confidence || 'untested';
+    el.toggleAttribute('data-local', !!c.localStatus);
+    el.toggleAttribute('data-broken', broken);
+    const dis = !interactive() || (isVal && (!!c.hint && c.value == null)) || broken;
     el.toggleAttribute('data-disabled', dis);
     const sw = $('[role=switch]', el);
     if (sw) { sw.setAttribute('aria-checked', String(!!c.enabled)); sw.disabled = dis; }
     const run = $('[data-action=run]', el); if (run) run.disabled = dis;
+    const tr = $('[data-action=try-anyway]', el); if (tr) tr.disabled = !interactive();
     const lbl = $('[data-bind=state-label]', el);
     if (lbl) lbl.textContent = c.error ? t('row.err') : c.enabled ? t('row.on') : t('row.off');
     const err = $('[data-bind=error]', el);
     if (err) { err.textContent = c.error || ''; err.hidden = !c.error; }
-    el.title = c.error ? `${c.name}: ${c.error}` : (c.note || '');
+    el.title = c.error ? `${c.name}: ${c.error}` : broken ? t('row.broken', { n: c.name }) : (c.note || '');
     const sub = $('[data-bind=sub]', el);
     if (sub) { const txt = c.hint && c.value == null && !c.error ? c.hint : (sub.dataset.default || ''); sub.textContent = txt; sub.hidden = !txt || !!c.error; }
     const inp = $('[data-role=value-input]', el);
@@ -201,13 +206,92 @@
     renderCategories(); renderLibrary(); renderGame(); patchFooter(); patchLog();
   }
 
+  // ---------- test status (local override of game.json confidence) ----------
+  const STATUS_CONF = { works: 'confirmed', broken: 'broken', untested: 'untested' };
+  const baseConf = (c) => c.baseConfidence || (c.baseConfidence = c.confidence || 'untested');
+  // broken = greyed + locked, unless it is already on (so it can be switched off) or "toch proberen" was chosen
+  function isBroken(c) { return c.confidence === 'broken' && !c.enabled && !c._tryAnyway; }
+  function noteFor(conf) { return conf === 'confirmed' ? null : conf === 'broken' ? t('conf.warn.broken') : conf === 'experimental' ? t('conf.warn.experimental') : t('conf.warn.untested'); }
+  function setStatus(id, status /* works|broken|untested|null */) {
+    const c = cheat(id); if (!c) return;
+    const base = baseConf(c);
+    c.localStatus = status || null;
+    c.confidence = status ? STATUS_CONF[status] : base;
+    c.note = noteFor(c.confidence);
+    if (c.confidence !== 'broken') c._tryAnyway = false;
+    root.Bridge.send({ type: 'setStatus', gameId: state.selectedId, id, status: status || null });
+    state.log = { time: '', text: t('ctx.saved', { n: c.name, s: t('ctx.' + (status || 'default')) }), level: 'info' }; patchLog();
+    renderTab();
+  }
+  let ctxFor = null;
+  function openContextMenu(id, x, y) {
+    const c = cheat(id); if (!c || !T.contextMenu) return;
+    closeContextMenu();
+    ctxFor = id;
+    const host = document.createElement('div');
+    host.className = 'ctx-slot'; host.innerHTML = T.contextMenu(Object.assign({ baseConfidence: baseConf(c) }, c));
+    R.appendChild(host);
+    const m = host.firstElementChild, r = m.getBoundingClientRect();
+    const vw = window.innerWidth, vh = window.innerHeight;
+    m.style.left = Math.max(8, Math.min(x, vw - r.width - 8)) + 'px';
+    m.style.top = Math.max(8, Math.min(y, vh - r.height - 8)) + 'px';
+    $$(`[data-cheat]`).forEach((e) => e.classList.toggle('is-ctx', e.dataset.cheat === id));
+    const first = $('.ctx-item.is-current', m) || $('.ctx-item', m); if (first) first.focus({ preventScroll: true });
+  }
+  function closeContextMenu() {
+    if (!ctxFor) return;
+    ctxFor = null;
+    $$('.ctx-slot').forEach((e) => e.remove());
+    $$('.is-ctx').forEach((e) => e.classList.remove('is-ctx'));
+  }
+  function exportStatus() {
+    const el = $('[data-bind=export-status]');
+    if (el) { el.hidden = false; el.textContent = t('set.status.busy'); }
+    root.Bridge.send({ type: 'exportStatus' });
+  }
+  function copyText(text) {
+    const fallback = () => {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        const ok = document.execCommand('copy'); ta.remove(); return ok;
+      } catch (_) { return false; }
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(() => true, () => fallback());
+    } catch (_) { /* fall through */ }
+    return Promise.resolve(fallback());
+  }
+  function onStatusExport(m) {
+    copyText(m.json || '').then((ok) => {
+      const msg = ok ? t('set.status.copied', { p: m.path || '' }) : t('set.status.saved', { p: m.path || '' });
+      const el = $('[data-bind=export-status]'); if (el) { el.hidden = false; el.textContent = msg; el.title = m.path || ''; el.dataset.copied = String(!!ok); }
+      state.lastExport = { json: m.json, path: m.path, copied: !!ok };
+      state.log = { time: '', text: msg, level: 'info' }; patchLog();
+    });
+  }
+
   // ---------- actions ----------
-  function toggle(id, force) {
+  function toggle(id, force, opts) {
     const c = cheat(id); if (!c || c.type !== 'toggle' || !interactive()) return;
     const enabled = force ?? !(c.enabled && !c.error);
+    const tryAnyway = !!(opts && opts.tryAnyway);
+    if (enabled && c.confidence === 'broken' && !tryAnyway && !c._tryAnyway) {
+      state.log = { time: '', text: t('row.broken', { n: c.name }), level: 'error' }; patchLog(); flash(id);
+      return;
+    }
+    if (tryAnyway) c._tryAnyway = true;
     c.enabled = enabled; c.error = null; c._pending = true;
     patchCheat(c); patchCounts();
-    root.Bridge.send({ type: 'toggle', gameId: state.selectedId, id, enabled }).then(() => { c._pending = false; patchCheat(c); });
+    const msg = { type: 'toggle', gameId: state.selectedId, id, enabled };
+    if (enabled && c.confidence === 'broken') msg.force = true;
+    root.Bridge.send(msg).then(() => { c._pending = false; if (!c.enabled && c.confidence === 'broken') c._tryAnyway = false; patchCheat(c); });
+  }
+  function tryAnyway(id) {
+    const c = cheat(id); if (!c || !interactive()) return;
+    if (c.type === 'toggle') return toggle(id, true, { tryAnyway: true });
+    c._tryAnyway = true; patchCheat(c);
   }
   function flash(id) {
     const el = $(`[data-cheat="${id}"]`); if (!el) return;
@@ -352,6 +436,14 @@
     R.addEventListener('click', (e) => {
       const act = e.target.closest('[data-action]');
       const a = act && act.dataset.action;
+      if (ctxFor) {
+        const id = ctxFor;
+        if (a === 'set-status') { closeContextMenu(); return setStatus(id, act.dataset.status === 'default' ? null : act.dataset.status); }
+        closeContextMenu();
+        return;                                                  // a click outside the menu only closes it
+      }
+      if (a === 'try-anyway') { e.stopPropagation(); return tryAnyway(act.closest('[data-cheat]').dataset.cheat); }
+      if (a === 'export-status') return exportStatus();
       if (a === 'select-game') return select(act.dataset.game);
       if (a === 'primary') return primary(act);
       if (a === 'tab') { state.tab = act.dataset.value; if (state.capture) setCapture(null); return renderTab(); }
@@ -378,6 +470,18 @@
       const card = e.target.closest('[data-cheat][data-type=toggle]');
       if (card && !card.hasAttribute('data-disabled') && (!act || a === 'toggle')) toggle(card.dataset.cheat);
     });
+    R.addEventListener('contextmenu', (e) => {
+      const row = e.target.closest('[data-cheat], [data-cheat-note]');
+      if (!row || e.target.closest('input')) { if (ctxFor) closeContextMenu(); return; }
+      e.preventDefault();
+      const id = row.dataset.cheat || row.dataset.cheatNote;
+      let x = e.clientX, y = e.clientY;
+      if (!x && !y) { const r = row.getBoundingClientRect(); x = r.left + 48; y = r.bottom - 4; }   // keyboard (Shift+F10 / menu key)
+      openContextMenu(id, x, y);
+    });
+    window.addEventListener('blur', closeContextMenu);
+    window.addEventListener('resize', closeContextMenu);
+    R.addEventListener('scroll', closeContextMenu, true);
     R.addEventListener('pointerdown', (e) => {
       // window drag fallback (WebView2 runtimes without CSS app-region support)
       if (PROD && e.button === 0 && e.target.closest('.drag') && !e.target.closest('button, input, select, a, .no-drag')) root.Bridge.send({ type: 'window', action: 'drag' });
@@ -426,6 +530,16 @@
         saveHotkey(key, combo);
         return setCapture(null);
       }
+      if (ctxFor) {
+        if (e.key === 'Escape') { e.preventDefault(); const id = ctxFor; closeContextMenu(); const row = $(`[data-cheat="${id}"]`); if (row) row.focus && row.focus(); return; }
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const items = $$('.ctx-menu .ctx-item'), i = items.indexOf(document.activeElement);
+          const n = items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length]; if (n) n.focus();
+          return;
+        }
+        if (e.key === 'Tab') { closeContextMenu(); }
+      }
       if (state.modal && e.key === 'Escape') return closeModal();
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); const s = $('[data-role=search]'); s.focus(); s.select(); return; }
       if (e.key === 'Escape' && e.target.matches && e.target.matches('[data-role=search]')) { e.target.value = ''; state.query = ''; renderLibrary(); return; }
@@ -439,6 +553,7 @@
     // host -> UI
     root.Bridge.on('game', (m) => {
       const g = m.game; if (!g) return;
+      if (g.id === state.selectedId) closeContextMenu();
       const idx = D.games.findIndex((x) => x.id === g.id);
       const prevEntry = idx >= 0 ? D.games[idx] : {};
       const merged = Object.assign({}, prevEntry, g, { lazy: false, group: prevEntry.group || 'all' });
@@ -474,6 +589,7 @@
       if (state.modal === 'settings') renderModal();
       renderToast();
     });
+    root.Bridge.on('statusExport', onStatusExport);
     root.Bridge.on('updateStatus', (m) => onUpdateStatus(typeof m.state === 'object' ? m.state : m));
     root.Bridge.on('settings', (m) => {
       state.settings = m.settings; state.catalog = m.catalog; state.dataDir = m.dataDir || '';
@@ -520,6 +636,6 @@
       document.documentElement.classList.add('is-ready');
     },
     util: { esc, fmt, STATUS, artUrl, keyName, comboOf },
-    state, toggle, flash, setValue, select, production: PROD,
+    state, toggle, flash, setValue, select, setStatus, openContextMenu, closeContextMenu, production: PROD,
   };
 })(window);

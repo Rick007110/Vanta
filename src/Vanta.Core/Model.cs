@@ -99,7 +99,7 @@ public sealed class CheatDef
     public string? Description { get; set; }
     public string? Hint { get; set; }                           // shown while a value isn't readable yet
     public string? Sub { get; set; }
-    public string Confidence { get; set; } = "untested";        // confirmed | untested | experimental
+    public string Confidence { get; set; } = "untested";        // confirmed | untested | experimental | broken
     public string? ConfidenceNote { get; set; }
     public List<string>? Requires { get; set; }
     public bool Hidden { get; set; }
@@ -191,10 +191,23 @@ public static class Json
     };
     public static readonly JsonSerializerOptions Compact = new(Options) { WriteIndented = false };
 
+    public static readonly string[] Confidences = { "confirmed", "untested", "experimental", "broken" };
+
+    /// <summary>Loader tolerance: confidence is case-insensitive; unknown values count as "untested".</summary>
+    public static void Normalize(GameDef g)
+    {
+        foreach (var c in g.Cheats)
+        {
+            var v = (c.Confidence ?? "").Trim().ToLowerInvariant();
+            c.Confidence = Array.IndexOf(Confidences, v) >= 0 ? v : "untested";
+        }
+    }
+
     public static GameDef LoadGame(string file)
     {
         var g = JsonSerializer.Deserialize<GameDef>(File.ReadAllText(file), Options) ?? throw new InvalidDataException("leeg bestand");
         g.Folder = Path.GetDirectoryName(Path.GetFullPath(file));
+        Normalize(g);
         return g;
     }
 }

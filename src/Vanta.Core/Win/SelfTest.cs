@@ -85,6 +85,8 @@ public sealed class SelfTest
         var errors = GameValidator.ValidateJson(gameJson).Where(f => f.Level == "error").ToList();
         Check("selftest-definitie valide", errors.Count == 0, string.Join("; ", errors));
         var g = System.Text.Json.JsonSerializer.Deserialize<GameDef>(gameJson, Json.Options)!;
+        Json.Normalize(g);
+        Check("confidence 'broken' geladen", g.Cheats.FirstOrDefault(c => c.Id == "broken_god")?.Confidence == "broken");
 
         var d = StartDummy(dummyExe);
         Info($"dummy pid {d.P.Id}, battery @ {d.Battery:X}, xp @ {d.Xp:X}, health @ {d.Health:X}");
@@ -155,13 +157,17 @@ public sealed class SelfTest
         var blocked = new GameDef { Id = "blocked", Name = "Online game", ProcessNames = { "vanta_dummy.exe" }, AntiCheat = true, Cheats = g.Cheats };
         var cat = new SingleCatalog(g, blocked);
         var sent = new List<string>();
-        var ctl = new TrainerController(cat, prov, new Settings { AttachDelaySec = 0.3, Language = "nl" }, o => sent.Add(System.Text.Json.JsonSerializer.Serialize(o)));
+        var statusFile = Path.Combine(Path.GetTempPath(), $"vanta-selftest-status-{Environment.ProcessId}.json");
+        try { File.Delete(statusFile); } catch { }
+        var ctl = new TrainerController(cat, prov, new Settings { AttachDelaySec = 0.3, Language = "nl" }, o => sent.Add(System.Text.Json.JsonSerializer.Serialize(o)),
+            status: new StatusStore(statusFile));
         Check("anti-cheat game geweigerd", ctl.StatusOf("blocked") == "blocked");
         WaitFor(() => { ctl.Poll(); return ctl.StatusOf(g.Id) == "attached"; }, 8000);
         Check("auto-koppelen aan draaiend proces", ctl.StatusOf(g.Id) == "attached");
         Check("anti-cheat game niet gekoppeld ondanks draaiend proces", ctl.SessionOf("blocked") == null && ctl.StatusOf("blocked") == "blocked");
         ctl.HandleUi(System.Text.Json.JsonDocument.Parse($"{{\"type\":\"toggle\",\"gameId\":\"{g.Id}\",\"id\":\"battery\",\"enabled\":true}}").RootElement);
         Check("cheat aan via controller", ctl.SessionOf(g.Id)?.IsActive("battery") == true);
+        SelfTestStatus(ctl, g, statusFile);
         d.P.Kill(); d.P.WaitForExit(5000);
         WaitFor(() => { ctl.Tick(); ctl.Poll(); return ctl.StatusOf(g.Id) == "notfound"; }, 5000);
         Check("game-exit gedetecteerd", ctl.StatusOf(g.Id) == "notfound");
@@ -177,6 +183,61 @@ public sealed class SelfTest
             b1 = ReadD(m2, d2.Battery); Thread.Sleep(400); b2 = ReadD(m2, d2.Battery);
             Check("afsluiten van Vanta herstelt de game", b2 < b1, $"{b1} -> {b2}");
         }
+    }
+
+    private static System.Text.Json.JsonElement Msg(string json) => System.Text.Json.JsonDocument.Parse(json).RootElement;
+    private static bool AckOk(object ack) => System.Text.Json.JsonSerializer.SerializeToElement(ack).GetProperty("ok").GetBoolean();
+
+    /// <summary>'broken' confidence refusal, "toch proberen" override, and local test status persisted in status.json.</summary>
+    private void SelfTestStatus(TrainerController ctl, GameDef g, string statusFile)
+    {
+        string T(string id, bool en, bool force = false) => $"{{\"type\":\"toggle\",\"gameId\":\"{g.Id}\",\"id\":\"{id}\",\"enabled\":{(en ? "true" : "false")}{(force ? ",\"force\":true" : "")}}}";
+        string S(string id, string? st) => $"{{\"type\":\"setStatus\",\"gameId\":\"{g.Id}\",\"id\":\"{id}\",\"status\":{(st == null ? "null" : "\"" + st + "\"")}}}";
+        var s = ctl.SessionOf(g.Id)!;
+        var bg = g.Cheats.First(c => c.Id == "broken_god");
+
+        var ack = ctl.HandleUi(Msg(T("broken_god", true)));
+        Check("'broken' cheat geweigerd", !AckOk(ack) && !s.IsActive("broken_god"));
+        ctl.OnHotkey(new HotkeyBinding("F7", g.Id, "broken_god", ""));
+        Check("'broken' cheat geweigerd via sneltoets", !s.IsActive("broken_god"));
+        ack = ctl.HandleUi(Msg(T("broken_god", true, force: true)));
+        Check("'broken' cheat via 'toch proberen' (force) aan", AckOk(ack) && s.IsActive("broken_god"));
+        ctl.HandleUi(Msg(T("broken_god", false)));
+        Check("'broken' cheat weer uit", !s.IsActive("broken_god"));
+
+        // local status: "Werkt" overrides game.json 'broken'
+        ack = ctl.HandleUi(Msg(S("broken_god", "works")));
+        Check("teststatus 'werkt' opgeslagen", AckOk(ack) && File.Exists(statusFile));
+        var reloaded = new StatusStore(statusFile);
+        var key = ctl.StatusKey(g);
+        Check("teststatus bewaard per game + versie-vingerafdruk", reloaded.Get(g.Id, key, "broken_god") == "works" && key.StartsWith("fileVersion="), key);
+        Check("lokale 'werkt' telt als bevestigd", ctl.EffectiveConfidence(g, bg) == "confirmed");
+        ack = ctl.HandleUi(Msg(T("broken_god", true)));
+        Check("cheat met lokale status 'werkt' zonder force aan", AckOk(ack) && s.IsActive("broken_god"));
+        ctl.HandleUi(Msg(T("broken_god", false)));
+
+        // local "Werkt niet" on a confirmed cheat
+        ctl.HandleUi(Msg(S("battery", "broken")));
+        ctl.HandleUi(Msg(T("battery", false)));
+        ack = ctl.HandleUi(Msg(T("battery", true)));
+        Check("lokale 'werkt niet' blokkeert een bevestigde cheat", !AckOk(ack) && !s.IsActive("battery"));
+
+        // reset to game.json
+        ctl.HandleUi(Msg(S("battery", null)));
+        ctl.HandleUi(Msg(S("broken_god", null)));
+        reloaded = new StatusStore(statusFile);
+        Check("'Standaard (uit game.json)' wist de lokale status", reloaded.Get(g.Id, key, "battery") == null && reloaded.Get(g.Id, key, "broken_god") == null
+            && ctl.EffectiveConfidence(g, bg) == "broken");
+        ack = ctl.HandleUi(Msg(T("battery", true)));
+        Check("bevestigde cheat na reset weer aan", AckOk(ack) && s.IsActive("battery"));
+
+        ctl.HandleUi(Msg(S("broken_god", "untested")));
+        ack = ctl.HandleUi(Msg("{\"type\":\"exportStatus\"}"));
+        var export = Directory.GetFiles(Path.GetDirectoryName(statusFile)!, "teststatus-export-*.json").Select(f => new FileInfo(f)).OrderByDescending(f => f.LastWriteTimeUtc).FirstOrDefault();
+        var exportText = export != null ? File.ReadAllText(export.FullName) : "";
+        Check("teststatus geëxporteerd als JSON", AckOk(ack) && exportText.Contains("\"broken_god\"") && exportText.Contains("\"untested\"") && exportText.Contains("\"gameJson\": \"broken\""), export?.Name);
+        ctl.HandleUi(Msg(S("broken_god", null)));
+        try { File.Delete(statusFile); if (export != null) File.Delete(export.FullName); } catch { }
     }
 
     private static int CodeDiff(IProcessMemory mem, ModuleInfo mod, byte[] a, byte[] b)

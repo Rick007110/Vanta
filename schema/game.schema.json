@@ -625,7 +625,8 @@
           "enum": [
             "confirmed",
             "untested",
-            "experimental"
+            "experimental",
+            "broken"
           ]
         },
         "confidenceNote": {

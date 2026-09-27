@@ -20,7 +20,8 @@
     const o = (ins.owned || [])[0];
     return o ? `<span class="meta-store is-owned" data-bind="store" data-store="${esc(o.store)}" title="${esc(o.note || '')}"><span class="meta-k">${esc(o.storeName)}</span><span class="meta-v">${esc(t('meta.ownedOnly'))}</span></span>` : '';
   };
-  const conf = (c) => c.confidence && c.confidence !== 'confirmed' ? '' : `<span class="conf conf-ok">${I('check', 11)}</span>`;
+  const conf = (c) => c.confidence && c.confidence !== 'confirmed' ? '' : `<span class="conf conf-ok${c.localStatus === 'works' ? ' conf-local' : ''}"${c.localStatus === 'works' ? ` title="${esc(t('conf.local.works'))}"` : ''}>${I('check', 11)}</span>`;
+  const tryBtn = () => `<button class="try" type="button" data-action="try-anyway" title="${esc(t('row.try.title'))}">${I('flask', 12)}${esc(t('row.try'))}</button>`;
   const swatch = (g) => { const a = Art.artOf(g); return `background:linear-gradient(160deg, ${a.sky[1]}, ${a.sky[0]} 60%, ${a.ground})`; };
 
   const T = {
@@ -80,6 +81,7 @@
           <span class="row-ic">${I(c.icon, 16)}<span class="row-ic-err">${I('alert', 16)}</span></span>
           <div class="row-main"><span class="row-name" id="n-${c.id}">${esc(c.name)}${conf(c)}</span><span class="row-err" data-bind="error" hidden></span></div>
           <button class="retry" type="button" data-action="retry">${I('refresh', 13)}${esc(t('row.retry'))}</button>
+          ${tryBtn()}
           ${chip(c.hotkey)}
           <span class="sr" data-bind="state-label"></span>
           <button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="n-${c.id}" data-action="toggle"><span class="knob"></span></button>
@@ -90,6 +92,7 @@
         <div class="row" data-cheat="${c.id}" data-type="number">
           <span class="row-ic">${I(c.icon, 16)}</span>
           <div class="row-main"><label class="row-name" for="v-${c.id}">${esc(c.name)}</label><span class="row-sub" data-bind="sub" data-default="${esc(c.sub || `${t('row.step', { s: fmt(c.step) })} · ${hk || t('row.hold')}`)}"></span><span class="row-err" data-bind="error" hidden></span></div>
+          ${tryBtn()}
           <div class="stepper">
             <button type="button" class="step" data-action="step" data-dir="-1" aria-label="${esc(t('row.dec', { n: c.name }))}">${I('minus', 14)}</button>
             <input id="v-${c.id}" class="step-val" data-role="value-input" inputmode="decimal" autocomplete="off">
@@ -101,6 +104,7 @@
         <div class="row" data-cheat="${c.id}" data-type="slider">
           <span class="row-ic">${I(c.icon, 16)}</span>
           <div class="row-main"><label class="row-name" for="s-${c.id}">${esc(c.name)}</label><span class="row-sub" data-bind="sub" data-default="${esc(c.sub || '')}" hidden></span><span class="row-err" data-bind="error" hidden></span></div>
+          ${tryBtn()}
           <div class="slider"><input id="s-${c.id}" type="range" data-role="slider" min="${c.min}" max="${c.max}" step="${c.step}">
             <output class="slider-out" data-bind="slider-out" for="s-${c.id}"></output></div>
         </div>`,
@@ -108,6 +112,7 @@
         <div class="row" data-cheat="${c.id}" data-type="button">
           <span class="row-ic">${I(c.icon, 16)}</span>
           <div class="row-main"><span class="row-name">${esc(c.name)}</span><span class="row-sub" data-bind="sub" data-default="${esc(c.sub || '')}" hidden></span><span class="row-err" data-bind="error" hidden></span></div>
+          ${tryBtn()}
           ${chip(c.hotkey)}
           <button class="btn-ghost run" type="button" data-action="run">${I('zap', 14)}${esc(c.buttonLabel || t('row.run'))}</button>
         </div>`,
@@ -139,11 +144,23 @@
         ${(g.notes || []).length ? `<ul class="notes">${g.notes.map((n) => `<li>${I('info', 14)}<span>${esc(n)}</span></li>`).join('')}</ul>` : `<p class="muted">${esc(t('notes.none'))}</p>`}
         <h4 class="pane-sub">${esc(t('notes.cheats'))}</h4>
         <div class="conf-list">${list.map((c) => `
-          <div class="conf-row"><span class="row-ic">${I(c.icon, 15)}</span><span class="conf-name">${esc(c.name)}</span>
-            <span class="badge badge-${esc(c.confidence || 'untested')}">${esc(t('conf.' + (c.confidence || 'untested')))}</span>
-            <span class="conf-note">${esc(c.description || '')}${c.note ? ` <em class="conf-warn">${esc(c.note)}</em>` : ''}</span></div>`).join('')}</div>
+          <div class="conf-row" data-cheat-note="${esc(c.id)}" data-conf="${esc(c.confidence || 'untested')}"><span class="row-ic">${I(c.icon, 15)}</span><span class="conf-name">${esc(c.name)}</span>
+            <span class="badge badge-${esc(c.confidence || 'untested')}${c.localStatus ? ' is-local' : ''}"${c.localStatus ? ` title="${esc(t('conf.local') + ' · ' + t('conf.base', { c: t('conf.' + (c.baseConfidence || 'untested')) }))}"` : ''}>${c.localStatus ? '<i class="badge-dot"></i>' : ''}${esc(t('conf.' + (c.confidence || 'untested')))}</span>
+            <span class="conf-note">${esc(c.description || '')}${c.note || c.confidence === 'broken' ? ` <em class="conf-warn">${esc(c.note || t('conf.warn.broken'))}</em>` : ''}</span></div>`).join('')}</div>
       </div>`,
     updLine: (u) => updLine(u),
+    contextMenu: (c) => {
+      const cur = c.localStatus || 'default';
+      const item = (s, ic) => `<button class="ctx-item${cur === s ? ' is-current' : ''}" type="button" role="menuitemradio" aria-checked="${cur === s}" data-action="set-status" data-status="${s}">
+          <span class="ctx-ic ctx-${s}">${I(ic, 13)}</span><span class="ctx-label">${esc(t('ctx.' + s))}</span>${cur === s ? `<span class="ctx-cur">${I('check', 12)}</span>` : ''}</button>`;
+      return `
+      <div class="ctx-menu" role="menu" aria-label="${esc(t('ctx.title'))}" data-cheat-menu="${esc(c.id)}">
+        <div class="ctx-head"><span class="ctx-name">${esc(c.name)}</span><span class="ctx-sub">${esc(t('ctx.title'))} · ${esc(t('conf.base', { c: t('conf.' + (c.baseConfidence || c.confidence || 'untested')) }))}</span></div>
+        ${item('works', 'check')}${item('broken', 'ban')}${item('untested', 'info')}
+        <div class="ctx-sep"></div>
+        ${item('default', 'refresh')}
+      </div>`;
+    },
     updateToast: (u) => {
       const busy = u.state === 'downloading' || u.state === 'installing';
       const title = { available: t('upd.available', { v: u.version }), downloading: t('upd.downloading', { v: u.version }), installing: t('upd.installing'),
@@ -184,6 +201,10 @@
               <div class="upd-row"><span class="input mono ro">${esc(Brand.name)} ${esc(info.version)}</span>
                 <button class="btn-ghost sm" type="button" data-action="check-update"${info.update && info.update.state === 'checking' ? ' disabled' : ''}>${I('refresh', 13)}${esc(t('upd.check'))}</button></div>
               <span class="field-help" data-bind="update-status">${esc(updLine(info.update))}</span></div>
+            <div class="field"><span class="field-k">${esc(t('set.status'))}</span>
+              <div class="upd-row"><span class="field-help grow">${esc(t('set.status.help'))}</span>
+                <button class="btn-ghost sm" type="button" data-action="export-status">${I('copy', 13)}${esc(t('set.status.export'))}</button></div>
+              <span class="field-help mono" data-bind="export-status" hidden></span></div>
             <div class="about">${I('shield', 15)}<span><b>${esc(Brand.name)} ${esc(info.version)}</b> · ${esc(t('set.scope'))}</span></div>
           </div>
           <footer class="modal-foot">

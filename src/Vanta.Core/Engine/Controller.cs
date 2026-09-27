@@ -41,6 +41,8 @@ public sealed class TrainerController
     private readonly Func<string, Task> _openUrl;
     private readonly Action<Settings> _saveSettings;
     private readonly StoreDetector? _stores;
+    private readonly StatusStore _status;
+    public StatusStore Status => _status;
     private readonly Dictionary<string, GameRt> _rt = new();
     private readonly Dictionary<string, List<string>> _byProcess = new(StringComparer.OrdinalIgnoreCase);
     public string? SelectedId { get; private set; }
@@ -50,9 +52,10 @@ public sealed class TrainerController
     public event Action? HotkeysChanged;
 
     public TrainerController(ICatalogSource catalog, IProcessProvider procs, Settings settings, Action<object> send,
-        Func<string, Task>? openUrl = null, Action<Settings>? saveSettings = null, StoreDetector? stores = null)
+        Func<string, Task>? openUrl = null, Action<Settings>? saveSettings = null, StoreDetector? stores = null, StatusStore? status = null)
     {
         _stores = stores;
+        _status = status ?? new StatusStore();
         _catalog = catalog; _procs = procs; _settings = settings; _send = send;
         _openUrl = openUrl ?? (_ => Task.CompletedTask); _saveSettings = saveSettings ?? (_ => { });
         Strings.Lang = settings.Language;
@@ -89,10 +92,59 @@ public sealed class TrainerController
 
     private static string Abbrev(string n) => new string(n.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(w => char.IsLetterOrDigit(w[0])).Take(2).Select(w => char.ToUpperInvariant(w[0])).ToArray());
 
+    // ---------------- local test status ----------------
+    /// <summary>Version key for local test status: the attached exe's fingerprint, else the last one seen, else the first supported label.</summary>
+    public string StatusKey(GameDef g)
+    {
+        var r = Rt(g.Id);
+        return r.Fingerprint != null ? StatusStore.VersionKey(r.Fingerprint, null) : _status.DefaultKey(g);
+    }
+
+    public string? LocalStatus(GameDef g, string cheatId) => _status.Get(g.Id, StatusKey(g), cheatId);
+    public string EffectiveConfidence(GameDef g, CheatDef c) => StatusStore.Effective(c.Confidence, LocalStatus(g, c.Id));
+
+    private static string? ConfidenceNote(string eff) => eff switch
+    {
+        "confirmed" => null,
+        "experimental" => Strings.Get("conf.warn.experimental"),
+        "broken" => Strings.Get("conf.warn.broken"),
+        _ => Strings.Get("conf.warn.untested"),
+    };
+
+    private string? SetStatus(string gameId, string cheatId, string? status)
+    {
+        var g = Game(gameId);
+        var c = g.Cheats.FirstOrDefault(x => x.Id == cheatId) ?? throw new CheatException(Strings.Get("cheat.unknown", cheatId));
+        if (status != null && Array.IndexOf(StatusStore.Values, status) < 0) return "onbekende status " + status;
+        var key = StatusKey(g);
+        var label = key.StartsWith("label:") ? key[6..] : g.SupportedVersions.FirstOrDefault()?.Label;
+        _status.Set(g, key, cheatId, status, label);
+        try { _status.Save(); } catch (Exception e) { Log(e.Message, "error"); return e.Message; }
+        // a cheat that is now marked broken but is still on stays on; the user can turn it off as usual
+        Log(Strings.Get("status.saved", c.Names != null && c.Names.TryGetValue(_settings.Language, out var ln) ? ln : c.Name,
+            status == null ? Strings.Get("status.default") : Strings.Get("status." + status)));
+        _send(UiGame(gameId));
+        PushState(gameId);
+        return null;
+    }
+
+    private string ExportStatus()
+    {
+        var json = _status.Export(id => { try { return Game(id); } catch { return null; } });
+        var dir = Path.GetDirectoryName(Path.GetFullPath(_status.File))!;
+        Directory.CreateDirectory(dir);
+        var file = Path.Combine(dir, $"teststatus-export-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+        File.WriteAllText(file, json);
+        _send(new { type = "statusExport", json, path = file });
+        Log(Strings.Get("status.exported", file));
+        return file;
+    }
+
     public object UiGame(string id)
     {
         var g = Game(id);
         var lang = _settings.Language;
+        var skey = StatusKey(g);
         return new
         {
             type = "game",
@@ -101,7 +153,12 @@ public sealed class TrainerController
                 id = g.Id, name = g.Name, @short = g.Short ?? Abbrev(g.Name), badge = g.Badge ?? "", version = g.SupportedVersions.FirstOrDefault()?.Label ?? "",
                 process = g.ProcessNames.FirstOrDefault() ?? "", steamAppId = g.SteamAppId, categories = g.Categories, antiCheat = g.AntiCheat, onlineOnly = g.OnlineOnly,
                 cheatCount = g.Cheats.Count(c => !c.Hidden), notes = g.Notes ?? new(), scope = g.Scope, install = InstallUi(g), art = g.Art,
-                cheats = g.Cheats.Where(c => !c.Hidden).Select(c => new
+                statusVersion = skey,
+                cheats = g.Cheats.Where(c => !c.Hidden).Select(c =>
+                {
+                    var local = _status.Get(g.Id, skey, c.Id);
+                    var w = (local, eff: StatusStore.Effective(c.Confidence, local));
+                    return (object)new
                 {
                     id = c.Id, section = c.Section, type = c.Type,
                     name = c.Names != null && c.Names.TryGetValue(lang, out var ln) ? ln : c.Name,
@@ -109,10 +166,10 @@ public sealed class TrainerController
                     defaultHotkey = c.Hotkey, defaultHotkeyInc = c.HotkeyInc, defaultHotkeyDec = c.HotkeyDec,
                     min = c.Min ?? 0, max = c.Max ?? 999999, step = c.Step ?? 1, format = c.Format ?? "{v}", sub = c.Sub,
                     hint = c.Type is "number" or "slider" ? (c.Hint ?? Strings.Get("ptr.null")) : null,
-                    note = c.Confidence == "experimental" ? Strings.Get("conf.warn.experimental") : c.Confidence == "confirmed" ? null : Strings.Get("conf.warn.untested"), description = c.Description, confidence = c.Confidence, buttonLabel = c.ButtonLabel,
+                    note = ConfidenceNote(w.eff), description = c.Description, confidence = w.eff, baseConfidence = c.Confidence, localStatus = w.local, buttonLabel = c.ButtonLabel,
                     enabled = Rt(g.Id).Desired.Contains(c.Id) && Rt(g.Id).Session?.IsActive(c.Id) == true,
                     value = (double?)null,
-                }),
+                }; }),
             },
         };
     }
@@ -185,7 +242,8 @@ public sealed class TrainerController
                 case "toggle":
                 {
                     bool en = m.GetProperty("enabled").GetBoolean();
-                    return Toggle(gameId!, cheatId!, en) is string err ? Ack(false, err) : Ack(true);
+                    bool force = m.TryGetProperty("force", out var fo) && fo.ValueKind == JsonValueKind.True;
+                    return Toggle(gameId!, cheatId!, en, force) is string err ? Ack(false, err) : Ack(true);
                 }
                 case "setValue":
                     return SetValue(gameId!, cheatId!, m.GetProperty("value").GetDouble()) is string e2 ? Ack(false, e2) : Ack(true);
@@ -203,6 +261,14 @@ public sealed class TrainerController
                 }
                 case "detach":
                     Detach(gameId!, user: true); return Ack(true);
+                case "setStatus":
+                {
+                    string? st = m.TryGetProperty("status", out var sv) && sv.ValueKind == JsonValueKind.String ? sv.GetString() : null;
+                    if (st is "" or "default") st = null;
+                    return SetStatus(gameId!, cheatId!, st) is string e6 ? Ack(false, e6) : Ack(true);
+                }
+                case "exportStatus":
+                    ExportStatus(); return Ack(true);
                 case "getSettings":
                     _send(SettingsPayload()); return Ack(true);
                 case "saveSettings":
@@ -211,7 +277,7 @@ public sealed class TrainerController
                     return Ack(false, "onbekend bericht " + type);
             }
         }
-        catch (Exception ex) when (ex is CheatException or KeyNotFoundException or InvalidOperationException)
+        catch (Exception ex) when (ex is CheatException or KeyNotFoundException or InvalidOperationException or IOException or UnauthorizedAccessException or ArgumentException)
         {
             return Ack(false, ex.Message);
         }
@@ -250,11 +316,18 @@ public sealed class TrainerController
         try { _saveSettings(_settings); } catch { }
     }
 
-    private string? Toggle(string gameId, string cheatId, bool enabled)
+    private string? Toggle(string gameId, string cheatId, bool enabled, bool force = false)
     {
         var r = Rt(gameId);
         var g = Game(gameId);
         var c = g.Cheats.FirstOrDefault(x => x.Id == cheatId) ?? throw new CheatException(Strings.Get("cheat.unknown", cheatId));
+        if (enabled && !force && EffectiveConfidence(g, c) == "broken" && r.Session?.IsActive(cheatId) != true)
+        {
+            var msg = Strings.Get("cheat.broken", c.Name);
+            _send(new { type = "state", gameId, cheats = new[] { new CheatStateDto { Id = cheatId, Enabled = false, Error = null }.ToUi() } });
+            Log(msg, "warn");
+            return msg;
+        }
         if (enabled) r.Desired.Add(cheatId); else r.Desired.Remove(cheatId);
         if (r.Session == null)
         {
@@ -471,6 +544,14 @@ public sealed class TrainerController
         }
         var (state, fp) = VersionCheck.Check(g, mem, mod, _procs.FileVersion(mod.Path));
         r.VersionState = state; r.Fingerprint = fp;
+        try
+        {
+            var fv = System.Text.RegularExpressions.Regex.Match(fp, @"fileVersion=([^,]+)").Groups[1].Value;
+            var label = state == "ok" && g.SupportedVersions.Count == 1 ? g.SupportedVersions[0].Label : (fv is "" or "?" ? null : fv);
+            _status.SetLastVersion(g, StatusStore.VersionKey(fp, null), label);
+            if (_status.Data.Games.ContainsKey(g.Id)) { _status.Save(); if (SelectedId == id) _send(UiGame(id)); }
+        }
+        catch (Exception e) { HostLog?.Invoke("status: " + e.Message); }
         HostLog?.Invoke($"attach {id} pid {r.Pid}: version {state} ({fp})");
         if (state == "mismatch" && !r.ForceVersion) { mem.Dispose(); Log(Strings.Get("version.mismatch", fp), "warn"); return; }
 
@@ -501,7 +582,7 @@ public sealed class TrainerController
 
     private void AutoEnableHooks(GameRt r)
     {
-        foreach (var c in r.Session!.Game.Cheats.Where(c => c.AutoEnable && c.Hidden))
+        foreach (var c in r.Session!.Game.Cheats.Where(c => c.AutoEnable && c.Hidden && c.Confidence != "broken"))
         {
             try { r.Session.Enable(c.Id); }
             catch (CheatException e) { HostLog?.Invoke($"autoEnable {c.Id}: {e.Message}"); }
@@ -546,7 +627,7 @@ public sealed class TrainerController
         if (r.Session == null) return;
         var c = r.Session.Game.Cheats.First(x => x.Id == b.CheatId);
         _send(new { type = "hotkey", gameId = b.GameId, id = b.CheatId });
-        if (b.Kind == "" && c.Type == "toggle") Toggle(b.GameId, c.Id, !r.Session.IsActive(c.Id));
+        if (b.Kind == "" && c.Type == "toggle") Toggle(b.GameId, c.Id, !r.Session.IsActive(c.Id));   // refuses (with a log line) when broken
         else if (b.Kind == "" && c.Type == "button") RunButton(b.GameId, c.Id);
         else if (b.Kind is "inc" or "dec")
         {

@@ -28,6 +28,11 @@ document.addEventListener('securitypolicyviolation', (e) => window.__csp.push(e.
 window.vantaHost = { library: ${JSON.stringify(lib)} };
 (function () {
   const games = ${JSON.stringify(DEV.games)};
+  // fixture: one cheat marked "broken" in game.json
+  const tlc = games['the-last-caretaker'];
+  if (tlc) tlc.cheats.forEach((c) => { c.baseConfidence = c.confidence; if (c.id === 'inf_jump') { c.confidence = c.baseConfidence = 'broken'; c.note = 'Werkt niet in deze versie.'; } });
+  const CONF = { works: 'confirmed', broken: 'broken', untested: 'untested' };
+  const NOTE = { confirmed: null, broken: 'Werkt niet in deze versie.', untested: 'Niet geverifieerd voor deze versie.', experimental: 'Experimenteel: kan de game laten crashen. Sla eerst op.' };
   const listeners = [];
   const send = (m) => setTimeout(() => listeners.forEach((fn) => fn({ data: m })), 10);
   const st = { status: ${JSON.stringify(status)} };
@@ -65,6 +70,22 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
         const g = JSON.parse(JSON.stringify(games[gid || m.settings.gameId]));
         g.cheats.forEach((c) => { if (c.id in m.settings.hotkeys) c.hotkey = m.settings.hotkeys[c.id] || null; });
         send({ type: 'game', game: g });
+        return ack();
+      }
+      if (m.type === 'setStatus') {
+        const g = games[gid]; const c = g && g.cheats.find((x) => x.id === m.id);
+        if (!c) return ack(false, 'onbekende cheat');
+        c.localStatus = m.status || null; c.confidence = m.status ? CONF[m.status] : c.baseConfidence; c.note = NOTE[c.confidence] || null;
+        send({ type: 'game', game: JSON.parse(JSON.stringify(g)) });
+        return ack();
+      }
+      if (m.type === 'exportStatus') {
+        const out = { vanta: '0.2.1', schema: 1, games: {} };
+        Object.values(games).forEach((g) => g.cheats.filter((c) => c.localStatus).forEach((c) => {
+          const e = out.games[g.id] = out.games[g.id] || { name: g.name, versions: { 'fileVersion=0.8.5.651238': { label: g.version, cheats: {} } } };
+          e.versions['fileVersion=0.8.5.651238'].cheats[c.id] = { status: c.localStatus, gameJson: c.baseConfidence };
+        }));
+        send({ type: 'statusExport', json: JSON.stringify(out, null, 2), path: '%LOCALAPPDATA%\\\\Vanta\\\\teststatus-export-20260927-150000.json' });
         return ack();
       }
       if (m.type === 'checkUpdate') { send({ type: 'updateStatus', state: { state: 'uptodate', version: '0.2.0' } }); return ack(); }
@@ -260,6 +281,73 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await sleep(250);
   const upd = await page.evaluate(() => ({ sent: window.__posted.filter((m) => m.type === 'checkUpdate').length, line: document.querySelector('[data-bind=update-status]').textContent }));
   check('instellingen: Controleer op updates', () => assert.deepStrictEqual(upd, { sent: 1, line: 'Je hebt de nieuwste versie.' }));
+  await page.click('[data-action=modal-close]');
+
+  // 6e. test status: broken cheat, right-click menu, local override, export
+  await load();
+  try { await browser.defaultBrowserContext().overridePermissions(base.replace(/\/index\.html$/, ''), ['clipboard-read', 'clipboard-write', 'clipboard-sanitized-write']); } catch (_) { /* older chrome */ }
+  const br = await page.$eval('[data-cheat=inf_jump]', (e) => ({ broken: e.hasAttribute('data-broken'), sw: e.querySelector('[role=switch]').disabled, title: e.title, tryVis: getComputedStyle(e.querySelector('[data-action=try-anyway]')).display !== 'none' }));
+  check('broken cheat: grijs, schakelaar uit, "Toch proberen" zichtbaar', () => assert.deepStrictEqual([br.broken, br.sw, br.tryVis, /werkt niet in deze versie/i.test(br.title)], [true, true, true, true], JSON.stringify(br)));
+  await page.click('[data-cheat=inf_jump] .row-name');
+  await sleep(150);
+  const tj = await page.evaluate(() => window.__posted.filter((m) => m.type === 'toggle' && m.id === 'inf_jump').length);
+  check('klik op broken cheat stuurt geen toggle', () => assert.strictEqual(tj, 0));
+  const tryOthers = await page.$$eval('[data-cheat]', (els) => els.filter((e) => e.dataset.cheat !== 'inf_jump' && getComputedStyle(e.querySelector('[data-action=try-anyway]') || e).display === 'inline-flex').length);
+  check('"Toch proberen" alleen bij broken cheats', () => assert.strictEqual(tryOthers, 0));
+  await page.mouse.move(0, 0);
+  await shot(`vanta-${VER}-werkt-niet.png`);
+  await page.click('[data-cheat=inf_jump] [data-action=try-anyway]');
+  await sleep(200);
+  const forced = await page.evaluate(() => ({ msg: window.__posted.filter((m) => m.type === 'toggle' && m.id === 'inf_jump').pop(), st: document.querySelector('[data-cheat=inf_jump]').dataset.state, broken: document.querySelector('[data-cheat=inf_jump]').hasAttribute('data-broken') }));
+  check('"Toch proberen": toggle met force:true, cheat aan', () => assert.deepStrictEqual([forced.msg && forced.msg.enabled, forced.msg && forced.msg.force, forced.st, forced.broken], [true, true, 'on', false], JSON.stringify(forced)));
+  await page.click('[data-cheat=inf_jump] [role=switch]');
+  await sleep(200);
+  const off = await page.evaluate(() => ({ msg: window.__posted.filter((m) => m.type === 'toggle' && m.id === 'inf_jump').pop(), broken: document.querySelector('[data-cheat=inf_jump]').hasAttribute('data-broken') }));
+  check('broken cheat weer uitzetten kan, daarna weer vergrendeld', () => assert.deepStrictEqual([off.msg.enabled, off.broken], [false, true]));
+
+  await page.click('[data-cheat=inf_health] .row-name', { button: 'right' });
+  await sleep(200);
+  const menu = await page.evaluate(() => { const m = document.querySelector('.ctx-menu'); return m && { items: [...m.querySelectorAll('.ctx-item .ctx-label')].map((e) => e.textContent), cur: (m.querySelector('.ctx-item.is-current .ctx-label') || {}).textContent, focus: document.activeElement && document.activeElement.classList.contains('ctx-item'), sub: m.querySelector('.ctx-sub').textContent }; });
+  check('rechtsklikmenu: Werkt / Werkt niet / Niet getest / Standaard', () => assert.deepStrictEqual(menu && menu.items, ['Werkt', 'Werkt niet', 'Niet getest', 'Standaard (uit game.json)'], JSON.stringify(menu)));
+  check('rechtsklikmenu: huidige = Standaard, focus in menu, game.json-waarde getoond', () => assert.deepStrictEqual([menu.cur, menu.focus, menu.sub], ['Standaard (uit game.json)', true, 'Teststatus · game.json: Ongetest']));
+  await shot(`vanta-${VER}-rechtsklikmenu.png`);
+  await page.keyboard.press('Escape');
+  await sleep(100);
+  const closed = await page.$('.ctx-menu');
+  check('menu gesloten na Escape', () => assert.strictEqual(closed, null));
+
+  const pick = async (id, status) => { await page.click(`[data-cheat=${id}] .row-name`, { button: 'right' }); await sleep(150); await page.click(`.ctx-item[data-status=${status}]`); await sleep(250); };
+  await pick('inf_health', 'broken');
+  const s1 = await page.evaluate(() => ({ msg: window.__posted.filter((m) => m.type === 'setStatus').pop(), broken: document.querySelector('[data-cheat=inf_health]').hasAttribute('data-broken'), local: document.querySelector('[data-cheat=inf_health]').hasAttribute('data-local'), menu: !!document.querySelector('.ctx-menu') }));
+  check('Werkt niet: setStatus naar host, rij grijs, menu dicht', () => assert.deepStrictEqual([s1.msg.id, s1.msg.status, s1.msg.gameId, s1.broken, s1.local, s1.menu], ['inf_health', 'broken', 'the-last-caretaker', true, true, false]));
+  await pick('inf_health', 'works');
+  const s2 = await page.evaluate(() => ({ msg: window.__posted.filter((m) => m.type === 'setStatus').pop(), broken: document.querySelector('[data-cheat=inf_health]').hasAttribute('data-broken'), check: !!document.querySelector('[data-cheat=inf_health] .conf-ok.conf-local') }));
+  check('Werkt: telt als bevestigd, groen vinkje', () => assert.deepStrictEqual([s2.msg.status, s2.broken, s2.check], ['works', false, true]));
+  await pick('inf_jump', 'works');
+  const s3 = await page.$eval('[data-cheat=inf_jump]', (e) => ({ broken: e.hasAttribute('data-broken'), sw: e.querySelector('[role=switch]').disabled }));
+  check('Werkt overschrijft game.json broken: schakelaar weer bruikbaar', () => assert.deepStrictEqual(s3, { broken: false, sw: false }));
+  await pick('no_weight', 'untested');
+  await page.click('[data-action=tab][data-value=notes]');
+  await sleep(150);
+  const notes = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-cheat-note]')].map((e) => [e.dataset.cheatNote, { badge: e.querySelector('.badge').textContent, local: e.querySelector('.badge').classList.contains('is-local'), warn: (e.querySelector('.conf-warn') || {}).textContent || '' }])));
+  check('notities: lokale status zichtbaar (Bevestigd/Ongetest, gemarkeerd)', () => assert.deepStrictEqual([notes.inf_health.badge, notes.inf_health.local, notes.no_weight.badge, notes.no_weight.local, notes.inf_jump.badge], ['Bevestigd', true, 'Ongetest', true, 'Bevestigd']));
+  await page.$eval('[data-cheat-note=inf_jump]', (e) => e.scrollIntoView({ block: 'center' })); await sleep(200);   // a scroll closes the menu
+  await page.click('[data-cheat-note=inf_jump] .conf-name', { button: 'right' }); await sleep(150); await page.click('.ctx-item[data-status=default]'); await sleep(250);
+  const nj = await page.$eval('[data-cheat-note=inf_jump]', (e) => ({ badge: e.querySelector('.badge').textContent, warn: (e.querySelector('.conf-warn') || {}).textContent }));
+  check('notities: broken cheat toont "Werkt niet in deze versie."', () => assert.deepStrictEqual(nj, { badge: 'Werkt niet', warn: 'Werkt niet in deze versie.' }));
+  const lastDefault = await page.evaluate(() => window.__posted.filter((m) => m.type === 'setStatus').pop());
+  check('Standaard (uit game.json): status null naar host', () => assert.deepStrictEqual([lastDefault.id, lastDefault.status], ['inf_jump', null]));
+  await shot(`vanta-${VER}-notities-teststatus.png`);
+  await page.click('[data-action=tab][data-value=cheats]');
+
+  await page.click('[data-action=open-settings]');
+  await sleep(200);
+  await page.click('[data-action=export-status]');
+  await sleep(400);
+  const ex = await page.evaluate(async () => { const l = document.querySelector('[data-bind=export-status]'); let clip = null; try { clip = await navigator.clipboard.readText(); } catch (_) {} return { sent: window.__posted.filter((m) => m.type === 'exportStatus').length, line: l.textContent, hidden: l.hidden, copied: l.dataset.copied, clip }; });
+  check('Exporteer teststatus: bericht naar host + pad getoond', () => assert.ok(ex.sent === 1 && !ex.hidden && /teststatus-export-20260927-150000\.json/.test(ex.line), JSON.stringify(ex)));
+  check('Exporteer teststatus: JSON op het klembord', () => assert.ok(ex.copied === 'true' && (ex.clip == null || (/"inf_health"/.test(ex.clip) && /"works"/.test(ex.clip))), JSON.stringify(ex)));
+  await shot(`vanta-${VER}-exporteer-teststatus.png`);
   await page.click('[data-action=modal-close]');
 
   // 7. catalog scale: 1200 games, search + category + blocked game

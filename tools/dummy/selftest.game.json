@@ -44,6 +44,11 @@
     {
       "id": "god", "name": "God mode (freeze)", "section": "speler", "type": "toggle", "icon": "shield", "hotkey": "F6",
       "impl": { "type": "pointer", "base": { "aob": "48 8B 05 ?? ?? ?? ?? 48 85 C0 74 03 8B 40 10", "ripOffset": 3, "insnLength": 7 }, "offsets": [16], "valueType": "int32", "onValue": 999, "freeze": true }
+    },
+    {
+      "id": "broken_god", "name": "Broken freeze (dummy)", "section": "speler", "type": "toggle", "icon": "skull", "hotkey": "F7",
+      "confidence": "broken",
+      "impl": { "type": "pointer", "base": { "aob": "48 8B 05 ?? ?? ?? ?? 48 85 C0 74 03 8B 40 10", "ripOffset": 3, "insnLength": 7 }, "offsets": [16], "valueType": "int32", "onValue": 777, "freeze": true }
     }
   ]
 }

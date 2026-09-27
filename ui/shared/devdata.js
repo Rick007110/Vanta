@@ -3,7 +3,7 @@ window.VantaDev = { library: {
   "type": "library",
   "app": {
     "name": "Vanta",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "production": true,
     "lang": "nl",
     "ackTimeout": 30000
@@ -154,6 +154,7 @@ window.VantaDev = { library: {
       "horizon": "#E8D38A",
       "ground": "#050A08"
     },
+    "statusVersion": "label:Steam-build 18766066 (juli 2025) - onbevestigd",
     "cheats": [
       {
         "id": "godmode",
@@ -170,6 +171,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Je gezondheid wordt steeds teruggezet op het maximum.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -187,6 +189,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Sprinten kost geen uithoudingsvermogen.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -204,6 +207,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Zuurstof onder water raakt niet op.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -221,6 +225,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Vallen doet geen schade.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -238,6 +243,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Munitie wordt niet afgetrokken bij schieten.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -255,6 +261,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Wapens hebben geen terugslag.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -272,6 +279,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Kogels gaan precies waar je richt.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -289,6 +297,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Je vizier zwaait niet bij het richten.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -306,6 +315,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Vijanden merken je niet op.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -323,6 +333,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Voertuigen worden steeds hersteld naar maximale gezondheid. Let op: dit kan ook voor voertuigen van vijanden gelden.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -340,6 +351,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Raketten en flares van vliegtuigen/helikopters raken niet op.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -357,6 +369,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Bommen van vliegtuigen raken niet op.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -374,6 +387,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Maakt je geld (dollars) bewerkbaar. Aanzetten, dan het spel laden en eenmaal TAB (inventaris) indrukken; daarna verschijnt de waarde.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -390,6 +404,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Je huidige geld (dollars).",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -407,6 +422,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Maakt je perkpunten bewerkbaar. Geef eenmaal een perkpunt uit, dan verschijnt de waarde.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -423,6 +439,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Je huidige perkpunten.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       }
     ]
@@ -480,6 +497,7 @@ window.VantaDev = { library: {
       "horizon": "#FFC58A",
       "ground": "#0C0604"
     },
+    "statusVersion": "label:1.8.0 (build 20-07-2025, Ubisoft Connect/Steam)",
     "cheats": [
       {
         "id": "godmode",
@@ -496,6 +514,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Je neemt geen schade: de aanroep die schade op de speler toepast wordt overgeslagen.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -513,6 +532,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Sprinten en klimmen kosten geen uithoudingsvermogen.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -530,6 +550,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Zuurstof onder water raakt niet op.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -547,6 +568,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Het magazijn van je wapen blijft gevuld (zet de huidige clip op 99).",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -564,6 +586,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Het magazijn wordt niet leeg, dus je hoeft niet te herladen.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -581,6 +604,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Werpwapens (granaten, molotovs) en handelsgoederen worden niet afgetrokken. Volgens de auteur kun je zo ook handelswaar blijven verkopen voor Yaran-peso's.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -598,6 +622,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Wapens hebben geen terugslag.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -615,6 +640,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Kogelspreiding wordt vastgezet op een lage waarde.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -632,6 +658,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Geluiddempers (en wapenhitte op dezelfde waarde) blijven op 0.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -649,6 +676,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "De Supremo-rugzak laadt niet leeg; je kunt de speciale aanval steeds gebruiken.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -666,6 +694,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Voertuigen nemen geen schade. Let op: dit kan ook voor voertuigen van vijanden gelden.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -683,6 +712,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Upgrades en uitrusting maken kost geen materialen.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -700,6 +730,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Opgepakte grondstoffen en geld worden vermenigvuldigd (standaard x2; stel hieronder in).",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -716,6 +747,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Factor voor opgepakte grondstoffen/geld.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -733,6 +765,7 @@ window.VantaDev = { library: {
         "note": "Experimenteel: kan de game laten crashen. Sla eerst op.",
         "description": "Telt extra XP op bij elke XP-winst (standaard +100). Volgens de auteur werkt het vooral bij het vernietigen van voertuigen.",
         "confidence": "experimental",
+        "baseConfidence": "experimental",
         "enabled": false
       },
       {
@@ -749,6 +782,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Hoeveel XP er per keer extra bij komt.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -766,6 +800,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Past je bewegingssnelheid aan (waarde hieronder).",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -782,6 +817,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Snelheidswaarde van de speler (tabel-standaard 0,01).",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -799,6 +835,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Je springt hoger.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -816,6 +853,7 @@ window.VantaDev = { library: {
         "note": "Experimenteel: kan de game laten crashen. Sla eerst op.",
         "description": "Vijanden merken je niet op.",
         "confidence": "experimental",
+        "baseConfidence": "experimental",
         "enabled": false
       }
     ]
@@ -856,6 +894,7 @@ window.VantaDev = { library: {
       "horizon": "#F0A56E",
       "ground": "#061015"
     },
+    "statusVersion": "fileVersion=0.8.5.651238, peTimestamp=?, moduleSize=65536",
     "cheats": [
       {
         "id": "inf_battery",
@@ -871,6 +910,7 @@ window.VantaDev = { library: {
         "format": "{v}",
         "description": "Geen stroomverbruik: skipt de 'subsd' in de gedeelde elektriciteits-drain (speler-battery en elektrisch gereedschap/pak).",
         "confidence": "confirmed",
+        "baseConfidence": "confirmed",
         "enabled": false
       },
       {
@@ -888,6 +928,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Speler neemt geen schade. Neem eenmaal schade zodat het HP-adres wordt vastgelegd.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -903,6 +944,7 @@ window.VantaDev = { library: {
         "hint": "Zet Infinite Health aan en neem eenmaal schade",
         "note": "Niet geverifieerd voor deze versie.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -918,6 +960,7 @@ window.VantaDev = { library: {
         "hint": "Zet Infinite Health aan en neem eenmaal schade",
         "note": "Niet geverifieerd voor deze versie.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -935,6 +978,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Draaglimiet genegeerd (pak eenmaal een item op of leg er een neer om te verversen).",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -952,6 +996,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Bolt pistool/geweer/sniper: schieten verbruikt geen munitie, herladen werkt.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -969,6 +1014,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Granaten dalen niet (kan ook andere verbruiksitems raken).",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -984,6 +1030,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Elektrische wapens/vlammenwerper verbruiken geen lading.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -1004,6 +1051,7 @@ window.VantaDev = { library: {
         "hint": "Verdien eenmaal XP in-game (bv. iets looten of recyclen)",
         "note": "Niet geverifieerd voor deze versie.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -1019,6 +1067,7 @@ window.VantaDev = { library: {
         "hint": "XP-hook niet actief",
         "note": "Niet geverifieerd voor deze versie.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -1039,6 +1088,7 @@ window.VantaDev = { library: {
         "hint": "Enhancer-hook niet actief",
         "note": "Niet geverifieerd voor deze versie.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -1055,6 +1105,7 @@ window.VantaDev = { library: {
         "format": "{v}",
         "note": "Niet geverifieerd voor deze versie.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -1071,6 +1122,7 @@ window.VantaDev = { library: {
         "format": "{v}",
         "note": "Niet geverifieerd voor deze versie.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -1088,6 +1140,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Petrol (voertuigen/generator) daalt niet.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -1105,6 +1158,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "Geen materialen nodig of verbruikt.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       },
       {
@@ -1122,6 +1176,7 @@ window.VantaDev = { library: {
         "note": "Niet geverifieerd voor deze versie.",
         "description": "De bronstapel daalt niet bij splitsen.",
         "confidence": "untested",
+        "baseConfidence": "untested",
         "enabled": false
       }
     ]

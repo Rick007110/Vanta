@@ -1,8 +1,18 @@
-VANTA v0.2 - trainer voor singleplayer-games
-===========================================
+VANTA v0.2.1 - trainer voor singleplayer-games
+=============================================
 
 Vanta is een losstaand programma (geen Cheat Engine nodig). Het werkt alleen voor
 singleplayer/offline games. Games met online anti-cheat worden bewust geweigerd.
+
+NIEUW IN v0.2.1
+  - Nieuwe status "Werkt niet": zo'n cheat is grijs en kan niet aangezet worden
+    (met "Toch proberen" kan het toch). Notities tonen "Werkt niet in deze versie."
+  - Rechtsklik op een cheat: Werkt / Werkt niet / Niet getest / Standaard (uit game.json).
+    Je keuze wordt per game, game-versie en cheat bewaard in
+    %LOCALAPPDATA%\Vanta\status.json en gaat voor op game.json.
+  - Instellingen > "Exporteer teststatus": kopieert je teststatus als JSON naar het
+    klembord en slaat hem op in %LOCALAPPDATA%\Vanta\teststatus-export-<datum>.json,
+    zodat je hem kunt doorsturen.
 
 NIEUW IN v0.2
   - Far Cry 6 en Far Cry 5 (alle cheats nog ongetest in de huidige builds).
@@ -30,7 +40,7 @@ STAP 1 - SELFTEST (1 minuut)
      (liefst niet in "Program Files" en niet vanuit de zip starten).
   2. Open die map, klik in de adresbalk, typ  cmd  en druk op Enter.
   3. Typ:  Vanta.exe --selftest   en druk op Enter.
-  4. Verwacht: een lijst met [OK  ] en onderaan "RESULTAAT: GESLAAGD (26 controles)".
+  4. Verwacht: een lijst met [OK  ] en onderaan "RESULTAAT: GESLAAGD (39 controles)".
      Het resultaat staat ook in %LOCALAPPDATA%\Vanta\selftest.log
      Windows Defender/SmartScreen kan waarschuwen: het programma is niet
      digitaal ondertekend. Kies "Meer informatie" -> "Toch uitvoeren".

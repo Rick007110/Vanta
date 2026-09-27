@@ -153,7 +153,7 @@ public class VerifierTests
         m.Add(Dummy, g.MainModule);
         var (lines, ok) = Verifier.Report(g, m, new Dictionary<string, string> { [g.MainModule] = Dummy }, null);
         Assert.True(ok, string.Join("\n", lines));
-        Assert.Contains(lines, l => l.StartsWith("RESULTAAT: 4/4"));
+        Assert.Contains(lines, l => l.StartsWith("RESULTAAT: 5/5"));
         Assert.Contains(lines, l => l.Contains("headSha256="));
     }
 

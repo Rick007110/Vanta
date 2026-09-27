@@ -87,6 +87,9 @@ public static class GameValidator
                 else hotkeys[hk!] = c.Id;
             }
             if (c.Icon != null && !KnownIcons.Contains(c.Icon)) W(p, $"onbekend icoon '{c.Icon}'");
+            if (c.Confidence == "broken" && c.AutoEnable) W(p, "cheat met confidence 'broken' kan niet autoEnable zijn (wordt genegeerd)");
+            if (c.Confidence == "broken" && g.Cheats.Any(x => x.Requires?.Contains(c.Id) == true && x.Confidence != "broken"))
+                W(p, "andere cheats vereisen deze 'broken' cheat");
             var impl = c.Impl;
             switch (c.Type)
             {

@@ -1,4 +1,4 @@
-# Vanta v0.2 (developer notes)
+# Vanta v0.2.1 (developer notes)
 
 Standalone Windows trainer for **single-player/offline** games. It has no Cheat Engine dependency.
 Games marked `antiCheat` or `onlineOnly` are listed but refused (never opened, never launched).
@@ -85,11 +85,15 @@ notes, art, stores, launchExe, antiCheatFiles, antiCheatModules, scope`.
   is installed/running. Vanta then refuses to launch or attach (used for old Far Cry 5 builds with EasyAntiCheat).
 * `scope`: one line shown in the hero (e.g. "Alleen voor de solo-campagne").
 * `author`, `source` and `confidenceNote` are internal and never shown in the UI. The UI only shows a neutral warning per
-  cheat ("Niet geverifieerd voor deze versie." for `untested`, a crash warning for `experimental`).
+  cheat ("Niet geverifieerd voor deze versie." for `untested`, a crash warning for `experimental`,
+  "Werkt niet in deze versie." for `broken`).
+* `confidence: "broken"`: the cheat is greyed out and its toggle is locked. The host refuses `toggle` (and hotkeys) for
+  it unless the UI message carries `force: true` ("Toch proberen"). Turning it off always works. The loader lower-cases
+  confidence and maps unknown values to `untested`; the validator warns when a broken cheat is `autoEnable` or required.
 * `module` can also be set per impl (`impl.module`); the default is the game `module`, else `processNames[0]`.
 
 Cheat fields: `id, name, names{en}, section, type (toggle|number|slider|button), icon, hotkey/hotkeyInc/hotkeyDec,
-description, hint, sub, confidence (confirmed|untested|experimental), confidenceNote, requires[], hidden, autoEnable,
+description, hint, sub, confidence (confirmed|untested|experimental|broken), confidenceNote, requires[], hidden, autoEnable,
 min/max/step/format/resetValue, buttonLabel, impl`.
 
 `impl` types:
@@ -140,6 +144,23 @@ from several imports).
   from (no author names). Confirm with `--verify`.
 * Deliberately left out: teleports, HUD, one-hit kills for vehicles/animals, co-op features, FC5 silver bars (premium
   currency that is also sold for real money) and "unlock all store items", fixed-address pointer cheats.
+
+## Local test status (v0.2.1)
+
+Right-click a cheat row (or a row in Notities) for Werkt / Werkt niet / Niet getest / Standaard (uit game.json).
+`StatusStore` saves it in `%LOCALAPPDATA%\Vanta\status.json`:
+
+```json
+{ "schema": 1, "games": { "<gameId>": { "name": "...", "lastVersion": "<key>",
+  "versions": { "<key>": { "label": "...", "updated": "...", "cheats": { "<cheatId>": "works|broken|untested" } } } } } }
+```
+
+The version key is the attached exe's fingerprint without the file size (`fileVersion=…, peTimestamp=…, moduleSize=…`).
+When the game isn't running, the last seen key is used, else `label:<supportedVersions[0].label>`.
+Effective confidence: works → confirmed (green check), broken → broken, untested → untested, none → game.json.
+UI messages: `{type:'setStatus', gameId, id, status|null}` and `{type:'exportStatus'}`. The host answers the export with
+`{type:'statusExport', json, path}` and writes `teststatus-export-<yyyyMMdd-HHmmss>.json` next to status.json. The UI copies
+the JSON to the clipboard. The export lists per game/version/cheat the local `status` and the `gameJson` value.
 
 ## Auto-updater (v0.2)
 * `AppUpdater` checks `https://api.github.com/repos/Rick007110/Vanta/releases/latest` 5 s after the UI is ready and every
