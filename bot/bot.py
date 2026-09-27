@@ -2,7 +2,7 @@
 """Vanta Discord bot. Start: python bot.py   (Pterodactyl: startup file = bot.py)
 
 Options:
-  --check      only check the configuration and the connection to the Worker, then exit
+  --check      only check the configuration and the connection to Supabase, then exit
   --sync       force re-registering the slash commands at startup
   --sync-only  register the slash commands and exit
 """
@@ -39,15 +39,24 @@ def setup_logging(level: str) -> None:
     logging.getLogger("discord.gateway").setLevel(logging.WARNING if level != "DEBUG" else logging.DEBUG)
 
 
+HINTS = {
+    "function_missing": "de Vanta-functies bestaan niet: voer supabase-setup.sql uit in de SQL Editor van Supabase",
+    "permission_denied": "geen rechten: gebruik de secret/service_role key, niet de publishable/anon key",
+    "bad_key": "SUPABASE_SERVICE_ROLE_KEY wordt geweigerd: kopieer de secret key opnieuw",
+    "forbidden": "de key is geen service_role/secret key",
+    "unreachable": "SUPABASE_URL is niet bereikbaar (typefout, of het project is gepauzeerd?)",
+}
+
+
 async def check(cfg: Config) -> int:
-    async with VantaApi(cfg.api_url, cfg.api_secret, attempts=1) as api:
+    async with VantaApi(cfg.supabase_url, cfg.supabase_key, attempts=1) as api:
         try:
             st = await api.stats()
         except ApiError as e:
-            hint = {401: "BOT_API_SECRET klopt niet met de Worker", 503: "BOT_API_SECRET is niet ingesteld op de Worker", 0: "VANTA_API_URL is niet bereikbaar"}.get(e.status, "")
-            log.error("Worker check mislukt: %s %s", e, f"({hint})" if hint else "")
+            hint = HINTS.get(e.code, "")
+            log.error("Supabase-check mislukt: %s %s", e, f"({hint})" if hint else "")
             return 1
-    log.info("Worker OK: %s gebruikers, %s meldingen", st.get("users"), st.get("reports"))
+    log.info("Supabase OK: %s gebruikers, %s meldingen", st.get("users"), st.get("reports"))
     return 0
 
 

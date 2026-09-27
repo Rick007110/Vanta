@@ -5,3 +5,4 @@ state.json.tmp
 __pycache__/
 .pytest_cache/
 .local/
+.commands-hash

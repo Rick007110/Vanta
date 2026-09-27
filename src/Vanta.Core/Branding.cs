@@ -8,8 +8,11 @@ public static class Branding
     public const string DataFolder = "Vanta";          // %LOCALAPPDATA%\Vanta
     public const string UiHost = "vanta.example";          // virtual origin for the embedded UI (https://vanta.example/)
     public const string MutexName = "Local\\Vanta.SingleInstance";
-    /// <summary>Community backend (Cloudflare Worker), e.g. "https://vanta-api.example.workers.dev". Empty = accounts/reports off.
-    /// Can be overridden per PC with "backendUrl" in settings.json or the VANTA_BACKEND_URL environment variable.</summary>
-    public const string BackendUrl = "";
+    /// <summary>Community reports (Supabase): project URL, e.g. "https://abcd1234.supabase.co". Empty = accounts/reports off.
+    /// Can be overridden per PC with "supabaseUrl" in settings.json or the VANTA_SUPABASE_URL environment variable.</summary>
+    public const string SupabaseUrl = "";
+    /// <summary>The project's public publishable key (sb_publishable_...) or legacy anon key. Never the secret/service_role key
+    /// (Vanta refuses those). Override: "supabaseKey" in settings.json or VANTA_SUPABASE_KEY.</summary>
+    public const string SupabaseKey = "";
     public static string Version => typeof(Branding).Assembly.GetName().Version?.ToString(3) ?? "0.2.2";
 }

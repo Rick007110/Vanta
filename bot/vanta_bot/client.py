@@ -28,12 +28,13 @@ class VantaBot(commands.Bot):
         super().__init__(command_prefix=commands.when_mentioned, intents=intents, allowed_mentions=NO_MENTIONS,
                          help_command=None, max_messages=None)
         self.config = config
-        self.api = api or VantaApi(config.api_url, config.api_secret)
+        self.api = api or VantaApi(config.supabase_url, config.supabase_key)
         self.local = state or LocalState(config.state_file)
         self.sync_mode = sync_mode  # auto | force | only
         self.known: Dict[str, Dict[str, Any]] = {}  # game_id -> {"name", "cheats": {cheat_id: name}} for autocomplete
         self.poll_task = tasks.loop(seconds=config.poll_seconds)(self._poll)
         self.poll_task.before_loop(self._wait_ready)
+        self._next_cleanup: Optional[dt.datetime] = None
         self.digest_task = tasks.loop(minutes=5)(self._digest_tick)
         self.digest_task.before_loop(self._wait_ready)
 
@@ -50,7 +51,7 @@ class VantaBot(commands.Bot):
             for s in (await self.api.top(limit=25)).get("items", []):
                 self.remember(s)
         except ApiError as e:
-            log.warning("Worker not reachable at startup (%s); will keep retrying", e)
+            log.warning("Supabase not reachable at startup (%s); will keep retrying", e)
         self.poll_task.start()
         self.digest_task.start()
 
@@ -129,14 +130,14 @@ class VantaBot(commands.Bot):
         try:
             await self.poll_once()
         except ApiError as e:
-            log.warning("poll: Worker error %s", e)
+            log.warning("poll: Supabase error %s", e)
         except discord.Forbidden:
             log.error("poll: no permission in channel %s (needs View Channel, Send Messages, Embed Links)", self.config.channel_id)
         except Exception:
             log.exception("poll failed")  # keep the loop alive whatever happens
 
     async def poll_once(self, channel: Optional[Any] = None) -> int:
-        """Fetches new events from the Worker and posts/edits messages. Returns the number of items handled."""
+        """Fetches new events from Supabase and posts/edits messages. Returns the number of items handled."""
         ch = channel or await self.channel()
         handled = 0
         for _ in range(20):  # at most 20 pages per tick
@@ -186,7 +187,7 @@ class VantaBot(commands.Bot):
         try:
             await self.api.set_message(state_id, mid)
         except ApiError as e:  # local state.json keeps the id; synced on the next edit
-            log.warning("could not store message id for #%s in Worker: %s", state_id, e)
+            log.warning("could not store message id for #%s in Supabase: %s", state_id, e)
 
     # ---- weekly digest -----------------------------------------------------------------------
     def digest_due(self, now: dt.datetime) -> Optional[str]:
@@ -198,7 +199,15 @@ class VantaBot(commands.Bot):
         return None
 
     async def _digest_tick(self) -> None:
-        week = self.digest_due(dt.datetime.now(dt.timezone.utc))
+        now = dt.datetime.now(dt.timezone.utc)
+        if self._next_cleanup is None or now >= self._next_cleanup:  # housekeeping in the database, about hourly
+            self._next_cleanup = now + dt.timedelta(hours=1)
+            try:
+                r = await self.api.cleanup()
+                log.debug("cleanup: %s", r)
+            except ApiError as e:
+                log.warning("cleanup failed: %s", e)
+        week = self.digest_due(now)
         if not week:
             return
         try:

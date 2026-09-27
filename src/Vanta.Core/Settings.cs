@@ -11,8 +11,9 @@ public sealed class Settings
     public List<string> Recent { get; set; } = new();
     public double AttachDelaySec { get; set; } = 4;
     public bool AutoAttach { get; set; } = true;
-    /// <summary>Community backend (Cloudflare Worker) URL; null = the built-in <see cref="Branding.BackendUrl"/>.</summary>
-    public string? BackendUrl { get; set; }
+    /// <summary>Community reports: Supabase project URL and publishable key; null = the built-in <see cref="Branding.SupabaseUrl"/>.</summary>
+    public string? SupabaseUrl { get; set; }
+    public string? SupabaseKey { get; set; }
     /// <summary>Opt-in: send anonymous per-day counts of enabled cheats. Off by default.</summary>
     public bool ShareUsage { get; set; }
 

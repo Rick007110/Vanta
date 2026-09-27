@@ -1,4 +1,4 @@
-"""Small local state file (next to bot.py). The Worker stays the source of truth
+"""Small local state file (next to bot.py). Supabase stays the source of truth
 (message ids are stored there too); this file only remembers where the bot left off."""
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ class LocalState:
         self.path = path
         self.cursor: int = 0
         self.last_digest: Optional[str] = None  # ISO week, e.g. "2026-W39"
-        self.messages: Dict[str, str] = {}      # state_id -> message_id (fallback if the Worker call failed)
+        self.messages: Dict[str, str] = {}      # state_id -> message_id (fallback if the Supabase call failed)
         self.load()
 
     def load(self) -> None:

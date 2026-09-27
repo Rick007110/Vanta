@@ -51,8 +51,8 @@ Details: [README-DEV.md](README-DEV.md).
 ## Community-meldingen (optioneel)
 
 Met een Discord-account kun je melden of een cheat werkt of niet; Vanta toont dan per cheat wat andere spelers melden.
-Inloggen is nooit verplicht: zonder account werkt alles zoals altijd. De backend (Cloudflare Worker, [`server/`](server/)) en de
-Discord-bot ([`bot/`](bot/)) zijn los te hosten. Installatie: [docs/SETUP.md](docs/SETUP.md). Privacy: [docs/privacy.md](docs/privacy.md).
+Inloggen is nooit verplicht: zonder account werkt alles zoals altijd. De backend is een Supabase-project (database +
+inloggen, [`supabase/`](supabase/)); de Discord-bot ([`bot/`](bot/)) is los te hosten. Installatie: [docs/SETUP.md](docs/SETUP.md). Privacy: [docs/privacy.md](docs/privacy.md).
 
 ## Bouwen
 

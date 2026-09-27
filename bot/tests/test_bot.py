@@ -12,7 +12,7 @@ from vanta_bot.views import StatusButton, view_for
 from .fakes import FakeApi, FakeChannel, summary
 
 ENV = {"DISCORD_BOT_TOKEN": "x.y.z", "DISCORD_CHANNEL_ID": "123456789012345678", "ADMIN_IDS": "111111111111111111, 222222222222222222",
-       "VANTA_API_URL": "https://api.example.workers.dev/", "BOT_API_SECRET": "s" * 40}
+       "SUPABASE_URL": "https://abcd1234.supabase.co/", "SUPABASE_SERVICE_ROLE_KEY": "sb_secret_" + "s" * 30}
 
 
 def make_bot(tmp_path: Path, **env):
@@ -24,13 +24,31 @@ def make_bot(tmp_path: Path, **env):
 def test_config_parses_and_validates():
     c = Config.from_env(ENV)
     assert c.channel_id == 123456789012345678 and c.admin_ids == {111111111111111111, 222222222222222222}
-    assert c.api_url == "https://api.example.workers.dev" and c.poll_seconds == 15 and c.guild_id is None
+    assert c.supabase_url == "https://abcd1234.supabase.co" and c.poll_seconds == 15 and c.guild_id is None
     assert c.is_admin(111111111111111111) and not c.is_admin(3)
     with pytest.raises(ConfigError) as e:
-        Config.from_env({"ADMIN_IDS": "abc", "VANTA_API_URL": "http://evil", "BOT_API_SECRET": "short", "POLL_SECONDS": "1", "TIMEZONE": "Mars/Base"})
+        Config.from_env({"ADMIN_IDS": "abc", "SUPABASE_URL": "http://evil", "SUPABASE_SERVICE_ROLE_KEY": "short", "POLL_SECONDS": "1", "TIMEZONE": "Mars/Base"})
     msg = " ".join(e.value.problems)
-    for k in ["DISCORD_BOT_TOKEN", "DISCORD_CHANNEL_ID", "ADMIN_IDS", "VANTA_API_URL", "BOT_API_SECRET", "POLL_SECONDS", "TIMEZONE"]:
+    for k in ["DISCORD_BOT_TOKEN", "DISCORD_CHANNEL_ID", "ADMIN_IDS", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "POLL_SECONDS", "TIMEZONE"]:
         assert k in msg
+
+
+def _jwt(role):
+    import base64
+    import json
+    part = base64.urlsafe_b64encode(json.dumps({"role": role}).encode()).rstrip(b"=").decode()
+    return "eyJhbGciOiJIUzI1NiJ9." + part + ".sig"
+
+
+def test_public_keys_are_refused_and_secret_keys_accepted():
+    from vanta_bot.config import key_problem
+    assert key_problem("sb_secret_abc") is None
+    assert key_problem(_jwt("service_role")) is None
+    assert "publishable" in key_problem("sb_publishable_abc")
+    assert "anon" in key_problem(_jwt("anon"))
+    assert key_problem("") and key_problem("nonsense")
+    c = Config.from_env({**ENV, "SUPABASE_SERVICE_ROLE_KEY": "", "SUPABASE_SECRET_KEY": "sb_secret_x", "SUPABASE_URL": "https://x.supabase.co/rest/v1/"})
+    assert c.supabase_key == "sb_secret_x" and c.supabase_url == "https://x.supabase.co"
 
 
 def test_state_roundtrip_is_atomic(tmp_path):
@@ -53,7 +71,7 @@ async def test_new_broken_report_posts_then_repeat_edits(tmp_path):
     mid = ch.sent[0].id
     assert api.saved == [(1, mid)] and bot.local.cursor == 10
     assert LocalState(bot.config.state_file).cursor == 10  # survives a restart
-    # repeat: Worker now knows the message id -> edit, no new post
+    # repeat: Supabase now knows the message id -> edit, no new post
     api.pages = [{"cursor": 11, "more": False, "items": [{"has_broken": True, "types": ["report"], "state": summary(broken=3, message_id=str(mid))}]}]
     await bot.poll_once(ch)
     assert len(ch.sent) == 1 and ch.edits == [mid]
@@ -68,7 +86,7 @@ async def test_works_only_reports_do_not_post(tmp_path):
     assert ch.sent == [] and bot.local.cursor == 3
 
 
-async def test_deleted_message_is_reposted_and_worker_failure_uses_local_state(tmp_path):
+async def test_deleted_message_is_reposted_and_supabase_failure_uses_local_state(tmp_path):
     bot, api = make_bot(tmp_path)
     ch = FakeChannel()
     api.fail_save = True
@@ -77,7 +95,7 @@ async def test_deleted_message_is_reposted_and_worker_failure_uses_local_state(t
     assert len(ch.sent) == 1
     mid = ch.sent[0].id
     assert bot.local.messages["1"] == str(mid)
-    # Worker didn't store it; next event still edits thanks to the local fallback and then syncs
+    # Supabase didn't store it; next event still edits thanks to the local fallback and then syncs
     api.fail_save = False
     api.pages = [{"cursor": 6, "more": False, "items": [{"has_broken": True, "types": ["report"], "state": summary()}]}]
     await bot.poll_once(ch)

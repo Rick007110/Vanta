@@ -5,9 +5,14 @@ using System.Text.Json;
 namespace Vanta.Core.Account;
 
 public sealed record AccountUser(string Id, string Username, string? AvatarUrl);
-public sealed record AccountSession(string Token, long Expires, AccountUser User)
+/// <summary>Supabase session: short-lived access token (JWT, <paramref name="Expires"/> = unix seconds) plus a
+/// refresh token (rotated on every refresh).</summary>
+public sealed record AccountSession(string Token, long Expires, AccountUser User, string? RefreshToken = null)
 {
-    public bool Expired(DateTimeOffset now) => Expires > 0 && now.ToUnixTimeSeconds() >= Expires;
+    /// <summary>Access token expired (or expires within <paramref name="margin"/> seconds).</summary>
+    public bool Expired(DateTimeOffset now, int margin = 0) => Expires > 0 && now.ToUnixTimeSeconds() >= Expires - margin;
+    /// <summary>Can still be used, possibly after a refresh.</summary>
+    public bool Usable(DateTimeOffset now) => RefreshToken != null || !Expired(now);
 }
 
 /// <summary>Where the session token lives between runs.</summary>

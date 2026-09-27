@@ -1,5 +1,0 @@
-# Copy to .dev.vars for `npm run dev` (never commit .dev.vars). Production: `npx wrangler secret put <NAME>`.
-DISCORD_CLIENT_SECRET=
-# Random strings, e.g. `openssl rand -hex 32`:
-HASH_SECRET=
-BOT_API_SECRET=

@@ -79,5 +79,8 @@ class FakeApi:
     async def top(self, game: Optional[str] = None, limit: int = 10) -> Dict[str, Any]:
         return {"items": []}
 
+    async def cleanup(self) -> Dict[str, Any]:
+        return {"rate_limits": 0, "events": 0}
+
     async def close(self) -> None:
         pass

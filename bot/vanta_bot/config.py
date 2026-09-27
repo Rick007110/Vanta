@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -14,6 +16,27 @@ class ConfigError(Exception):
         self.problems = problems
 
 
+def key_problem(key: str) -> Optional[str]:
+    """The bot needs the secret key (sb_secret_...) or the legacy service_role JWT, never the public one."""
+    if not key:
+        return "SUPABASE_SERVICE_ROLE_KEY ontbreekt (Supabase -> Project Settings -> API Keys -> secret key)"
+    if key.startswith("sb_secret_"):
+        return None
+    if key.startswith("sb_publishable_"):
+        return "SUPABASE_SERVICE_ROLE_KEY is de publishable key; de bot heeft de secret key (sb_secret_...) nodig"
+    if key.startswith("eyJ") and key.count(".") == 2:
+        try:
+            part = key.split(".")[1]
+            role = json.loads(base64.urlsafe_b64decode(part + "=" * (-len(part) % 4))).get("role")
+        except (ValueError, UnicodeDecodeError):
+            role = None
+        if role == "service_role":
+            return None
+        if role == "anon":
+            return "SUPABASE_SERVICE_ROLE_KEY is de anon key; de bot heeft de service_role/secret key nodig"
+    return "SUPABASE_SERVICE_ROLE_KEY lijkt geen Supabase secret/service_role key"
+
+
 def _snowflake(v: str) -> Optional[int]:
     v = v.strip()
     return int(v) if v.isdigit() and 5 <= len(v) <= 25 else None
@@ -25,8 +48,8 @@ class Config:
     channel_id: int
     admin_ids: FrozenSet[int]
     guild_id: Optional[int]
-    api_url: str
-    api_secret: str
+    supabase_url: str
+    supabase_key: str
     poll_seconds: int = 15
     digest_weekday: int = 0  # 0 = maandag
     digest_hour: int = 10
@@ -58,12 +81,15 @@ class Config:
         guild = _snowflake(guild_raw) if guild_raw else None
         if guild_raw and guild is None:
             problems.append("DISCORD_GUILD_ID is geen geldig id")
-        api = g("VANTA_API_URL").rstrip("/")
-        if not api.startswith(("https://", "http://127.0.0.1", "http://localhost")):
-            problems.append("VANTA_API_URL ontbreekt of is geen https-adres")
-        secret = g("BOT_API_SECRET")
-        if len(secret) < 32:
-            problems.append("BOT_API_SECRET ontbreekt of is korter dan 32 tekens")
+        url = g("SUPABASE_URL").rstrip("/")
+        if url.endswith("/rest/v1"):
+            url = url[: -len("/rest/v1")]
+        if not url.startswith(("https://", "http://127.0.0.1", "http://localhost")):
+            problems.append("SUPABASE_URL ontbreekt of is geen https-adres (bijv. https://abcd1234.supabase.co)")
+        key = g("SUPABASE_SERVICE_ROLE_KEY") or g("SUPABASE_SECRET_KEY")
+        kp = key_problem(key)
+        if kp:
+            problems.append(kp)
 
         def num(k: str, d: int, lo: int, hi: int) -> int:
             raw = g(k, str(d))
@@ -91,8 +117,8 @@ class Config:
         if problems:
             raise ConfigError(problems)
         return cls(
-            token=token, channel_id=channel or 0, admin_ids=frozenset(admins), guild_id=guild, api_url=api,
-            api_secret=secret, poll_seconds=poll, digest_weekday=wd, digest_hour=hour, timezone=tz,
+            token=token, channel_id=channel or 0, admin_ids=frozenset(admins), guild_id=guild, supabase_url=url,
+            supabase_key=key, poll_seconds=poll, digest_weekday=wd, digest_hour=hour, timezone=tz,
             state_file=Path(state) if state else BOT_DIR / "state.json", log_level=g("LOG_LEVEL", "INFO").upper(),
         )
 

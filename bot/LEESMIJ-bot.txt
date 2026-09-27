@@ -1,0 +1,82 @@
+VANTA DISCORD-BOT OP FEROX (PTERODACTYL) MET SUPABASE
+=====================================================
+
+Inhoud van deze map:
+  bot.py               het startbestand
+  vanta_bot/           de code van de bot (hoort naast bot.py)
+  requirements.txt     Python-pakketten (het paneel installeert ze bij het starten)
+  .env.example         voorbeeld van de instellingen
+  supabase-setup.sql   de database-opzet voor Supabase
+
+Nodig: Python 3.10 of nieuwer (3.11+ aangeraden), een Supabase-project en een Discord-applicatie.
+
+
+1. SUPABASE: DATABASE KLAARZETTEN (eenmalig, ~1 minuut)
+   - Supabase-dashboard -> jouw project -> SQL Editor -> New query.
+   - Plak de volledige inhoud van supabase-setup.sql en klik Run. Verwacht: "Success. No rows returned".
+   - Veilig in een bestaand project: alles komt in een eigen schema "vanta" plus functies die met "vanta_"
+     beginnen. Je eigen tabellen worden niet aangeraakt. Opnieuw uitvoeren (bijv. na een update) mag altijd.
+   - Je hoeft het schema "vanta" NIET toe te voegen bij "Exposed schemas".
+
+2. SUPABASE: GEGEVENS KOPIEREN
+   - Project URL: Project Settings -> Data API (of de knop "Connect"), bijv. https://abcd1234.supabase.co
+   - Secret key: Project Settings -> API Keys -> "Secret keys" -> sb_secret_... (of de oude "service_role" key).
+     GEHEIM: deze key omzeilt alle beveiliging. Alleen in het paneel/.env zetten, nooit in Vanta, git of Discord.
+     De publishable/anon key werkt niet voor de bot (die weigert hem met een duidelijke melding).
+
+3. DISCORD: BOT MAKEN
+   - https://discord.com/developers/applications -> New Application (bijv. "Vanta").
+   - Tab Bot -> Reset Token -> kopieer de token (GEHEIM). Privileged Gateway Intents mogen alle drie UIT blijven.
+   - Uitnodigen: tab OAuth2 -> URL Generator -> scopes "bot" en "applications.commands" ->
+     permissions View Channel, Send Messages, Embed Links, Read Message History (samen: 84992).
+     Of direct: https://discord.com/oauth2/authorize?client_id=JOUW_APPLICATION_ID&scope=bot+applications.commands&permissions=84992
+   - Zet in Discord Developer Mode aan (Instellingen -> Geavanceerd) en kopieer met rechtsklik:
+     het kanaal-id, je eigen user-id en (aangeraden) het server-id.
+
+4. PTERODACTYL (FEROX): BESTANDEN UPLOADEN
+   - Paneel -> jouw server -> Files (File Manager) -> Upload -> vanta-bot.zip, daarna rechtsklik -> Unarchive.
+     (Of via SFTP: gegevens staan bij Settings -> SFTP Details.) bot.py moet direct in de hoofdmap staan,
+     met de map vanta_bot ernaast.
+   - Tab Startup: zet het startbestand ("App py file"/"Startup file", de naam verschilt per egg) op  bot.py
+     en het requirements-bestand op  requirements.txt  (als die velden er zijn).
+     Kies bij "Docker Image" een Python-versie 3.11 of nieuwer als dat kan (3.10 werkt ook).
+
+5. INSTELLINGEN
+   - Heeft de egg invulvelden voor variabelen: vul daar de namen hieronder in. Anders:
+     File Manager -> .env.example openen -> inhoud kopiëren -> New File "  .env  " -> plakken en invullen -> Save.
+       DISCORD_BOT_TOKEN          token uit stap 3 (geheim)
+       DISCORD_CHANNEL_ID         kanaal voor de meldingen
+       ADMIN_IDS                  jouw Discord user-id (meerdere: komma-gescheiden)
+       DISCORD_GUILD_ID           server-id (aangeraden: slash commands verschijnen dan meteen)
+       SUPABASE_URL               project URL uit stap 2
+       SUPABASE_SERVICE_ROLE_KEY  secret key uit stap 2 (geheim)
+     Optioneel: POLL_SECONDS (15), DIGEST_WEEKDAY (0 = maandag), DIGEST_HOUR (10), TIMEZONE (Europe/Amsterdam),
+     LOG_LEVEL (INFO). Variabelen in het paneel gaan voor op .env.
+
+6. STARTEN EN CONTROLEREN
+   - Klik Start en kijk in Console. Goed is o.a.:
+       "Vanta bot ... Python 3.x, discord.py 2.7.1"
+       "synced 7 commands to guild ..."
+       "logged in as Vanta#1234 ..."
+   - De bot bewaart state.json en .commands-hash in zijn map; niet verwijderen (dan post hij niets dubbel).
+   - Updaten: nieuwe bestanden uploaden (niet je .env/state.json overschrijven), supabase-setup.sql opnieuw
+     uitvoeren, Restart.
+
+VEELVOORKOMENDE MELDINGEN IN DE CONSOLE
+   config: ... ontbreekt                 -> variabele niet ingevuld (stap 5).
+   ... is de publishable key / anon key  -> je hebt de verkeerde Supabase-key geplakt; gebruik de secret key.
+   Discord weigert de token              -> token opnieuw maken (stap 3) en invullen.
+   function_missing / "Could not find the function"
+                                         -> supabase-setup.sql is nog niet uitgevoerd (stap 1).
+   permission_denied                     -> verkeerde key (publishable/anon in plaats van secret).
+   unreachable                           -> SUPABASE_URL klopt niet of het Supabase-project is gepauzeerd.
+   no permission in channel              -> geef de bot in dat kanaal: View Channel, Send Messages, Embed Links.
+   Python 3.10 of nieuwer is nodig       -> kies een nieuwere Docker Image in het tabblad Startup.
+
+LATER: INLOGGEN VANUIT VANTA (nodig zodat er meldingen binnenkomen)
+   - Supabase -> Authentication -> Sign In / Providers -> Discord: aanzetten, Client ID en Client Secret uit het
+     Discord Developer Portal (tab OAuth2) plakken. Kopieer de "Callback URL" die Supabase toont
+     (https://JOUW-PROJECT.supabase.co/auth/v1/callback) naar Discord -> OAuth2 -> Redirects.
+   - Supabase -> Authentication -> URL Configuration -> Redirect URLs -> toevoegen:  http://127.0.0.1:*/callback*
+   - Vanta krijgt alleen de Project URL en de publishable key (die zijn openbaar); nooit de secret key.
+   Het volledige stappenplan staat in docs/SETUP.md in de Vanta-repository.

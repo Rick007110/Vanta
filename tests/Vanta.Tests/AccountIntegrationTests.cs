@@ -6,14 +6,16 @@ using Xunit;
 namespace Vanta.Tests;
 
 /// <summary>
-/// Against the real Worker running locally with a fake Discord: sh server/scripts/dev-local.sh, then
-/// VANTA_IT_BACKEND=http://127.0.0.1:8787 dotnet test --filter AccountIntegration
+/// Against the local Supabase-like stack (Postgres + the Vanta migrations + PostgREST + mock Supabase Auth):
+/// sh supabase/tests/local-stack.sh up, then
+/// VANTA_IT_SUPABASE_URL=http://127.0.0.1:54321 dotnet test --filter AccountIntegration
 /// </summary>
 public class AccountIntegrationTests
 {
-    private static readonly string? Backend = Environment.GetEnvironmentVariable("VANTA_IT_BACKEND");
+    private static readonly string? Backend = Environment.GetEnvironmentVariable("VANTA_IT_SUPABASE_URL");
+    private static readonly string Key = Environment.GetEnvironmentVariable("VANTA_IT_SUPABASE_KEY") ?? "sb_publishable_localtest";
 
-    /// <summary>Plays the system browser: follows the redirects Worker -> (mock) Discord -> Worker -> Vanta's loopback listener.</summary>
+    /// <summary>Plays the system browser: follows the redirects Supabase Auth -> (Discord) -> Vanta's loopback listener.</summary>
     public static Func<string, Task> Browser(List<string>? hops = null) => url =>
     {
         _ = Task.Run(async () =>
@@ -32,17 +34,18 @@ public class AccountIntegrationTests
     };
 
     [SkippableFact]
-    public async Task Full_flow_against_local_worker()
+    public async Task Full_flow_against_local_supabase()
     {
-        Skip.If(string.IsNullOrEmpty(Backend), "VANTA_IT_BACKEND not set (local wrangler dev)");
+        Skip.If(string.IsNullOrEmpty(Backend), "VANTA_IT_SUPABASE_URL not set (supabase/tests/local-stack.sh up)");
         var hops = new List<string>();
         var store = new MemoryTokenStore();
         var sent = new List<object>();
-        var svc = new AccountService(new Settings { ShareUsage = true }, store, null, Browser(hops), o => { lock (sent) sent.Add(o); }, new Uri(Backend!), startTimer: false);
+        var svc = new AccountService(new Settings { ShareUsage = true }, store, null, Browser(hops), o => { lock (sent) sent.Add(o); }, new SupabaseConfig(new Uri(Backend!), Key), startTimer: false);
         await svc.LoginAsync();
         Assert.NotNull(svc.Session);
-        Assert.Contains(hops, u => u.Contains("/oauth2/authorize"));
-        Assert.Contains(hops, u => u.StartsWith("http://127.0.0.1:") && u.Contains("/callback?"));
+        Assert.Contains(hops, u => u.Contains("/auth/v1/authorize?provider=discord"));
+        Assert.Contains(hops, u => u.StartsWith("http://127.0.0.1:") && u.Contains("/callback?state=") && u.Contains("&code="));
+        Assert.NotNull(svc.Session.RefreshToken);
         var game = "it-dotnet-" + Guid.NewGuid().ToString("N")[..6];
         var item = new ReportItem(game, "godmode", "fileVersion=1.0.0", "broken", "valt door de vloer", Branding.Version, "1.0", "IT Game", "God mode");
         var r = await svc.ReportAsync(item);
@@ -56,9 +59,16 @@ public class AccountIntegrationTests
         await svc.FlushUsageAsync();
         var me = await svc.Client!.MeAsync(svc.Session!.Token);
         Assert.Equal(svc.Session.User.Id, me.Id);
+        var before = svc.Session;
+        Assert.False(string.IsNullOrEmpty(await svc.TokenAsync(force: true)));   // refresh token rotation
+        Assert.NotEqual(before.RefreshToken, store.Load()!.RefreshToken);
+        await Assert.ThrowsAsync<AccountException>(() => svc.Client.RefreshAsync(before.RefreshToken!));   // old refresh token is spent
+        var old = svc.Session!.Token;
         Assert.True(await svc.DeleteAsync());
         Assert.Null(store.Load());
-        var e = await Assert.ThrowsAsync<AccountException>(() => svc.Client.MeAsync("vt_" + new string('z', 43)));
-        Assert.Equal(401, e.Status);
+        var e = await Assert.ThrowsAsync<AccountException>(() => svc.Client.MeAsync(old));
+        Assert.Equal("user_not_found", e.Code);
+        var e2 = await Assert.ThrowsAsync<AccountException>(() => svc.Client.MeAsync("eyJ.bad.token"));
+        Assert.Equal(401, e2.Status);
     }
 }
