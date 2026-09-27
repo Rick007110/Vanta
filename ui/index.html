@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vanta</title>
+  <link rel="stylesheet" href="shared/fonts.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app" id="app" data-status="notfound">
+    <aside class="sidebar" aria-label="Bibliotheek">
+      <div class="brand drag">
+        <span class="brand-logo" data-brand-mark aria-hidden="true"></span>
+        <span class="brand-name" data-brand-name>Vanta</span>
+        <span class="brand-tag" data-bind="brand-tag">v0.1</span>
+      </div>
+      <label class="search" data-search>
+        <span class="search-ic" data-icon="search"></span>
+        <input type="search" data-role="search" data-i18n-ph="search.ph" aria-label="Zoek game" autocomplete="off" spellcheck="false">
+        <kbd class="search-kbd">Ctrl K</kbd>
+      </label>
+      <div class="catbar" data-cat hidden>
+        <span class="cat-ic" data-icon="filter"></span>
+        <select class="cat-select" data-role="category" aria-label="Categorie"></select>
+      </div>
+      <nav class="library" data-slot="library"></nav>
+      <div class="sidebar-foot">
+        <button class="foot-btn" type="button" data-action="open-hotkeys"><span data-icon="keyboard"></span><span data-i18n="foot.hotkeys">Sneltoetsen</span></button>
+        <button class="foot-btn" type="button" data-action="open-settings"><span data-icon="settings"></span><span data-i18n="foot.settings">Instellingen</span></button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="titlebar drag">
+        <div class="titlebar-spacer"></div>
+        <div class="winbtns no-drag">
+          <button class="winbtn" data-action="window" data-value="minimize" data-i18n-title="win.min"><span data-icon="winMin"></span></button>
+          <button class="winbtn" data-action="window" data-value="maximize" data-i18n-title="win.max"><span data-icon="winMax"></span></button>
+          <button class="winbtn winbtn-close" data-action="window" data-value="close" data-i18n-title="win.close"><span data-icon="winClose"></span></button>
+        </div>
+      </header>
+      <div class="scroll">
+        <section class="hero" data-slot="hero" aria-label="Game"></section>
+        <div class="toolbar">
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" data-action="tab" data-value="cheats" aria-selected="true" data-i18n="tab.cheats">Cheats</button>
+            <button class="tab" role="tab" data-action="tab" data-value="hotkeys" aria-selected="false" data-i18n="tab.hotkeys">Sneltoetsen</button>
+            <button class="tab" role="tab" data-action="tab" data-value="notes" aria-selected="false" data-i18n="tab.notes">Notities</button>
+          </div>
+          <div class="toolbar-right">
+            <span class="active-count"><i class="ac-dot"></i><span data-bind="active-count"></span></span>
+            <button class="btn-ghost" data-action="disable-all" type="button"><span data-icon="power"></span><span data-i18n="btn.disableAll">Alles uit</span></button>
+          </div>
+        </div>
+        <section class="cheats" data-slot="cheats" aria-label="Cheats"></section>
+        <section class="panel" data-slot="panel" hidden></section>
+      </div>
+    </main>
+
+    <footer class="statusbar">
+      <span class="sb-item"><i class="sb-dot"></i><span data-bind="engine"></span></span>
+      <span class="sb-sep"></span>
+      <span class="sb-item" data-bind="table-version"></span>
+      <span class="sb-sep"></span>
+      <span class="sb-item sb-log" data-bind="log-line"><span class="sb-time" data-bind="log-time"></span><span data-bind="log-text"></span></span>
+    </footer>
+    <div class="toast-slot" data-slot="toast" aria-live="polite" hidden></div>
+    <div class="modal-slot" data-slot="modal" hidden></div>
+  </div>
+
+  <script src="shared/brand.js"></script>
+  <script src="shared/i18n.js"></script>
+  <script src="shared/devdata.js"></script>
+  <script src="shared/data.js"></script>
+  <script src="shared/icons.js"></script>
+  <script src="shared/art.js"></script>
+  <script src="shared/bridge.js"></script>
+  <script src="shared/core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

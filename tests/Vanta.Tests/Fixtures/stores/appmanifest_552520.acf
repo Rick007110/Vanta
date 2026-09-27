@@ -1,0 +1,19 @@
+"AppState"
+{
+	"appid"		"552520"
+	"universe"		"1"
+	"name"		"Far Cry 5"
+	"StateFlags"		"4"
+	"installdir"		"FarCry5"
+	"LastUpdated"		"1752940000"
+	"SizeOnDisk"		"72000000000"
+	"buildid"		"18766066"
+	"InstalledDepots"
+	{
+		"552521"
+		{
+			"manifest"		"8965279101697150481"
+			"size"		"72000000000"
+		}
+	}
+}

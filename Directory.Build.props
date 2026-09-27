@@ -1,0 +1,23 @@
+<Project>
+  <!-- Branding + version live here and in src/Vanta.Core/Branding.cs (rename = edit both + ui/shared/brand.js + icon). -->
+  <PropertyGroup>
+    <BrandName>Vanta</BrandName>
+    <Version>0.2.0</Version>
+    <FileVersion>0.2.0.0</FileVersion>
+    <InformationalVersion>0.2.0</InformationalVersion>
+    <Product>$(BrandName)</Product>
+    <Company>Rick007110</Company>
+    <Authors>Rick007110</Authors>
+    <Copyright>(c) 2026 Rick007110</Copyright>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CA1416;CS1591</NoWarn>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <SatelliteResourceLanguages>en;nl</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+</Project>

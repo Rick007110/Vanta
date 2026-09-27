@@ -1,0 +1,670 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vanta.app/schema/game.schema.json",
+  "title": "Vanta game definition",
+  "description": "One file per game: games/<id>/game.json. Single-player/offline games only: antiCheat/onlineOnly games are refused by the app.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "processNames",
+    "antiCheat",
+    "cheats"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "short": {
+      "type": "string",
+      "maxLength": 3
+    },
+    "steamAppId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "processNames": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "(?i)\\.exe$"
+      }
+    },
+    "launcherProcesses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stores": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "steam": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "appId": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "appId"
+          ]
+        },
+        "ubisoft": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ids": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "required": [
+            "ids"
+          ]
+        },
+        "epic": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "appNames": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "appNames"
+          ]
+        },
+        "gog": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "ids"
+          ]
+        },
+        "ea": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "offerIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "registryKeys": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key"
+                ]
+              }
+            }
+          }
+        },
+        "xbox": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "packageFamilyName": {
+              "type": "string",
+              "minLength": 1
+            },
+            "appId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "packageFamilyName"
+          ]
+        }
+      }
+    },
+    "launchExe": {
+      "type": "string"
+    },
+    "antiCheatFiles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "antiCheatModules": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "scope": {
+      "type": "string"
+    },
+    "module": {
+      "type": "string"
+    },
+    "supportedVersions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "fileVersion": {
+            "type": "string"
+          },
+          "productVersion": {
+            "type": "string"
+          },
+          "peTimestamp": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "moduleSize": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$"
+          },
+          "fileSize": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "headSha256": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$"
+          },
+          "tailSha256": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$"
+          },
+          "build": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "antiCheat": {
+      "type": "boolean"
+    },
+    "onlineOnly": {
+      "type": "boolean"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "badge": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "art": {
+      "type": "object"
+    },
+    "cheats": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/cheat"
+      }
+    }
+  },
+  "$defs": {
+    "hotkey": {
+      "type": "string",
+      "pattern": "^((Ctrl|Alt|Shift|Win)\\+)*([A-Z0-9]|F([1-9]|1[0-9]|2[0-4])|Numpad[0-9+\\-*/.]|Insert|Delete|Home|End|PageUp|PageDown|Up|Down|Left|Right|Space|Tab|Pause)$"
+    },
+    "hexBytes": {
+      "type": "string",
+      "pattern": "^([0-9A-Fa-f]{2})( [0-9A-Fa-f]{2})*$"
+    },
+    "aob": {
+      "type": "string",
+      "pattern": "^([0-9A-Fa-f?*]{1,2})( [0-9A-Fa-f?*]{1,2})*$"
+    },
+    "site": {
+      "type": "object",
+      "required": [
+        "patterns"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "patterns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "aob"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "aob": {
+                "$ref": "#/$defs/aob"
+              },
+              "offset": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "expect": {
+          "$ref": "#/$defs/aob"
+        },
+        "overwrite": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 64
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "i32At": {
+                "type": "integer"
+              },
+              "u8At": {
+                "type": "integer"
+              },
+              "min": {
+                "type": "integer"
+              },
+              "max": {
+                "type": "integer"
+              },
+              "not": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "anyMemory": {
+          "type": "boolean"
+        }
+      }
+    },
+    "impl": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "aobPatch",
+            "aobInject",
+            "pointer"
+          ]
+        },
+        "module": {
+          "type": "string"
+        },
+        "sites": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/site"
+          }
+        },
+        "patches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "site",
+              "bytes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "site": {
+                "type": "string"
+              },
+              "offset": {
+                "type": "integer"
+              },
+              "bytes": {
+                "$ref": "#/$defs/hexBytes"
+              }
+            }
+          }
+        },
+        "alloc": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "size": {
+              "type": "integer",
+              "minimum": 16,
+              "maximum": 65536
+            },
+            "near": {
+              "type": "string"
+            }
+          }
+        },
+        "asm": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hooks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "site",
+              "label"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "site": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "exports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "base": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^(sym:[A-Za-z_][\\w]*([+-](0x)?[0-9A-Fa-f]+)?|[^+]+\\.(exe|dll)\\+(0x)?[0-9A-Fa-f]+)$"
+            },
+            {
+              "type": "object",
+              "required": [
+                "aob",
+                "ripOffset",
+                "insnLength"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "aob": {
+                  "$ref": "#/$defs/aob"
+                },
+                "patternOffset": {
+                  "type": "integer"
+                },
+                "ripOffset": {
+                  "type": "integer"
+                },
+                "insnLength": {
+                  "type": "integer"
+                },
+                "module": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "offsets": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "valueType": {
+          "enum": [
+            "int32",
+            "int64",
+            "float",
+            "double",
+            "byte",
+            "int16"
+          ]
+        },
+        "onValue": {
+          "type": "number"
+        },
+        "offValue": {
+          "type": "number"
+        },
+        "freeze": {
+          "type": "boolean"
+        },
+        "action": {
+          "enum": [
+            "set",
+            "add"
+          ]
+        },
+        "amount": {
+          "type": "number"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "aobPatch"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "sites",
+              "patches"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "aobInject"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "sites",
+              "asm",
+              "hooks"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "pointer"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "base",
+              "valueType"
+            ]
+          }
+        }
+      ]
+    },
+    "cheat": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "type",
+        "impl"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{2,48}$"
+        },
+        "name": {
+          "type": "string"
+        },
+        "names": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "section": {
+          "enum": [
+            "speler",
+            "wapens",
+            "punten",
+            "extra",
+            "wereld",
+            "voertuig",
+            "inventaris"
+          ]
+        },
+        "type": {
+          "enum": [
+            "toggle",
+            "number",
+            "slider",
+            "button"
+          ]
+        },
+        "icon": {
+          "type": "string"
+        },
+        "hotkey": {
+          "$ref": "#/$defs/hotkey"
+        },
+        "hotkeyInc": {
+          "$ref": "#/$defs/hotkey"
+        },
+        "hotkeyDec": {
+          "$ref": "#/$defs/hotkey"
+        },
+        "description": {
+          "type": "string"
+        },
+        "hint": {
+          "type": "string"
+        },
+        "sub": {
+          "type": "string"
+        },
+        "confidence": {
+          "enum": [
+            "confirmed",
+            "untested",
+            "experimental"
+          ]
+        },
+        "confidenceNote": {
+          "type": "string"
+        },
+        "requires": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "autoEnable": {
+          "type": "boolean"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "format": {
+          "type": "string"
+        },
+        "resetValue": {
+          "type": "number"
+        },
+        "buttonLabel": {
+          "type": "string"
+        },
+        "impl": {
+          "$ref": "#/$defs/impl"
+        }
+      }
+    }
+  }
+}

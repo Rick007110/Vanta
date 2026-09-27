@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10">
+  <Identity Name="Ubisoft.FarCry6" Publisher="CN=Test" Version="1.8.0.0" ProcessorArchitecture="x64" />
+  <Applications>
+    <Application Id="Game" Executable="bin\FarCry6.exe" EntryPoint="Windows.FullTrustApplication" />
+  </Applications>
+</Package>

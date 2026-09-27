@@ -1,0 +1,92 @@
+VANTA v0.2 - trainer voor singleplayer-games
+===========================================
+
+Vanta is een losstaand programma (geen Cheat Engine nodig). Het werkt alleen voor
+singleplayer/offline games. Games met online anti-cheat worden bewust geweigerd.
+
+NIEUW IN v0.2
+  - Far Cry 6 en Far Cry 5 (alle cheats nog ongetest in de huidige builds).
+  - Winkel-herkenning: Vanta vindt je installatie via Steam, Ubisoft Connect, Epic,
+    GOG, EA app of Xbox en start de game via de juiste launcher ("Start via ...").
+  - Vanta.exe --verify: controleert zonder de game te starten of de cheats bij jouw
+    game-versie passen.
+  - Automatische updates via GitHub (met SHA-256-controle en terugzetten bij problemen).
+
+INHOUD VAN DEZE MAP
+  Vanta.exe               het programma (alles zit erin, je hoeft niets te installeren)
+  games\                  cheat-definities per game (games\<id>\game.json) + index.json
+  schema\                 JSON Schema voor game.json (voor wie zelf games toevoegt)
+  selftest\vanta_dummy.exe  onschuldig testprogramma voor "Vanta.exe --selftest"
+  docs\                   technische documentatie (README-DEV.md, BRANDING.md)
+
+VEREISTEN
+  - Windows 10/11 64-bit.
+  - Microsoft Edge WebView2 Runtime (standaard aanwezig op Windows 11). Ontbreekt hij,
+    dan toont Vanta een melding met de downloadlink:
+    https://go.microsoft.com/fwlink/p/?LinkId=2124703
+
+STAP 1 - SELFTEST (1 minuut)
+  1. Pak de zip uit naar een eigen map, bijvoorbeeld C:\Games\Vanta
+     (liefst niet in "Program Files" en niet vanuit de zip starten).
+  2. Open die map, klik in de adresbalk, typ  cmd  en druk op Enter.
+  3. Typ:  Vanta.exe --selftest   en druk op Enter.
+  4. Verwacht: een lijst met [OK  ] en onderaan "RESULTAAT: GESLAAGD (26 controles)".
+     Het resultaat staat ook in %LOCALAPPDATA%\Vanta\selftest.log
+     Windows Defender/SmartScreen kan waarschuwen: het programma is niet
+     digitaal ondertekend. Kies "Meer informatie" -> "Toch uitvoeren".
+
+STAP 2 - CONTROLEER JE GAME-VERSIE (FAR CRY 5/6)
+  De Far Cry-cheats komen uit openbare tabellen van 2018-2025 en zijn nog niet getest
+  in de huidige builds. Controleer eerst of ze passen (de game hoeft niet te draaien):
+    Vanta.exe --verify far-cry-6
+    Vanta.exe --verify far-cry-5
+  Zonder pad zoekt Vanta de installatie zelf. Je kunt ook het bestand opgeven:
+    Vanta.exe --verify far-cry-6 "D:\Games\Far Cry 6\bin\FC_m64d3d12.dll"
+    Vanta.exe --verify far-cry-5 "...\steamapps\common\FarCry5\bin\FC_m64.dll"
+  Of terwijl de game draait (alleen lezen):  Vanta.exe --verify far-cry-6 --live
+  Per cheat zie je of de AOB precies 1 keer gevonden wordt. Onderaan staat
+  "RESULTAAT: x/y". Het rapport staat ook in %LOCALAPPDATA%\Vanta\verify-<game>.txt.
+  Stuur dat bestand op: daarmee worden cheats bevestigd of gerepareerd.
+
+STAP 3 - SPELEN
+  1. Dubbelklik Vanta.exe en kies links een game.
+  2. Klik "Start via Steam/Ubisoft Connect/..." of start de game zelf.
+     Vanta koppelt na enkele seconden automatisch ("Gekoppeld").
+  3. Zet cheats aan met een klik of de sneltoets. Lukt een cheat niet, dan staat er
+     een rode melding (bijv. "geen unieke AOB gevonden") en is er NIETS veranderd.
+  4. "Alles uit", ontkoppelen of Vanta sluiten zet alles in de game terug.
+  Far Cry 5/6: alleen voor de solo-campagne. Niet gebruiken in co-op of online.
+
+MAAK EERST EEN BACKUP VAN JE SAVE
+  The Last Caretaker: %LOCALAPPDATA%\Voyage\Saved\SaveGames
+  Far Cry 6 (Ubisoft Connect): ...\Ubisoft Game Launcher\savegames\<account>\5266
+  Far Cry 5: ...\Ubisoft Game Launcher\savegames\<account>\<nummer> (kopieer de hele map)
+
+SNELTOETSEN
+  Werken ook als de game op de voorgrond staat. Wijzigen: tabblad "Sneltoetsen",
+  klik "Wijzig" en druk de nieuwe combinatie in. Far Cry gebruikt Numpad 1-9 en
+  Ctrl+Numpad (zie het tabblad per game).
+
+UPDATES
+  Vanta kijkt bij het starten en daarna elke 6 uur op GitHub of er een nieuwe versie is.
+  "Nu updaten": cheats worden uitgezet, de update wordt gedownload en gecontroleerd
+  (SHA-256), Vanta herstart vanzelf. "Later": de update wordt op de achtergrond
+  klaargezet en bij de volgende start geinstalleerd. Start de nieuwe versie niet, dan
+  zet Vanta automatisch de vorige versie terug. Handmatig: Instellingen ->
+  "Controleer op updates". Staat Vanta in Program Files, dan vraagt Windows om
+  toestemming (UAC). Je instellingen en eigen games in %LOCALAPPDATA%\Vanta blijven altijd staan.
+
+INSTELLINGEN (knop linksonder)
+  Taal (Nederlands/English), catalogusmap, automatisch koppelen, updates.
+  Instellingen, logs en art-cache: %LOCALAPPDATA%\Vanta
+
+ADMINISTRATOR?
+  Niet nodig. Vanta draait als gewone gebruiker, net als Steam en je games. Alleen als
+  een game zelf als administrator draait, meldt Vanta "Start Vanta als administrator".
+
+PROBLEMEN MELDEN
+  https://github.com/Rick007110/Vanta/issues
+  Stuur deze bestanden mee:
+    %LOCALAPPDATA%\Vanta\logs\vanta-<datum>.log
+    %LOCALAPPDATA%\Vanta\verify-<game>.txt   (na --verify)
+    %LOCALAPPDATA%\Vanta\selftest.log

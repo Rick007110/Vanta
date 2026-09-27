@@ -1,0 +1,678 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "schemaVersion": 1,
+  "id": "far-cry-5",
+  "name": "Far Cry 5",
+  "short": "FC5",
+  "steamAppId": 552520,
+  "processNames": [
+    "FarCry5.exe"
+  ],
+  "launchExe": "bin/FarCry5.exe",
+  "module": "FC_m64.dll",
+  "stores": {
+    "steam": {
+      "appId": 552520
+    },
+    "ubisoft": {
+      "ids": [
+        856
+      ]
+    }
+  },
+  "antiCheatFiles": [
+    "bin/EasyAntiCheat/EasyAntiCheat_x64.dll",
+    "bin/EACLaunch.exe"
+  ],
+  "antiCheatModules": [
+    "EasyAntiCheat_x64.dll"
+  ],
+  "scope": "Alleen voor de solo-campagne. Niet gebruiken in co-op, Arcade of online.",
+  "supportedVersions": [
+    {
+      "label": "Steam-build 18766066 (juli 2025) - onbevestigd",
+      "build": "18766066",
+      "fileSize": 250234888
+    }
+  ],
+  "antiCheat": false,
+  "onlineOnly": false,
+  "categories": [
+    "shooter",
+    "open world"
+  ],
+  "badge": "build 18766066",
+  "notes": [
+    "EasyAntiCheat is met de laatste patch (november 2019) uit Far Cry 5 verwijderd. Vindt Vanta toch EasyAntiCheat-bestanden in je installatie (een oude versie), dan weigert Vanta.",
+    "Alle cheats komen uit tabellen van 2018 en zijn niet getest in de huidige build. Controleer eerst met: Vanta.exe --verify far-cry-5",
+    "Bewust weggelaten: zilverstaven (premiumvaluta die ook voor echt geld te koop is), 'unlock all store items' (ontgrendelt ook betaalde items), Arcade-cheats en cheats met vaste adressen.",
+    "Het Ubisoft-id 856 is niet bevestigd; de Steam-installatie wordt altijd gevonden.",
+    "Maak een backup van je save voordat je cheats gebruikt."
+  ],
+  "art": {
+    "sky": [
+      "#0A1410",
+      "#1F4A3A"
+    ],
+    "horizon": "#E8D38A",
+    "ground": "#050A08",
+    "tint": "#4ADE80",
+    "motif": "ridge"
+  },
+  "cheats": [
+    {
+      "id": "godmode",
+      "name": "Godmode",
+      "names": {
+        "en": "God Mode"
+      },
+      "section": "speler",
+      "type": "toggle",
+      "icon": "shield",
+      "hotkey": "Numpad1",
+      "description": "Je gezondheid wordt steeds teruggezet op het maximum.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Met de hand overgezet (het origineel gebruikt readmem; de 7 overschreven bytes staan in de tabel). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "health": {
+            "patterns": [
+              {
+                "aob": "48 8B 4B 50 0F 28 F0 E8"
+              }
+            ],
+            "expect": "48 8B 4B 50 0F 28 F0",
+            "overwrite": 7
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "health"
+        },
+        "asm": [
+          "newmem:",
+          "cmp dword ptr [rcx+10],CEDA2313",
+          "jne @f",
+          "movss xmm1,[rcx+1C]",
+          "movss [rcx+18],xmm1",
+          "@@:",
+          "mov rcx,[rbx+50]",
+          "movaps xmm6,xmm0",
+          "jmp health_ret"
+        ],
+        "hooks": [
+          {
+            "site": "health",
+            "label": "newmem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_stamina",
+      "name": "Oneindig uithoudingsvermogen",
+      "names": {
+        "en": "Infinite Stamina"
+      },
+      "section": "speler",
+      "type": "toggle",
+      "icon": "bolt",
+      "hotkey": "Numpad2",
+      "description": "Sprinten kost geen uithoudingsvermogen.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Zelfde script in een tweede tabel. Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "_infinitestamina": {
+            "patterns": [
+              {
+                "aob": "40 53 48 83 EC 40 48 8B 01 48 8B D9 0F"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "_infinitestamina",
+            "offset": 0,
+            "bytes": "C3 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_oxygen",
+      "name": "Oneindig zuurstof",
+      "names": {
+        "en": "Infinite Oxygen"
+      },
+      "section": "speler",
+      "type": "toggle",
+      "icon": "heart",
+      "hotkey": "Numpad3",
+      "description": "Zuurstof onder water raakt niet op.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "_infiniteoxygen": {
+            "patterns": [
+              {
+                "aob": "40 57 48 83 EC 70 48 8B 01"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "_infiniteoxygen",
+            "offset": 0,
+            "bytes": "C3 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_fall_damage",
+      "name": "Geen valschade",
+      "names": {
+        "en": "No Fall Damage"
+      },
+      "section": "speler",
+      "type": "toggle",
+      "icon": "jump",
+      "hotkey": "Ctrl+Numpad3",
+      "description": "Vallen doet geen schade.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Zelfde script in een tweede tabel. Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "falldamage": {
+            "patterns": [
+              {
+                "aob": "0F B6 80 78 08 00 00"
+              }
+            ]
+          },
+          "oof": {
+            "patterns": [
+              {
+                "aob": "80 BF ?? ? ?? ? ?? 75 09 48 8D 4F F0"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "falldamage",
+            "offset": 0,
+            "bytes": "B8 00 00 00 00 C3"
+          },
+          {
+            "site": "oof",
+            "offset": 7,
+            "bytes": "EB"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_ammo",
+      "name": "Oneindig munitie",
+      "names": {
+        "en": "Infinite Ammo"
+      },
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "ammo",
+      "hotkey": "Numpad4",
+      "description": "Munitie wordt niet afgetrokken bij schieten.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (game-versie 1.5.0, mei 2018; het script staat in twee tabellen). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "ammolocation": {
+            "patterns": [
+              {
+                "aob": "75 0D 8B 57 4C"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "ammolocation",
+            "offset": 0,
+            "bytes": "EB"
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_recoil",
+      "name": "Geen terugslag",
+      "names": {
+        "en": "No Recoil"
+      },
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "crosshair",
+      "hotkey": "Numpad5",
+      "description": "Wapens hebben geen terugslag.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (game-versie 1.5.0, mei 2018; het script staat in twee tabellen). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "norecoil": {
+            "patterns": [
+              {
+                "aob": "74 58 F3 0F 10 47 0C"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "norecoil",
+            "offset": 0,
+            "bytes": "EB"
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_spread",
+      "name": "Geen kogelspreiding",
+      "names": {
+        "en": "No Spread"
+      },
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "target",
+      "hotkey": "Ctrl+Numpad5",
+      "description": "Kogels gaan precies waar je richt.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "_nospread": {
+            "patterns": [
+              {
+                "aob": "F3 0F 11 B0 08 04 00 00 F3 0F 11 90"
+              }
+            ],
+            "overwrite": 8
+          }
+        },
+        "alloc": {
+          "size": 4160,
+          "near": "_nospread"
+        },
+        "asm": [
+          "newmem:",
+          "code:",
+          "mov [rax+00000408],0",
+          "mov [rax+0000040c],0",
+          "mov [rax+00000410],0",
+          "mov [rax+00000414],0",
+          "jmp _nospread_ret"
+        ],
+        "hooks": [
+          {
+            "site": "_nospread",
+            "label": "newmem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_sway",
+      "name": "Geen wapenzwaai",
+      "names": {
+        "en": "No Sway"
+      },
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "crosshair",
+      "hotkey": "Numpad6",
+      "description": "Je vizier zwaait niet bij het richten.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (game-versie 1.5.0, mei 2018; het script staat in twee tabellen). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "nosway": {
+            "patterns": [
+              {
+                "aob": "0F 85 D7 00 00 00 BA"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "nosway",
+            "offset": 0,
+            "bytes": "0F 86"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stealth",
+      "name": "Onopgemerkt (stealth)",
+      "names": {
+        "en": "Undetected (Stealth)"
+      },
+      "section": "extra",
+      "type": "toggle",
+      "icon": "eye",
+      "hotkey": "Numpad7",
+      "description": "Vijanden merken je niet op.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (game-versie 1.5, 2018). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "_stealthmode": {
+            "patterns": [
+              {
+                "aob": "0F 84 ?? ? ?? ? 49 8B 00 48 89 5C 24"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "_stealthmode",
+            "offset": 0,
+            "bytes": "90 E9"
+          }
+        ]
+      }
+    },
+    {
+      "id": "vehicle_godmode",
+      "name": "Onverwoestbare voertuigen",
+      "names": {
+        "en": "Infinite Vehicle Health"
+      },
+      "section": "voertuig",
+      "type": "toggle",
+      "icon": "car",
+      "hotkey": "Numpad8",
+      "description": "Voertuigen worden steeds hersteld naar maximale gezondheid. Let op: dit kan ook voor voertuigen van vijanden gelden.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Zelfde script in een tweede tabel. Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "_vehicle": {
+            "patterns": [
+              {
+                "aob": "F3 0F 10 88 48 01 00 00"
+              }
+            ],
+            "overwrite": 8
+          }
+        },
+        "alloc": {
+          "size": 4160,
+          "near": "_vehicle"
+        },
+        "asm": [
+          "newmem:",
+          "movss xmm6,[rax+00000144]",
+          "movss [rax+00000148],xmm6",
+          "code:",
+          "movss xmm1,[rax+00000148]",
+          "jmp _vehicle_ret"
+        ],
+        "hooks": [
+          {
+            "site": "_vehicle",
+            "label": "newmem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_missiles",
+      "name": "Oneindig raketten & flares",
+      "names": {
+        "en": "Unlimited Missiles & Flares"
+      },
+      "section": "voertuig",
+      "type": "toggle",
+      "icon": "fire",
+      "hotkey": "Numpad9",
+      "description": "Raketten en flares van vliegtuigen/helikopters raken niet op.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "missilelocation": {
+            "patterns": [
+              {
+                "aob": "74 04 FF 4C C6 74"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "missilelocation",
+            "offset": 0,
+            "bytes": "EB"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_bombs",
+      "name": "Oneindig bommen",
+      "names": {
+        "en": "Unlimited Bombs"
+      },
+      "section": "voertuig",
+      "type": "toggle",
+      "icon": "fire",
+      "hotkey": "Ctrl+Numpad9",
+      "description": "Bommen van vliegtuigen raken niet op.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "bombslocation": {
+            "patterns": [
+              {
+                "aob": "74 04 FF 4C C1 74 C3"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "bombslocation",
+            "offset": 0,
+            "bytes": "EB"
+          }
+        ]
+      }
+    },
+    {
+      "id": "money",
+      "name": "Geld bewerken",
+      "names": {
+        "en": "Edit Money"
+      },
+      "section": "punten",
+      "type": "toggle",
+      "icon": "coin",
+      "hotkey": "Ctrl+Numpad1",
+      "description": "Maakt je geld (dollars) bewerkbaar. Aanzetten, dan het spel laden en eenmaal TAB (inventaris) indrukken; daarna verschijnt de waarde.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "_inventory": {
+            "patterns": [
+              {
+                "aob": "8B 43 0C 48 8B 5C 24 30"
+              }
+            ],
+            "overwrite": 8
+          }
+        },
+        "alloc": {
+          "size": 4240,
+          "near": "_inventory"
+        },
+        "asm": [
+          "newmem:",
+          "cmp [rbx+17C],(int)0",
+          "je code",
+          "push rbx",
+          "mov [pMoney],rbx",
+          "pop rbx",
+          "code:",
+          "mov eax,[rbx+0C]",
+          "mov rbx,[rsp+30]",
+          "jmp _inventory_ret",
+          "  db CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC",
+          "pMoney:",
+          "dd 0"
+        ],
+        "hooks": [
+          {
+            "site": "_inventory",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "pMoney"
+        ]
+      }
+    },
+    {
+      "id": "money_value",
+      "name": "Geld",
+      "names": {
+        "en": "Money"
+      },
+      "section": "punten",
+      "type": "number",
+      "icon": "coin",
+      "description": "Je huidige geld (dollars).",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "requires": [
+        "money"
+      ],
+      "hint": "Druk eenmaal op TAB in het spel",
+      "min": 0,
+      "max": 9999999,
+      "step": 1000,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pMoney",
+        "offsets": [
+          12
+        ],
+        "valueType": "int32"
+      }
+    },
+    {
+      "id": "perks",
+      "name": "Perkpunten bewerken",
+      "names": {
+        "en": "Edit Perk Points"
+      },
+      "section": "punten",
+      "type": "toggle",
+      "icon": "star",
+      "hotkey": "Ctrl+Numpad2",
+      "description": "Maakt je perkpunten bewerkbaar. Geef eenmaal een perkpunt uit, dan verschijnt de waarde.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "_skillpoints": {
+            "patterns": [
+              {
+                "aob": "8B 06 8B D7 89 44 24 28"
+              }
+            ],
+            "overwrite": 8
+          }
+        },
+        "alloc": {
+          "size": 4240,
+          "near": "_skillpoints"
+        },
+        "asm": [
+          "newmem:",
+          "push rsi",
+          "mov [pSkillPoints],rsi",
+          "code:",
+          "pop rsi",
+          "mov eax,[rsi]",
+          "mov edx,edi",
+          "mov [rsp+28],eax",
+          "jmp _skillpoints_ret",
+          "  db CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC",
+          "pSkillPoints:",
+          "dd 0"
+        ],
+        "hooks": [
+          {
+            "site": "_skillpoints",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "pSkillPoints"
+        ]
+      }
+    },
+    {
+      "id": "perks_value",
+      "name": "Perkpunten",
+      "names": {
+        "en": "Perk Points"
+      },
+      "section": "punten",
+      "type": "number",
+      "icon": "star",
+      "description": "Je huidige perkpunten.",
+      "confidence": "untested",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (november 2018). Niet getest in Steam-build 18766066 (juli 2025). Die build heeft FC_m64.dll opnieuw gecompileerd, dus AOB's uit 2018 kunnen niet meer kloppen. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "requires": [
+        "perks"
+      ],
+      "hint": "Geef eenmaal een perkpunt uit",
+      "min": 0,
+      "max": 999,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pSkillPoints",
+        "offsets": [
+          0
+        ],
+        "valueType": "int32"
+      }
+    }
+  ]
+}

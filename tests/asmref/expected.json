@@ -1,0 +1,206 @@
+[
+[
+"xorps xmm0,xmm0",
+"0F57C0"
+],
+[
+"pushfq",
+"9C"
+],
+[
+"popfq",
+"9D"
+],
+[
+"cmp qword ptr [rax+10],0",
+"4883781000"
+],
+[
+"cmp rcx,[rdx]",
+"483B0A"
+],
+[
+"comiss xmm0,[rcx]",
+"0F2F01"
+],
+[
+"movss xmm0,[rcx]",
+"F30F1001"
+],
+[
+"movss [rbx+00000A38],xmm0",
+"F30F1183380A0000"
+],
+[
+"test r13,r13",
+"4D85ED"
+],
+[
+"cmp r14,rsi",
+"4939F6"
+],
+[
+"push r11",
+"4153"
+],
+[
+"pop r11",
+"415B"
+],
+[
+"lea r11,[rax+08]",
+"4C8D5808"
+],
+[
+"sub edi,eax",
+"29C7"
+],
+[
+"add edi,[rbx]",
+"033B"
+],
+[
+"mov eax,00000000",
+"B800000000"
+],
+[
+"mov eax,0000270F",
+"B80F270000"
+],
+[
+"imul ebx,[rcx+8]",
+"0FAF5908"
+],
+[
+"add eax,ebx",
+"01D8"
+],
+[
+"mov [r14],eax",
+"418906"
+],
+[
+"mov [rax],r14",
+"4C8930"
+],
+[
+"cmp dword ptr [rax+08],FFFFFFFF",
+"837808FF"
+],
+[
+"cmp dword ptr [rax+0C],00000000",
+"83780C00"
+],
+[
+"cmp byte ptr [rax-08],01",
+"8078F801"
+],
+[
+"mov dword ptr [rbx+464],63",
+"C7836404000063000000"
+],
+[
+"movsd xmm0,[rax]",
+"F20F1000"
+],
+[
+"subsd xmm0,xmm6",
+"F20F5CC6"
+],
+[
+"mov rax,[rsp+30]",
+"488B442430"
+],
+[
+"mov [rsp+rcx*8+10],rdx",
+"488954CC10"
+],
+[
+"mov r8d,#100",
+"41B864000000"
+],
+[
+"mov rax,123456789ABC",
+"48B8BC9A785634120000"
+],
+[
+"add rsp,28",
+"4883C428"
+],
+[
+"sub rsp,#40",
+"4883EC28"
+],
+[
+"inc dword ptr [rbx+468]",
+"FF8368040000"
+],
+[
+"mov byte ptr [rcx],1",
+"C60101"
+],
+[
+"movzx eax,byte ptr [rcx+1]",
+"0FB64101"
+],
+[
+"cvtsi2ss xmm1,eax",
+"F30F2AC8"
+],
+[
+"mulss xmm0,xmm1",
+"F30F59C1"
+],
+[
+"maxss xmm0,[rcx+08]",
+"F30F5F4108"
+],
+[
+"and eax,FF",
+"25FF000000"
+],
+[
+"or r10,1",
+"4983CA01"
+],
+[
+"shl eax,1",
+"D1E0"
+],
+[
+"shr rdx,4",
+"48C1EA04"
+],
+[
+"xor r12d,r12d",
+"4531E4"
+],
+[
+"mov r11b,1",
+"41B301"
+],
+[
+"nop",
+"90"
+],
+[
+"ret",
+"C3"
+],
+[
+"movaps xmm6,[rsp+20]",
+"0F28742420"
+],
+[
+"vmovss xmm0,[rcx]",
+"C5FA1001"
+],
+[
+"cmovl eax,ecx",
+"0F4CC1"
+],
+[
+"sete al",
+"0F94C0"
+]
+]

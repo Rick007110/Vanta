@@ -1,0 +1,849 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "schemaVersion": 1,
+  "id": "the-last-caretaker",
+  "name": "The Last Caretaker",
+  "short": "LC",
+  "steamAppId": 1783560,
+  "processNames": [
+    "VoyageSteam-Win64-Shipping.exe"
+  ],
+  "launcherProcesses": [
+    "Voyage.exe"
+  ],
+  "module": "VoyageSteam-Win64-Shipping.exe",
+  "supportedVersions": [
+    {
+      "label": "Early Access 0.8.5.651238"
+    }
+  ],
+  "antiCheat": false,
+  "onlineOnly": false,
+  "categories": [
+    "survival",
+    "sci-fi",
+    "open world"
+  ],
+  "badge": "EA 0.8.5",
+  "notes": [
+    "Alleen Infinite Battery is bevestigd werkend in 0.8.5.651238; alle andere cheats zijn ongetest en falen veilig (niets gepatcht) als hun AOB niet uniek is.",
+    "XP waarde en Enhancer-bonus gebruiken een hook die automatisch wordt geplaatst bij het koppelen. XP verschijnt nadat je eenmaal XP verdient.",
+    "Maak een backup van je save: %LOCALAPPDATA%\\Voyage\\Saved\\SaveGames",
+    "Vul supportedVersions (fileVersion/peTimestamp/moduleSize) aan met de vingerafdruk uit het log zodra de versie is bevestigd."
+  ],
+  "art": {
+    "sky": [
+      "#07131F",
+      "#17465A"
+    ],
+    "horizon": "#F0A56E",
+    "ground": "#061015",
+    "tint": "#5CC8B8",
+    "motif": "sea"
+  },
+  "cheats": [
+    {
+      "id": "inf_battery",
+      "name": "Infinite Battery",
+      "names": {
+        "en": "Infinite Battery"
+      },
+      "section": "speler",
+      "type": "toggle",
+      "icon": "battery",
+      "hotkey": "F5",
+      "description": "Geen stroomverbruik: skipt de 'subsd' in de gedeelde elektriciteits-drain (speler-battery en elektrisch gereedschap/pak).",
+      "confidence": "confirmed",
+      "confidenceNote": "Bevestigd werkend in 0.8.5.651238 (in de praktijk getest; NOP van subsd op +4).",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "drain": {
+            "patterns": [
+              {
+                "aob": "F2 0F 10 00 F2 0F 5C C6 F2 0F 11 00 B0 01 C6 86 ?? ?? ?? ?? 01"
+              },
+              {
+                "aob": "F2 0F 10 00 F2 0F 5C C6 F2 0F 11 00 B0 01 C6 ?? ?? ?? ?? ?? 01"
+              }
+            ],
+            "expect": "F2 0F 10 00 F2 0F 5C C6"
+          }
+        },
+        "patches": [
+          {
+            "site": "drain",
+            "offset": 4,
+            "bytes": "90 90 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_health",
+      "name": "Infinite Health",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "heart",
+      "hotkey": "F6",
+      "description": "Speler neemt geen schade. Neem eenmaal schade zodat het HP-adres wordt vastgelegd.",
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "rd": {
+            "patterns": [
+              {
+                "aob": "75 ?? 33 C0 F3 0F 10 40 08 48 8D 58 08 0F 28 C8",
+                "offset": 4
+              },
+              {
+                "aob": "33 C0 F3 0F 10 40 08 48 8D 58 08",
+                "offset": 2
+              }
+            ],
+            "expect": "F3 0F 10 40 08",
+            "overwrite": 5
+          },
+          "st": {
+            "patterns": [
+              {
+                "aob": "F3 0F 5D C1 F3 0F 5F 41 08 F3 0F 11 01 C3"
+              },
+              {
+                "aob": "F3 0F 5D ?? F3 0F 5F 41 08 F3 0F 11 01 C3"
+              }
+            ],
+            "expect": "F3 0F 5D ?? F3 0F 5F 41 08",
+            "overwrite": 9
+          }
+        },
+        "alloc": {
+          "size": 4096,
+          "near": "st"
+        },
+        "asm": [
+          "st_code:",
+          "  db ${orig:st}",
+          "  pushfq",
+          "  cmp qword ptr [hp_ptr],0",
+          "  je st_norm",
+          "  cmp rcx,[hp_ptr]",
+          "  jne st_norm",
+          "  comiss xmm0,[rcx]",
+          "  jae st_norm",
+          "  movss xmm0,[rcx]",
+          "st_norm:",
+          "  popfq",
+          "  jmp st_ret",
+          "rd_code:",
+          "  db ${orig:rd}",
+          "  pushfq",
+          "  test r13,r13",
+          "  je rd_skip",
+          "  cmp r14,rsi",
+          "  je rd_skip",
+          "  push r11",
+          "  lea r11,[rax+08]",
+          "  mov [hp_ptr],r11",
+          "  pop r11",
+          "rd_skip:",
+          "  popfq",
+          "  jmp rd_ret",
+          "hp_ptr:",
+          "  dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "st",
+            "label": "st_code"
+          },
+          {
+            "site": "rd",
+            "label": "rd_code"
+          }
+        ],
+        "exports": [
+          "hp_ptr"
+        ]
+      }
+    },
+    {
+      "id": "health_current",
+      "name": "Health huidig",
+      "section": "speler",
+      "type": "number",
+      "icon": "heart",
+      "min": 0,
+      "max": 100000,
+      "step": 10,
+      "hint": "Zet Infinite Health aan en neem eenmaal schade",
+      "requires": [
+        "inf_health"
+      ],
+      "confidence": "untested",
+      "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "pointer",
+        "base": "sym:hp_ptr",
+        "offsets": [
+          0
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "health_max",
+      "name": "Health max",
+      "section": "speler",
+      "type": "number",
+      "icon": "heart",
+      "min": 0,
+      "max": 100000,
+      "step": 10,
+      "hint": "Zet Infinite Health aan en neem eenmaal schade",
+      "requires": [
+        "inf_health"
+      ],
+      "confidence": "untested",
+      "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "pointer",
+        "base": "sym:hp_ptr",
+        "offsets": [
+          12
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "no_weight",
+      "name": "Geen gewicht",
+      "names": {
+        "en": "No weight"
+      },
+      "section": "speler",
+      "type": "toggle",
+      "icon": "weight",
+      "hotkey": "F7",
+      "description": "Draaglimiet genegeerd (pak eenmaal een item op of leg er een neer om te verversen).",
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "w": {
+            "patterns": [
+              {
+                "aob": "F3 0F 11 83 ?? ?? ?? ?? 48 85 C0 74 ?? F3 0F 10 70 3C"
+              },
+              {
+                "aob": "F3 0F 11 83 ?? ?? ?? ?? 48 85 C0 74 ?? F3 0F 10 70 ??"
+              },
+              {
+                "aob": "48 8B 83 ?? ?? ?? ?? F3 0F 11 83 ?? ?? ?? ?? 48 85 C0 74",
+                "offset": 7
+              }
+            ],
+            "expect": "F3 0F 11 83",
+            "overwrite": 8
+          }
+        },
+        "asm": [
+          "code:",
+          "  xorps xmm0,xmm0",
+          "  db ${orig:w}",
+          "  jmp w_ret"
+        ],
+        "hooks": [
+          {
+            "site": "w",
+            "label": "code"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_ammo",
+      "name": "Infinite Ammo",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "ammo",
+      "hotkey": "F8",
+      "description": "Bolt pistool/geweer/sniper: schieten verbruikt geen munitie, herladen werkt.",
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "am": {
+            "patterns": [
+              {
+                "aob": "89 9E B8 0B 00 00 E8 ?? ?? ?? ?? 48 8B 5C 24 30"
+              },
+              {
+                "aob": "0F 4C DD 44 8B C3 89 9E ?? ?? 00 00 E8 ?? ?? ?? ?? 48 8B 5C 24 30",
+                "offset": 6
+              },
+              {
+                "aob": "0F 4C ?? 44 8B C3 89 ?? ?? ?? 00 00 E8",
+                "offset": 6
+              }
+            ],
+            "expect": "89",
+            "checks": [
+              {
+                "u8At": 1,
+                "min": 152,
+                "max": 159,
+                "not": [
+                  156
+                ]
+              }
+            ],
+            "overwrite": 6
+          }
+        },
+        "asm": [
+          "code:",
+          "  db 3B ${orig:am:1:5}",
+          "  jl skip",
+          "  db ${orig:am}",
+          "skip:",
+          "  jmp am_ret"
+        ],
+        "hooks": [
+          {
+            "site": "am",
+            "label": "code"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_grenades",
+      "name": "Infinite Grenades",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "grenade",
+      "hotkey": "F9",
+      "description": "Granaten dalen niet (kan ook andere verbruiksitems raken).",
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. In eerdere tests: patroon 2 gaf meerdere treffers. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "g": {
+            "patterns": [
+              {
+                "aob": "3B CE 7E ?? 2B CE 89 4D 18 45 84 F6",
+                "offset": 4
+              },
+              {
+                "aob": "2B CE 89 4D 18 45 84 F6"
+              },
+              {
+                "aob": "2B CE 89 4D 18"
+              }
+            ],
+            "expect": "2B CE 89 4D 18"
+          }
+        },
+        "patches": [
+          {
+            "site": "g",
+            "offset": 0,
+            "bytes": "90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fuel_hook",
+      "name": "Brandstof/lading-hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "f": {
+            "patterns": [
+              {
+                "aob": "49 8B C9 E8 ?? ?? ?? ?? F2 0F 10 00 F2 0F 5C C7 F2 0F 11 00 B0 01 C6 87 ?? ?? ?? ?? 01",
+                "offset": 8
+              },
+              {
+                "aob": "F2 0F 10 00 F2 0F 5C C7 F2 0F 11 00 B0 01 C6 87 ?? ?? ?? ?? 01"
+              }
+            ],
+            "expect": "F2 0F 10 00 F2 0F 5C C7",
+            "overwrite": 8
+          }
+        },
+        "asm": [
+          "code:",
+          "  db ${orig:f:0:4}",
+          "  pushfq",
+          "  cmp dword ptr [rax+08],FFFFFFFF",
+          "  jne norm",
+          "  cmp dword ptr [rax+0C],00000000",
+          "  jne norm",
+          "  cmp byte ptr [rax-08],01",
+          "  jne chk",
+          "  cmp byte ptr [fuel_flags],0",
+          "  jne keep",
+          "  jmp norm",
+          "chk:",
+          "  cmp byte ptr [rax-08],00",
+          "  jne norm",
+          "  cmp byte ptr [fuel_flags+1],0",
+          "  jne keep",
+          "norm:",
+          "  popfq",
+          "  db ${orig:f:4:4}",
+          "  jmp f_ret",
+          "keep:",
+          "  popfq",
+          "  jmp f_ret",
+          "fuel_flags:",
+          "  db 00 00"
+        ],
+        "hooks": [
+          {
+            "site": "f",
+            "label": "code"
+          }
+        ],
+        "exports": [
+          "fuel_flags"
+        ]
+      }
+    },
+    {
+      "id": "inf_charge",
+      "name": "Infinite wapenlading (elektrisch)",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "bolt",
+      "description": "Elektrische wapens/vlammenwerper verbruiken geen lading.",
+      "requires": [
+        "fuel_hook"
+      ],
+      "confidence": "untested",
+      "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "pointer",
+        "base": "sym:fuel_flags+1",
+        "valueType": "byte",
+        "onValue": 1,
+        "offValue": 0
+      }
+    },
+    {
+      "id": "enh_hook",
+      "name": "Enhancer-hook",
+      "section": "punten",
+      "type": "toggle",
+      "hidden": true,
+      "autoEnable": true,
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "e": {
+            "patterns": [
+              {
+                "aob": "48 8B 5C 24 30 2B F8 B8 00 00 00 00 0F 48 F8",
+                "offset": 5
+              },
+              {
+                "aob": "2B F8 B8 00 00 00 00 0F 48 F8"
+              },
+              {
+                "aob": "2B F8 B8 00 00 00 00 0F"
+              }
+            ],
+            "expect": "2B F8 B8 00 00 00 00",
+            "overwrite": 7
+          }
+        },
+        "asm": [
+          "code:",
+          "  sub edi,eax",
+          "  add edi,[enh_data]",
+          "  mov [enh_data+4],edi",
+          "  mov eax,00000000",
+          "  jmp e_ret",
+          "enh_data:",
+          "  dd 0",
+          "  dd 0"
+        ],
+        "hooks": [
+          {
+            "site": "e",
+            "label": "code"
+          }
+        ],
+        "exports": [
+          "enh_data"
+        ]
+      }
+    },
+    {
+      "id": "xp_hook",
+      "name": "XP-hook",
+      "section": "punten",
+      "type": "toggle",
+      "hidden": true,
+      "autoEnable": true,
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "x": {
+            "patterns": [
+              {
+                "aob": "03 C3 41 89 06 4C 8B 74 24 30"
+              },
+              {
+                "aob": "03 C3 41 89 06 4C 8B 74 24"
+              },
+              {
+                "aob": "03 C3 41 89 06"
+              }
+            ],
+            "expect": "03 C3 41 89 06",
+            "overwrite": 5
+          }
+        },
+        "asm": [
+          "code:",
+          "  imul ebx,[xp_data+8]",
+          "  add eax,ebx",
+          "  mov [r14],eax",
+          "  mov [xp_data],r14",
+          "  jmp x_ret",
+          "xp_data:",
+          "  dq 0",
+          "  dd 1"
+        ],
+        "hooks": [
+          {
+            "site": "x",
+            "label": "code"
+          }
+        ],
+        "exports": [
+          "xp_data"
+        ]
+      }
+    },
+    {
+      "id": "xp_value",
+      "name": "XP waarde",
+      "names": {
+        "en": "XP value"
+      },
+      "section": "punten",
+      "type": "number",
+      "icon": "bolt",
+      "min": 0,
+      "max": 9999999,
+      "step": 1000,
+      "hotkeyInc": "Numpad+",
+      "hotkeyDec": "Numpad-",
+      "requires": [
+        "xp_hook"
+      ],
+      "hint": "Verdien eenmaal XP in-game (bv. iets looten of recyclen)",
+      "sub": "Meer XP = level-up = skill- en enhancerpunten",
+      "confidence": "untested",
+      "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "pointer",
+        "base": "sym:xp_data",
+        "offsets": [
+          0
+        ],
+        "valueType": "int32"
+      }
+    },
+    {
+      "id": "xp_mult",
+      "name": "XP multiplier",
+      "section": "punten",
+      "type": "slider",
+      "icon": "multiply",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "format": "×{v}",
+      "resetValue": 1,
+      "requires": [
+        "xp_hook"
+      ],
+      "hint": "XP-hook niet actief",
+      "confidence": "untested",
+      "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "pointer",
+        "base": "sym:xp_data+8",
+        "valueType": "int32"
+      }
+    },
+    {
+      "id": "enhancer_pts",
+      "name": "Enhancer-bonus",
+      "section": "punten",
+      "type": "number",
+      "icon": "gem",
+      "min": 0,
+      "max": 9999,
+      "step": 1,
+      "resetValue": 0,
+      "hotkeyInc": "Shift+Numpad+",
+      "hotkeyDec": "Shift+Numpad-",
+      "requires": [
+        "enh_hook"
+      ],
+      "hint": "Enhancer-hook niet actief",
+      "sub": "Extra punten; zichtbaar na openen enhancer-menu",
+      "confidence": "untested",
+      "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "pointer",
+        "base": "sym:enh_data",
+        "valueType": "int32"
+      }
+    },
+    {
+      "id": "inf_jump",
+      "name": "Onbeperkt springen",
+      "names": {
+        "en": "Unlimited jump"
+      },
+      "section": "extra",
+      "type": "toggle",
+      "icon": "jump",
+      "hotkey": "F10",
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Offsets worden uit de gevonden instructie gelezen. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "j": {
+            "patterns": [
+              {
+                "aob": "48 8B 03 48 8B CB FF 83 68 04 00 00 48 89 74 24",
+                "offset": 6
+              },
+              {
+                "aob": "48 8B 03 48 8B CB FF 83 ?? ?? 00 00 48 89 74 24 ?? FF 90",
+                "offset": 6
+              },
+              {
+                "aob": "FF 83 ?? ?? 00 00 48 89 74 24 ?? FF 90"
+              }
+            ],
+            "expect": "FF 83",
+            "checks": [
+              {
+                "i32At": 2,
+                "min": 8,
+                "max": 16384
+              }
+            ],
+            "overwrite": 6
+          }
+        },
+        "asm": [
+          "code:",
+          "  mov dword ptr [rbx+${i32:j:2:-4}],63",
+          "  mov dword ptr [rbx+${i32:j:2}],0",
+          "  jmp j_ret"
+        ],
+        "hooks": [
+          {
+            "site": "j",
+            "label": "code"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instant_build",
+      "name": "Direct bouwen",
+      "names": {
+        "en": "Instant build"
+      },
+      "section": "extra",
+      "type": "toggle",
+      "icon": "hammer",
+      "hotkey": "F11",
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "b": {
+            "patterns": [
+              {
+                "aob": "F3 41 0F 10 86 ?? ?? ?? ?? F3 41 0F 5C C7 F3 41 0F 5F C6",
+                "offset": 9
+              },
+              {
+                "aob": "F3 41 0F 5C C7 F3 41 0F 5F C6 F3 41 0F 11"
+              },
+              {
+                "aob": "F3 41 0F 5C C7 F3 41 0F 5F"
+              }
+            ],
+            "expect": "F3 41 0F 5C C7"
+          }
+        },
+        "patches": [
+          {
+            "site": "b",
+            "offset": 0,
+            "bytes": "F3 0F 5C C0 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_petrol",
+      "name": "Infinite petrol",
+      "section": "extra",
+      "type": "toggle",
+      "icon": "fuel",
+      "hotkey": "Ctrl+F8",
+      "requires": [
+        "fuel_hook"
+      ],
+      "description": "Petrol (voertuigen/generator) daalt niet.",
+      "confidence": "untested",
+      "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "pointer",
+        "base": "sym:fuel_flags",
+        "valueType": "byte",
+        "onValue": 1,
+        "offValue": 0
+      }
+    },
+    {
+      "id": "free_craft",
+      "name": "Gratis craften",
+      "names": {
+        "en": "Free crafting"
+      },
+      "section": "extra",
+      "type": "toggle",
+      "icon": "cube",
+      "hotkey": "Ctrl+F9",
+      "description": "Geen materialen nodig of verbruikt.",
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "c1": {
+            "patterns": [
+              {
+                "aob": "48 85 C9 74 05 E8 ?? ?? ?? ?? 41 8B C5 48 8B 4D D0 48 33 CC",
+                "offset": 10
+              },
+              {
+                "aob": "E8 ?? ?? ?? ?? 41 8B C5 48 8B 4D D0 48 33 CC",
+                "offset": 5
+              }
+            ],
+            "expect": "41 8B C5 48 8B 4D D0",
+            "overwrite": 7
+          },
+          "c2": {
+            "patterns": [
+              {
+                "aob": "49 8B 0E 41 B9 FF FF FF FF 49 8B 55 00 45 8B C4 C6 44 24 20 01 48 8B 01 ?? ?? ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? 44 8B F8 49 8B 1E",
+                "offset": 24
+              }
+            ],
+            "expect": "FF 90",
+            "overwrite": 6
+          }
+        },
+        "alloc": {
+          "size": 4096,
+          "near": "c1"
+        },
+        "asm": [
+          "code:",
+          "  mov eax,0000270F",
+          "  db ${orig:c1:3:4}",
+          "  jmp c1_ret"
+        ],
+        "hooks": [
+          {
+            "site": "c1",
+            "label": "code"
+          }
+        ],
+        "patches": [
+          {
+            "site": "c2",
+            "offset": 0,
+            "bytes": "41 8B C4 90 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "dupe_items",
+      "name": "Items dupliceren bij splitsen",
+      "names": {
+        "en": "Duplicate items on split"
+      },
+      "section": "extra",
+      "type": "toggle",
+      "icon": "copy",
+      "hotkey": "Ctrl+F10",
+      "description": "De bronstapel daalt niet bij splitsen.",
+      "confidence": "untested",
+      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "d": {
+            "patterns": [
+              {
+                "aob": "FF 90 C8 01 00 00 44 29 73 20 33 C9 48 8B 44 24 40 0F 57 C0 0F B6 9B 90 00 00 00",
+                "offset": 6
+              },
+              {
+                "aob": "FF 90 ?? ?? 00 00 44 29 73 20 33 C9 48 8B 44 24",
+                "offset": 6
+              },
+              {
+                "aob": "44 29 73 20 33 C9"
+              }
+            ],
+            "expect": "44 29 73 20"
+          }
+        },
+        "patches": [
+          {
+            "site": "d",
+            "offset": 0,
+            "bytes": "90 90 90 90"
+          }
+        ]
+      }
+    }
+  ]
+}

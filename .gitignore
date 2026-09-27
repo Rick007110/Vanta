@@ -1,0 +1,11 @@
+bin/
+obj/
+dist/
+*.user
+.vs/
+node_modules/
+tests/ui/art/
+tests/ui/out/
+TestResults/
+*.zip
+*.sha256

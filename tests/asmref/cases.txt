@@ -1,0 +1,51 @@
+xorps xmm0,xmm0|xorps xmm0,xmm0
+pushfq|pushfq
+popfq|popfq
+cmp qword ptr [rax+10],0|cmp qword ptr [rax+0x10],0
+cmp rcx,[rdx]|cmp rcx,[rdx]
+comiss xmm0,[rcx]|comiss xmm0,[rcx]
+movss xmm0,[rcx]|movss xmm0,[rcx]
+movss [rbx+00000A38],xmm0|movss [rbx+0xA38],xmm0
+test r13,r13|test r13,r13
+cmp r14,rsi|cmp r14,rsi
+push r11|push r11
+pop r11|pop r11
+lea r11,[rax+08]|lea r11,[rax+8]
+sub edi,eax|sub edi,eax
+add edi,[rbx]|add edi,[rbx]
+mov eax,00000000|mov eax,0
+mov eax,0000270F|mov eax,0x270F
+imul ebx,[rcx+8]|imul ebx,[rcx+8]
+add eax,ebx|add eax,ebx
+mov [r14],eax|mov [r14],eax
+mov [rax],r14|mov [rax],r14
+cmp dword ptr [rax+08],FFFFFFFF|cmp dword ptr [rax+8],-1
+cmp dword ptr [rax+0C],00000000|cmp dword ptr [rax+0xC],0
+cmp byte ptr [rax-08],01|cmp byte ptr [rax-8],1
+mov dword ptr [rbx+464],63|mov dword ptr [rbx+0x464],0x63
+movsd xmm0,[rax]|movsd xmm0,[rax]
+subsd xmm0,xmm6|subsd xmm0,xmm6
+mov rax,[rsp+30]|mov rax,[rsp+0x30]
+mov [rsp+rcx*8+10],rdx|mov [rsp+rcx*8+0x10],rdx
+mov r8d,#100|mov r8d,100
+mov rax,123456789ABC|movabs rax,0x123456789ABC
+add rsp,28|add rsp,0x28
+sub rsp,#40|sub rsp,40
+inc dword ptr [rbx+468]|inc dword ptr [rbx+0x468]
+mov byte ptr [rcx],1|mov byte ptr [rcx],1
+movzx eax,byte ptr [rcx+1]|movzx eax,byte ptr [rcx+1]
+cvtsi2ss xmm1,eax|cvtsi2ss xmm1,eax
+mulss xmm0,xmm1|mulss xmm0,xmm1
+maxss xmm0,[rcx+08]|maxss xmm0,[rcx+8]
+and eax,FF|and eax,0xFF
+or r10,1|or r10,1
+shl eax,1|shl eax,1
+shr rdx,4|shr rdx,4
+xor r12d,r12d|xor r12d,r12d
+mov r11b,1|mov r11b,1
+nop|nop
+ret|ret
+movaps xmm6,[rsp+20]|movaps xmm6,[rsp+0x20]
+vmovss xmm0,[rcx]|vmovss xmm0,[rcx]
+cmovl eax,ecx|cmovl eax,ecx
+sete al|sete al

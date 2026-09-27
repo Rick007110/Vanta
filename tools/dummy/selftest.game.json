@@ -1,0 +1,49 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "schemaVersion": 1,
+  "id": "vanta-selftest",
+  "name": "Vanta selftest dummy",
+  "processNames": ["vanta_dummy.exe"],
+  "antiCheat": false,
+  "onlineOnly": false,
+  "categories": ["test"],
+  "notes": ["Testdoel voor Vanta.exe --selftest. Verandert alleen zijn eigen variabelen."],
+  "cheats": [
+    {
+      "id": "battery", "name": "Infinite Battery (dummy)", "section": "speler", "type": "toggle", "icon": "battery", "hotkey": "F5",
+      "confidence": "confirmed",
+      "impl": {
+        "type": "aobPatch",
+        "sites": { "drain": { "patterns": [ { "aob": "F2 0F 10 00 F2 0F 5C C6 F2 0F 11 00 B0 01 C6 86 ?? ?? ?? ?? 01" } ], "expect": "F2 0F 10 00 F2 0F 5C C6" } },
+        "patches": [ { "site": "drain", "offset": 4, "bytes": "90 90 90 90" } ]
+      }
+    },
+    {
+      "id": "xp_hook", "name": "XP hook (dummy)", "section": "punten", "type": "toggle", "hidden": true, "autoEnable": true,
+      "impl": {
+        "type": "aobInject",
+        "sites": { "x": { "patterns": [ { "aob": "03 C3 41 89 06 4C 8B 74 24 30" } ], "overwrite": 5, "expect": "03 C3 41 89 06" } },
+        "asm": [ "code:", "  imul ebx,[xp_data+8]", "  add eax,ebx", "  mov [r14],eax", "  mov [xp_data],r14", "  jmp x_ret", "xp_data:", "  dq 0", "  dd 1" ],
+        "hooks": [ { "site": "x", "label": "code" } ],
+        "exports": [ "xp_data" ]
+      }
+    },
+    {
+      "id": "xp_value", "name": "XP", "section": "punten", "type": "number", "icon": "star", "requires": ["xp_hook"], "step": 1000,
+      "hint": "Wacht tot de dummy XP verdient",
+      "impl": { "type": "pointer", "base": "sym:xp_data", "offsets": [0], "valueType": "int32" }
+    },
+    {
+      "id": "xp_mult", "name": "XP multiplier", "section": "punten", "type": "slider", "icon": "star", "requires": ["xp_hook"], "min": 1, "max": 10, "resetValue": 1,
+      "impl": { "type": "pointer", "base": "sym:xp_data+8", "valueType": "int32" }
+    },
+    {
+      "id": "health", "name": "Health (static pointer)", "section": "speler", "type": "number", "icon": "heart", "min": 0, "max": 100000,
+      "impl": { "type": "pointer", "base": { "aob": "48 8B 05 ?? ?? ?? ?? 48 85 C0 74 03 8B 40 10", "ripOffset": 3, "insnLength": 7 }, "offsets": [16], "valueType": "int32" }
+    },
+    {
+      "id": "god", "name": "God mode (freeze)", "section": "speler", "type": "toggle", "icon": "shield", "hotkey": "F6",
+      "impl": { "type": "pointer", "base": { "aob": "48 8B 05 ?? ?? ?? ?? 48 85 C0 74 03 8B 40 10", "ripOffset": 3, "insnLength": 7 }, "offsets": [16], "valueType": "int32", "onValue": 999, "freeze": true }
+    }
+  ]
+}

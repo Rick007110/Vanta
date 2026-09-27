@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C586298C-1867-4DD5-B7CF-DC83A948E8C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vanta.Core", "src\Vanta.Core\Vanta.Core.csproj", "{07E9D612-BD81-4055-B1D9-0FFBC6CFC8CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vanta.Cli", "src\Vanta.Cli\Vanta.Cli.csproj", "{42272DEF-82F4-4563-A4F2-830017831A38}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EAD643-9BC1-4E2B-845D-DB31018FC172}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vanta.Tests", "tests\Vanta.Tests\Vanta.Tests.csproj", "{B322AC2E-C6AF-4081-8795-66136B14B27A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vanta.App", "src\Vanta.App\Vanta.App.csproj", "{EBF34FB6-601E-47E0-8ABF-14A17DABF963}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{07E9D612-BD81-4055-B1D9-0FFBC6CFC8CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07E9D612-BD81-4055-B1D9-0FFBC6CFC8CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07E9D612-BD81-4055-B1D9-0FFBC6CFC8CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07E9D612-BD81-4055-B1D9-0FFBC6CFC8CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42272DEF-82F4-4563-A4F2-830017831A38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42272DEF-82F4-4563-A4F2-830017831A38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42272DEF-82F4-4563-A4F2-830017831A38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42272DEF-82F4-4563-A4F2-830017831A38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B322AC2E-C6AF-4081-8795-66136B14B27A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B322AC2E-C6AF-4081-8795-66136B14B27A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B322AC2E-C6AF-4081-8795-66136B14B27A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B322AC2E-C6AF-4081-8795-66136B14B27A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBF34FB6-601E-47E0-8ABF-14A17DABF963}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBF34FB6-601E-47E0-8ABF-14A17DABF963}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBF34FB6-601E-47E0-8ABF-14A17DABF963}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBF34FB6-601E-47E0-8ABF-14A17DABF963}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{07E9D612-BD81-4055-B1D9-0FFBC6CFC8CD} = {C586298C-1867-4DD5-B7CF-DC83A948E8C8}
+		{42272DEF-82F4-4563-A4F2-830017831A38} = {C586298C-1867-4DD5-B7CF-DC83A948E8C8}
+		{B322AC2E-C6AF-4081-8795-66136B14B27A} = {02EAD643-9BC1-4E2B-845D-DB31018FC172}
+		{EBF34FB6-601E-47E0-8ABF-14A17DABF963} = {C586298C-1867-4DD5-B7CF-DC83A948E8C8}
+	EndGlobalSection
+EndGlobal

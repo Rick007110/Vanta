@@ -1,0 +1,11 @@
+{
+	"FormatVersion": 0,
+	"bIsIncompleteInstall": false,
+	"AppVersionString": "1.0.7",
+	"LaunchExecutable": "bin/Game.exe",
+	"DisplayName": "Test Game",
+	"InstallLocation": "E:\\Epic Games\\TestGame",
+	"AppName": "TestAppName123",
+	"CatalogNamespace": "abc",
+	"CatalogItemId": "def"
+}

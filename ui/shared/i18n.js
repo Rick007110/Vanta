@@ -1,0 +1,97 @@
+/* UI strings: Dutch (default) and English. t('key', {vars}). Elements: [data-i18n], [data-i18n-ph], [data-i18n-title]. */
+(function (root) {
+  'use strict';
+  const S = {
+    nl: {
+      'search.ph': 'Zoek game…', 'search.aria': 'Zoek game', 'cat.all': 'Alle categorieën',
+      'group.recent': 'Recent gespeeld', 'group.all': 'Alle games', 'group.results': 'Resultaten',
+      'lib.empty.title': 'Geen games gevonden', 'lib.empty.body': 'Niets gevonden voor “{q}”. Controleer de spelling.', 'lib.empty.clear': 'Wis zoekopdracht',
+      'lib.cheats': '{n} cheats', 'lib.more': 'Nog {n} games — verfijn je zoekopdracht',
+      'foot.hotkeys': 'Sneltoetsen', 'foot.settings': 'Instellingen',
+      'tab.cheats': 'Cheats', 'tab.hotkeys': 'Sneltoetsen', 'tab.notes': 'Notities',
+      'btn.disableAll': 'Alles uit', 'win.min': 'Minimaliseren', 'win.max': 'Maximaliseren', 'win.close': 'Sluiten',
+      'sec.speler': 'Speler', 'sec.wapens': 'Wapens', 'sec.punten': 'Punten', 'sec.extra': 'Extra', 'sec.wereld': 'Wereld', 'sec.voertuig': 'Voertuig', 'sec.inventaris': 'Inventaris',
+      'st.attached': 'Gekoppeld', 'st.notfound': 'Niet gevonden', 'st.wrongversion': 'Andere versie', 'st.attaching': 'Koppelen…', 'st.launching': 'Game start…',
+      'st.error': 'Fout', 'st.blocked': 'Niet ondersteund', 'st.loading': 'Laden…',
+      'pr.detach': 'Ontkoppelen', 'pr.launch': 'Start game', 'pr.force': 'Toch koppelen', 'pr.attaching': 'Koppelen…', 'pr.launching': 'Game start…', 'pr.retry': 'Opnieuw', 'pr.blocked': 'Niet ondersteund',
+      'hint.attached': '{p} · cheats beschikbaar', 'hint.notfound': 'Start de game (via Steam) om cheats te gebruiken.', 'hint.notfound.nosteam': 'Start de game zelf; Vanta koppelt automatisch.', 'hint.notfound.via': 'Start de game (via {store}) om cheats te gebruiken.',
+      'hint.wrongversion': 'Deze game-versie is niet getest. Cheats kunnen falen (ze patchen dan niets).', 'hint.attaching': 'Verbinden met {p}…',
+      'hint.launching': 'Game wordt gestart via Steam…', 'hint.error': 'Koppelen mislukt.', 'hint.blocked': 'Online/anti-cheat: Vanta koppelt hier bewust niet aan.',
+      'meta.version': 'Ondersteunde versie', 'meta.store': 'Geïnstalleerd via', 'meta.ownedOnly': 'in bezit, niet geïnstalleerd', 'pr.launchVia': 'Start via {store}', 'hero.library': 'Bibliotheek', 'hero.lastPlayed': 'Laatst gespeeld',
+      'count.active': '{on} van {n} actief', 'count.wait': 'Wacht op game', 'count.none': 'Geen cheats',
+      'row.on': 'Aan', 'row.off': 'Uit', 'row.err': 'Fout', 'row.retry': 'Opnieuw', 'row.step': 'Stap {s}', 'row.hold': 'houd ingedrukt', 'row.run': 'Uitvoeren',
+      'row.dec': '{n} verlagen', 'row.inc': '{n} verhogen', 'row.hk': 'Sneltoets {k}',
+      'conf.confirmed': 'Bevestigd', 'conf.untested': 'Ongetest', 'conf.experimental': 'Experimenteel',
+      'empty.title': 'Nog geen cheats', 'empty.body': 'Voor {g} zijn nog geen cheats gedefinieerd.', 'loading': 'Definitie laden…',
+      'hk.title': 'Sneltoetsen voor {g}', 'hk.body': 'Globale sneltoetsen werken ook als de game op de voorgrond staat. Klik op Wijzig en druk de nieuwe toetscombinatie in.',
+      'hk.change': 'Wijzig', 'hk.clear': 'Wis', 'hk.default': 'Standaard', 'hk.press': 'Druk op een toets… (Esc = annuleren)', 'hk.none': 'geen', 'hk.saved': 'Sneltoetsen opgeslagen',
+      'hk.inc': 'verhogen', 'hk.dec': 'verlagen', 'hk.inuse': '{k} is al in gebruik door {c}',
+      'notes.title': 'Notities', 'notes.cheats': 'Betrouwbaarheid per cheat', 'notes.none': 'Geen notities.', 'notes.version': 'Ondersteunde versie',
+      'set.title': 'Instellingen', 'set.lang': 'Taal', 'set.catalog': 'Catalogusmap', 'set.catalog.help': 'Map met games/<id>/game.json. Leeg = de map games naast Vanta.exe. Herstart Vanta na wijzigen.',
+      'set.url': 'Online catalogus (URL)', 'set.url.help': 'Voor een latere versie: index.json + game.json per game. Nog niet actief in v0.1.',
+      'set.auto': 'Automatisch koppelen als de game draait', 'set.data': 'Gegevensmap (instellingen, logs, art-cache)', 'set.about': 'Over',
+      'set.save': 'Opslaan', 'set.cancel': 'Annuleren', 'set.saved': 'Instellingen opgeslagen', 'set.games': '{n} game(s) in catalogus',
+      'upd.title': 'Updates', 'upd.check': 'Controleer op updates', 'upd.checking': 'Controleren…', 'upd.uptodate': 'Je hebt de nieuwste versie.', 'upd.available': 'Update beschikbaar: v{v}',
+      'upd.offline': 'Geen verbinding; later opnieuw.', 'upd.ratelimited': 'GitHub vraagt even te wachten; later opnieuw.', 'upd.norelease': 'Nog geen release gevonden.', 'upd.error': 'Update mislukt',
+      'upd.downloading': 'v{v} downloaden…', 'upd.installing': 'Vanta wordt bijgewerkt…', 'upd.installing.body': 'Cheats zijn uitgezet en games hersteld. Vanta start zo opnieuw.',
+      'upd.pending': 'v{v} staat klaar', 'upd.pending.body': 'Wordt geïnstalleerd bij de volgende start van Vanta.', 'upd.updated': 'Bijgewerkt naar v{v}', 'upd.failed': 'Update naar v{v} teruggedraaid',
+      'upd.failed.body': 'De nieuwe versie startte niet; je vorige versie is teruggezet.', 'upd.now': 'Nu updaten', 'upd.later': 'Later', 'upd.notes': 'Wat is er nieuw',
+      'set.scope': 'Alleen voor singleplayer/offline games. Games met online anti-cheat worden geweigerd.',
+      'sb.engine': 'Engine gereed', 'sb.dev': 'Dev-modus (mock)', 'sb.games': '{n} games', 'sb.game1': '1 game',
+    },
+    en: {
+      'search.ph': 'Search games…', 'search.aria': 'Search games', 'cat.all': 'All categories',
+      'group.recent': 'Recently played', 'group.all': 'All games', 'group.results': 'Results',
+      'lib.empty.title': 'No games found', 'lib.empty.body': 'Nothing found for “{q}”. Check the spelling.', 'lib.empty.clear': 'Clear search',
+      'lib.cheats': '{n} cheats', 'lib.more': '{n} more games — refine your search',
+      'foot.hotkeys': 'Hotkeys', 'foot.settings': 'Settings',
+      'tab.cheats': 'Cheats', 'tab.hotkeys': 'Hotkeys', 'tab.notes': 'Notes',
+      'btn.disableAll': 'All off', 'win.min': 'Minimise', 'win.max': 'Maximise', 'win.close': 'Close',
+      'sec.speler': 'Player', 'sec.wapens': 'Weapons', 'sec.punten': 'Points', 'sec.extra': 'Extra', 'sec.wereld': 'World', 'sec.voertuig': 'Vehicle', 'sec.inventaris': 'Inventory',
+      'st.attached': 'Attached', 'st.notfound': 'Not running', 'st.wrongversion': 'Other version', 'st.attaching': 'Attaching…', 'st.launching': 'Starting…',
+      'st.error': 'Error', 'st.blocked': 'Not supported', 'st.loading': 'Loading…',
+      'pr.detach': 'Detach', 'pr.launch': 'Start game', 'pr.force': 'Attach anyway', 'pr.attaching': 'Attaching…', 'pr.launching': 'Starting…', 'pr.retry': 'Retry', 'pr.blocked': 'Not supported',
+      'hint.attached': '{p} · cheats available', 'hint.notfound': 'Start the game (via Steam) to use cheats.', 'hint.notfound.nosteam': 'Start the game yourself; Vanta attaches automatically.', 'hint.notfound.via': 'Start the game (via {store}) to use cheats.',
+      'hint.wrongversion': 'This game version is untested. Cheats may fail (they then patch nothing).', 'hint.attaching': 'Connecting to {p}…',
+      'hint.launching': 'Starting the game via Steam…', 'hint.error': 'Attaching failed.', 'hint.blocked': 'Online/anti-cheat: Vanta deliberately does not attach.',
+      'meta.version': 'Supported version', 'meta.store': 'Installed via', 'meta.ownedOnly': 'owned, not installed', 'pr.launchVia': 'Start via {store}', 'hero.library': 'Library', 'hero.lastPlayed': 'Last played',
+      'count.active': '{on} of {n} active', 'count.wait': 'Waiting for game', 'count.none': 'No cheats',
+      'row.on': 'On', 'row.off': 'Off', 'row.err': 'Error', 'row.retry': 'Retry', 'row.step': 'Step {s}', 'row.hold': 'hold to repeat', 'row.run': 'Run',
+      'row.dec': 'Decrease {n}', 'row.inc': 'Increase {n}', 'row.hk': 'Hotkey {k}',
+      'conf.confirmed': 'Confirmed', 'conf.untested': 'Untested', 'conf.experimental': 'Experimental',
+      'empty.title': 'No cheats yet', 'empty.body': 'No cheats have been defined for {g} yet.', 'loading': 'Loading definition…',
+      'hk.title': 'Hotkeys for {g}', 'hk.body': 'Global hotkeys also work while the game is in the foreground. Click Change and press the new key combination.',
+      'hk.change': 'Change', 'hk.clear': 'Clear', 'hk.default': 'Default', 'hk.press': 'Press a key… (Esc = cancel)', 'hk.none': 'none', 'hk.saved': 'Hotkeys saved',
+      'hk.inc': 'increase', 'hk.dec': 'decrease', 'hk.inuse': '{k} is already used by {c}',
+      'notes.title': 'Notes', 'notes.cheats': 'Confidence per cheat', 'notes.none': 'No notes.', 'notes.version': 'Supported version',
+      'set.title': 'Settings', 'set.lang': 'Language', 'set.catalog': 'Catalog folder', 'set.catalog.help': 'Folder with games/<id>/game.json. Empty = the games folder next to Vanta.exe. Restart Vanta after changing.',
+      'set.url': 'Online catalog (URL)', 'set.url.help': 'For a later version: index.json + game.json per game. Not active in v0.1.',
+      'set.auto': 'Attach automatically when the game runs', 'set.data': 'Data folder (settings, logs, art cache)', 'set.about': 'About',
+      'set.save': 'Save', 'set.cancel': 'Cancel', 'set.saved': 'Settings saved', 'set.games': '{n} game(s) in catalog',
+      'upd.title': 'Updates', 'upd.check': 'Check for updates', 'upd.checking': 'Checking…', 'upd.uptodate': 'You have the latest version.', 'upd.available': 'Update available: v{v}',
+      'upd.offline': 'No connection; will retry later.', 'upd.ratelimited': 'GitHub asks us to wait; will retry later.', 'upd.norelease': 'No release found yet.', 'upd.error': 'Update failed',
+      'upd.downloading': 'Downloading v{v}…', 'upd.installing': 'Updating Vanta…', 'upd.installing.body': 'Cheats are off and games restored. Vanta restarts in a moment.',
+      'upd.pending': 'v{v} is ready', 'upd.pending.body': 'It will be installed the next time Vanta starts.', 'upd.updated': 'Updated to v{v}', 'upd.failed': 'Update to v{v} rolled back',
+      'upd.failed.body': 'The new version did not start; your previous version was restored.', 'upd.now': 'Update now', 'upd.later': 'Later', 'upd.notes': "What's new",
+      'set.scope': 'Single-player/offline games only. Games with online anti-cheat are refused.',
+      'sb.engine': 'Engine ready', 'sb.dev': 'Dev mode (mock)', 'sb.games': '{n} games', 'sb.game1': '1 game',
+    },
+  };
+  const I18N = {
+    lang: 'nl',
+    locale: () => (I18N.lang === 'en' ? 'en-GB' : 'nl-NL'),
+    t(key, vars) {
+      let s = (S[I18N.lang] && S[I18N.lang][key]) ?? S.nl[key] ?? key;
+      if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] ?? m));
+      return s;
+    },
+    apply(rootEl = document) {
+      rootEl.querySelectorAll('[data-i18n]').forEach((e) => (e.textContent = I18N.t(e.dataset.i18n)));
+      rootEl.querySelectorAll('[data-i18n-ph]').forEach((e) => (e.placeholder = I18N.t(e.dataset.i18nPh)));
+      rootEl.querySelectorAll('[data-i18n-title]').forEach((e) => { e.title = I18N.t(e.dataset.i18nTitle); e.setAttribute('aria-label', e.title); });
+      document.documentElement.lang = I18N.lang;
+    },
+    strings: S,
+  };
+  root.I18N = I18N; root.t = I18N.t;
+})(window);
