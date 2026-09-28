@@ -10,6 +10,7 @@ Setup for admins: [docs/SETUP.md](../docs/SETUP.md) (step 2; Dutch: [docs/SETUP.
 | `migrations/20260927120100_community_functions.sql` | validation, rate limits, score, RPCs for the app |
 | `migrations/20260927120200_bot_api.sql` | RPCs for the bot (`service_role` only) |
 | `migrations/20260928120000_game_requests_admin.sql` | game requests with votes, admin table, RPCs for the admin dashboard on the website |
+| `migrations/20260929120000_admin_open_count.sql` | admin open count (`open_cheats`, per-game `open`) matches the Reports list: one per game + cheat with a "doesn't work" report |
 | `supabase-setup.sql` | all migrations in one file for the SQL Editor; generate with `sh build-setup-sql.sh` |
 
 Everything is idempotent and safe in an existing project: only the schema `vanta`, functions `public.vanta_*` and the

@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(45);
+select plan(48);
 
 -- users: R = admin (Discord identity 348805709837762561), U/V = players, S = spoofs the admin id in user_metadata only
 insert into auth.users (id, raw_user_meta_data, raw_app_meta_data) values
@@ -87,6 +87,16 @@ select is((vanta_admin_stats() ->> 'banned')::int, 1, 'stats count banned users'
 select lives_ok($$ select vanta_admin_set_request(1245620, 'added') $$, 'admin marks a request added');
 reset role;
 select is((select type from vanta.events order by id desc limit 1), 'status', 'report status change is queued for the bot');
+-- open count = game + cheat entries with a "doesn't work" report, not raw states (works-only / extra game versions)
+insert into vanta.reports (user_id, game_id, cheat_id, fingerprint, status, vanta_version, game_name, cheat_name) values
+  ('00000000-0000-0000-0000-0000000000a3', 'far-cry-5', 'godmode', 'fpy', 'broken', '0.3.1', 'Far Cry 5', 'God mode'),
+  ('00000000-0000-0000-0000-0000000000a3', 'far-cry-5', 'godmode', 'fpz', 'broken', '0.3.1', 'Far Cry 5', 'God mode'),
+  ('00000000-0000-0000-0000-0000000000a3', 'far-cry-5', 'ammo', 'fpx', 'works', '0.3.1', 'Far Cry 5', 'Infinite ammo');
+set local role authenticated;
+select is((vanta_admin_reports() -> 'counts' ->> 'open')::int, 3, 'counts still has raw open states');
+select is((vanta_admin_reports() ->> 'open_cheats')::int, 1, 'open_cheats counts one entry per cheat with a broken report');
+select is((vanta_admin_reports(p_game => 'far-cry-5') -> 'games' -> 0 ->> 'open')::int, 1, 'games[].open uses the same rule');
+reset role;
 
 -- ---------------------------------------------------------------- banned / closed
 set local role authenticated;
