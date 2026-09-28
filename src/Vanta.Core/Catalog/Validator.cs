@@ -137,6 +137,15 @@ public static class GameValidator
             }
             if (s.Expect != null) try { _ = new AobPattern(s.Expect); } catch (FormatException e) { E($"{p}.sites.{name}.expect", e.Message); }
         }
+        if (impl.FreezeFrom != null || impl.Mirror != null || impl.Restore.HasValue)
+        {
+            if (impl.Type != "pointer") E(p, "freezeFrom/mirror/restore only apply to pointer cheats");
+            if (impl.FreezeFrom != null && (c.Type != "toggle" || !impl.Freeze)) E($"{p}.freezeFrom", "freezeFrom requires a toggle with freeze: true");
+            if (impl.FreezeFrom is { Base: null, Offsets: null or { Count: 0 } }) E($"{p}.freezeFrom", "freezeFrom needs offsets or its own base");
+            if (impl.FreezeFrom?.Base is { ValueKind: JsonValueKind.Object } fb && !fb.TryGetProperty("aob", out _)) E($"{p}.freezeFrom.base", "object base needs aob");
+        }
+        if (impl.Type == "pointer" && impl.Base is { ValueKind: JsonValueKind.Object } ob && ob.TryGetProperty("aob", out var obAob))
+            try { _ = new AobPattern(obAob.GetString()!); } catch (FormatException e) { E($"{p}.base", e.Message); }
         foreach (var pt in impl.Patches ?? new())
         {
             if (!sites.ContainsKey(pt.Site)) E($"{p}.patches", $"site '{pt.Site}' does not exist");

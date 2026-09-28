@@ -21,6 +21,7 @@ public sealed class CheatRuntime
     private readonly IProcessMemory _mem;
     private readonly GameDef _game;
     private readonly Dictionary<string, ulong> _siteCache = new();
+    private readonly Dictionary<string, string> _baseFail = new();
     public Dictionary<string, ulong> Symbols { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Action<string>? Trace { get; set; }
     public TimeSpan FreeDelay { get; set; } = TimeSpan.FromMilliseconds(300);
@@ -234,8 +235,22 @@ public sealed class CheatRuntime
     public ulong? ResolveAddress(CheatDef cheat)
     {
         var impl = cheat.Impl;
-        ulong addr = ResolveBase(cheat, impl.Base ?? throw new CheatException("base ontbreekt"));
-        foreach (var off in impl.Offsets ?? new())
+        return ResolveChain(cheat, impl.Base ?? throw new CheatException("base ontbreekt"), impl.Offsets, "base");
+    }
+
+    /// <summary>Address of a cheat's freezeFrom source chain (null when not resolvable yet or when there is no source).</summary>
+    public ulong? ResolveSource(CheatDef cheat)
+    {
+        var src = cheat.Impl.FreezeFrom;
+        if (src == null) return null;
+        var b = src.Base ?? cheat.Impl.Base ?? throw new CheatException("base ontbreekt");
+        return ResolveChain(cheat, b, src.Offsets, src.Base.HasValue ? "srcbase" : "base");
+    }
+
+    private ulong? ResolveChain(CheatDef cheat, JsonElement b, List<long>? offsets, string key)
+    {
+        ulong addr = ResolveBase(cheat, b, key);
+        foreach (var off in offsets ?? new())
         {
             if (!_mem.TryReadU64(addr, out var p) || p == 0 || p < 0x10000) return null;
             addr = p + (ulong)off;
@@ -246,7 +261,7 @@ public sealed class CheatRuntime
     private static readonly Regex ModOff = new(@"^(?<mod>[^+]+\.(exe|dll))\+(0x)?(?<off>[0-9A-Fa-f]+)$", RegexOptions.IgnoreCase);
     private static readonly Regex SymOff = new(@"^sym:(?<sym>[A-Za-z_]\w*)(?<adj>[+-](0x)?[0-9A-Fa-f]+)?$", RegexOptions.IgnoreCase);
 
-    private ulong ResolveBase(CheatDef cheat, JsonElement b)
+    private ulong ResolveBase(CheatDef cheat, JsonElement b, string key = "base")
     {
         if (b.ValueKind == JsonValueKind.String)
         {
@@ -263,12 +278,18 @@ public sealed class CheatRuntime
             throw new CheatException($"ongeldige base '{s}'");
         }
         // { aob, patternOffset, ripOffset, insnLength, module }
-        string key = cheat.Id + "/base";
-        if (!_siteCache.TryGetValue(key, out var insn))
+        // shared by every cheat with the same base pattern: one module scan per session, failures are remembered too
+        var aob = b.GetProperty("aob").GetString()!;
+        long pOff = b.TryGetProperty("patternOffset", out var po) ? po.GetInt64() : 0;
+        var modName = b.TryGetProperty("module", out var mo) ? mo.GetString() : cheat.Impl.Module;
+        string shared = $"aobbase|{modName}|{pOff}|{aob}";
+        if (_baseFail.TryGetValue(shared, out var failMsg)) throw new CheatException(failMsg);
+        if (!_siteCache.TryGetValue(shared, out var insn))
         {
-            var site = new SiteDef { Patterns = new() { new PatternDef { Aob = b.GetProperty("aob").GetString()!, Offset = b.TryGetProperty("patternOffset", out var po) ? po.GetInt64() : 0 } } };
-            insn = ResolveSite(cheat, "base", site, b.TryGetProperty("module", out var mo) ? mo.GetString() : cheat.Impl.Module);
-            _siteCache[key] = insn;
+            var site = new SiteDef { Patterns = new() { new PatternDef { Aob = aob, Offset = pOff } } };
+            try { insn = ResolveSite(cheat, key, site, modName); }
+            catch (CheatException e) { _baseFail[shared] = e.Message; throw; }
+            _siteCache[shared] = insn;
         }
         int ripOff = b.GetProperty("ripOffset").GetInt32(), len = b.GetProperty("insnLength").GetInt32();
         if (!_mem.TryReadI32(insn + (ulong)ripOff, out var rel)) throw new CheatException(Strings.Get("read.fail", insn));
@@ -277,6 +298,14 @@ public sealed class CheatRuntime
 
     /// <summary>Resolves only the base of a pointer cheat (no dereferencing): used by the verifier.</summary>
     public ulong ResolveAddressBaseOnly(CheatDef cheat) => ResolveBase(cheat, cheat.Impl.Base ?? throw new CheatException("no base"));
+
+    /// <summary>Writes a value to the address and to every impl.mirror offset next to it. True when all writes succeed.</summary>
+    public bool WriteAll(CheatDef cheat, ulong addr, double v)
+    {
+        bool ok = WriteValue(addr, v, cheat.Impl.ValueType);
+        foreach (var m in cheat.Impl.Mirror ?? new()) ok &= WriteValue((ulong)((long)addr + m), v, cheat.Impl.ValueType);
+        return ok;
+    }
 
     public static int SizeOf(string? vt) => vt switch { "byte" => 1, "int16" => 2, "int64" or "double" => 8, _ => 4 };
 

@@ -525,6 +525,77 @@
         "freeze": {
           "type": "boolean"
         },
+        "freezeFrom": {
+          "type": "object",
+          "description": "Freeze toggle: each tick write the value read from this pointer chain (e.g. max health). Base defaults to the cheat's base. Source values that are not finite or not above 0 are ignored.",
+          "additionalProperties": false,
+          "properties": {
+            "base": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(sym:[A-Za-z_][\\w]*([+-](0x)?[0-9A-Fa-f]+)?|[^+]+\\.(exe|dll)\\+(0x)?[0-9A-Fa-f]+)$"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "aob",
+                    "ripOffset",
+                    "insnLength"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "aob": {
+                      "$ref": "#/$defs/aob"
+                    },
+                    "patternOffset": {
+                      "type": "integer"
+                    },
+                    "ripOffset": {
+                      "type": "integer"
+                    },
+                    "insnLength": {
+                      "type": "integer"
+                    },
+                    "module": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "offsets": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            },
+            "valueType": {
+              "enum": [
+                "int32",
+                "int64",
+                "float",
+                "double",
+                "byte",
+                "int16"
+              ]
+            },
+            "scale": {
+              "type": "number"
+            }
+          }
+        },
+        "mirror": {
+          "type": "array",
+          "description": "Extra byte offsets (relative to the final address) that get the same value, e.g. -4 for a GAS BaseValue next to CurrentValue.",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "restore": {
+          "type": "boolean",
+          "description": "Toggle off: write the original value back (default true)."
+        },
         "action": {
           "enum": [
             "set",

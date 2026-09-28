@@ -445,7 +445,8 @@
       "i18n": {
         "nl": {
           "name": "Geld in portemonnee",
-          "description": "Het geld dat je bij je hebt. Open één keer de kaart zodat de waarde gevonden wordt."
+          "description": "Het geld dat je bij je hebt. Open één keer de kaart zodat de waarde gevonden wordt.",
+          "hint": "Open één keer de kaart om te activeren."
         }
       },
       "confidence": "untested",
@@ -463,7 +464,8 @@
           0
         ],
         "valueType": "int32"
-      }
+      },
+      "hint": "Open the map once to activate."
     },
     {
       "id": "cash_vault",
@@ -475,7 +477,8 @@
       "i18n": {
         "nl": {
           "name": "Geld in kluis",
-          "description": "Het geld in je kluis. Open één keer de kaart zodat de waarde gevonden wordt."
+          "description": "Het geld in je kluis. Open één keer de kaart zodat de waarde gevonden wordt.",
+          "hint": "Open één keer de kaart om te activeren."
         }
       },
       "confidence": "untested",
@@ -493,7 +496,72 @@
           4
         ],
         "valueType": "int32"
-      }
+      },
+      "hint": "Open the map once to activate."
+    },
+    {
+      "id": "cash_max",
+      "name": "Cash 999,999",
+      "section": "punten",
+      "type": "toggle",
+      "icon": "coin",
+      "description": "Keeps the cash you carry at 999,999.",
+      "i18n": {
+        "nl": {
+          "name": "Geld 999.999",
+          "description": "Houdt het geld dat je bij je hebt op 999.999.",
+          "hint": "Open één keer de kaart om te activeren."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Pointer layout from the same table. Keeps the value at 999,999 while on; turning it off leaves the money you have. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "cash_hook"
+      ],
+      "impl": {
+        "type": "pointer",
+        "base": "sym:cash_ptr",
+        "offsets": [
+          0
+        ],
+        "valueType": "int32",
+        "freeze": true,
+        "onValue": 999999,
+        "restore": false
+      },
+      "hint": "Open the map once to activate."
+    },
+    {
+      "id": "vault_max",
+      "name": "Vault 999,999",
+      "section": "punten",
+      "type": "toggle",
+      "icon": "coin",
+      "description": "Keeps the money in your vault at 999,999.",
+      "i18n": {
+        "nl": {
+          "name": "Kluis 999.999",
+          "description": "Houdt het geld in je kluis op 999.999.",
+          "hint": "Open één keer de kaart om te activeren."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Pointer layout from the same table. Keeps the value at 999,999 while on; turning it off leaves the money you have. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "cash_hook"
+      ],
+      "impl": {
+        "type": "pointer",
+        "base": "sym:cash_ptr",
+        "offsets": [
+          4
+        ],
+        "valueType": "int32",
+        "freeze": true,
+        "onValue": 999999,
+        "restore": false
+      },
+      "hint": "Open the map once to activate."
     },
     {
       "id": "no_reload",
@@ -917,7 +985,8 @@
       "i18n": {
         "nl": {
           "name": "Adrenalineshots",
-          "description": "Aantal adrenalineshots dat je bij je hebt. Gebruik of raap één shot op zodat de waarde gevonden wordt."
+          "description": "Aantal adrenalineshots dat je bij je hebt. Gebruik of raap één shot op zodat de waarde gevonden wordt.",
+          "hint": "Gebruik of raap één adrenalineshot op om te activeren."
         }
       },
       "confidence": "experimental",
@@ -935,7 +1004,8 @@
           24
         ],
         "valueType": "int32"
-      }
+      },
+      "hint": "Use or pick up one adrenaline shot to activate."
     },
     {
       "id": "health_hook",
@@ -990,7 +1060,8 @@
       "i18n": {
         "nl": {
           "name": "Gezondheid",
-          "description": "Je huidige gezondheid (waarde van de gezondheidsbalk). Bevries hem om op die waarde te blijven. Neem een klap of wacht tot de balk bijwerkt zodat de waarde gevonden wordt."
+          "description": "Je huidige gezondheid (waarde van de gezondheidsbalk). Bevries hem om op die waarde te blijven. Neem een klap of wacht tot de balk bijwerkt zodat de waarde gevonden wordt.",
+          "hint": "Word één keer geraakt (of wacht tot de gezondheidsbalk verschijnt) om te activeren."
         }
       },
       "confidence": "experimental",
@@ -1008,7 +1079,8 @@
           16
         ],
         "valueType": "float"
-      }
+      },
+      "hint": "Take a hit once (or wait until the health bar shows) to activate."
     },
     {
       "id": "clip_hook",
@@ -1064,7 +1136,8 @@
       "i18n": {
         "nl": {
           "name": "Munitie in magazijn",
-          "description": "Kogels in je huidige magazijn. Schiet één keer zodat de waarde gevonden wordt."
+          "description": "Kogels in je huidige magazijn. Schiet één keer zodat de waarde gevonden wordt.",
+          "hint": "Vuur één schot af om te activeren."
         }
       },
       "confidence": "experimental",
@@ -1082,7 +1155,8 @@
           24
         ],
         "valueType": "int32"
-      }
+      },
+      "hint": "Fire one shot to activate."
     },
     {
       "id": "elec_hook",
@@ -1140,7 +1214,8 @@
       "i18n": {
         "nl": {
           "name": "Elektronica",
-          "description": "De waarde 'Electronics' uit de oorspronkelijke tabel (een float). Wat het in de game betekent is niet gedocumenteerd; pas hem voorzichtig aan."
+          "description": "De waarde 'Electronics' uit de oorspronkelijke tabel (een float). Wat het in de game betekent is niet gedocumenteerd; pas hem voorzichtig aan.",
+          "hint": "Raap één keer elektronica op of geef het uit om te activeren."
         }
       },
       "confidence": "experimental",
@@ -1158,7 +1233,8 @@
           24
         ],
         "valueType": "float"
-      }
+      },
+      "hint": "Pick up or spend electronics once to activate."
     },
     {
       "id": "free_shop",

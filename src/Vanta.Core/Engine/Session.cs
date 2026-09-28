@@ -28,6 +28,7 @@ public sealed class TrainerSession : IDisposable
     private readonly Dictionary<string, double> _frozen = new();       // pointer cheats that are frozen
     private readonly Dictionary<string, double?> _toggleOrig = new();  // pointer toggles: original value
     private readonly Dictionary<string, string> _valueState = new();   // last pushed value/hint signature
+    private readonly HashSet<string> _waiting = new();                  // freeze toggles that are on but whose address is not readable yet
     private readonly Action<string, string> _log;                       // (level, text)
     public event Action<List<CheatStateDto>>? Changed;
 
@@ -57,15 +58,44 @@ public sealed class TrainerSession : IDisposable
         }
         else if (c.Impl.Type == "pointer")
         {
-            var addr = Runtime.ResolveAddress(c) ?? throw new CheatException(c.Hint ?? Strings.Get("ptr.null"));
-            _toggleOrig[id] = Runtime.ReadValue(addr, c.Impl.ValueType);
-            var v = c.Impl.OnValue ?? 1;
-            if (!Runtime.WriteValue(addr, v, c.Impl.ValueType)) throw new CheatException(Strings.Get("write.fail", addr));
-            if (c.Impl.Freeze) _frozen[id] = v;
+            var addr = Runtime.ResolveAddress(c);
+            if (addr == null)
+            {
+                // a freeze toggle can wait for the value (e.g. the player is still in the menu); Tick starts writing once it is readable
+                if (!c.Impl.Freeze) throw new CheatException(c.Hint ?? Strings.Get("ptr.null"));
+                _toggleOrig[id] = null;
+                _frozen[id] = c.Impl.OnValue ?? 1;
+                _waiting.Add(id);
+                _order.Remove(id); _order.Add(id);
+                if (!c.Hidden) Emit(new CheatStateDto { Id = id, Enabled = true, Hint = c.Hint ?? Strings.Get("ptr.wait") });
+                return;
+            }
+            _toggleOrig[id] = Runtime.ReadValue(addr.Value, c.Impl.ValueType);
+            double v = c.Impl.OnValue ?? 1;
+            if (c.Impl.FreezeFrom != null)
+            {
+                var src = SourceValue(c);
+                if (src.HasValue) v = src.Value;
+                else if (!c.Impl.OnValue.HasValue) v = double.NaN;         // nothing sensible to write yet
+            }
+            if (!double.IsNaN(v) && !Runtime.WriteAll(c, addr.Value, v)) throw new CheatException(Strings.Get("write.fail", addr));
+            if (c.Impl.Freeze) _frozen[id] = double.IsNaN(v) ? c.Impl.OnValue ?? 1 : v;
         }
         _order.Remove(id); _order.Add(id);
         if (!c.Hidden) Emit(new CheatStateDto { Id = id, Enabled = true });
         else RefreshDependents(id);
+    }
+
+    /// <summary>Value of a freezeFrom source (scaled), or null while it is not readable, not finite or not above 0 (object still loading).</summary>
+    private double? SourceValue(CheatDef c)
+    {
+        var src = c.Impl.FreezeFrom; if (src == null) return null;
+        ulong? a;
+        try { a = Runtime.ResolveSource(c); } catch (CheatException) { return null; }
+        if (!a.HasValue) return null;
+        var v = Runtime.ReadValue(a.Value, src.ValueType ?? c.Impl.ValueType);
+        if (!v.HasValue || !double.IsFinite(v.Value) || v.Value <= 0) return null;
+        return v.Value * (src.Scale ?? 1);
     }
 
     private void EnsureRequires(CheatDef c)
@@ -91,14 +121,18 @@ public sealed class TrainerSession : IDisposable
         if (_toggleOrig.Remove(id, out var orig))
         {
             _frozen.Remove(id);
-            var addr = SafeAddress(c);
-            var back = c.Impl.OffValue ?? orig;
-            if (addr.HasValue && back.HasValue) Runtime.WriteValue(addr.Value, back.Value, c.Impl.ValueType);
+            _waiting.Remove(id);
+            if (c.Impl.Restore != false)
+            {
+                var addr = SafeAddress(c);
+                var back = c.Impl.OffValue ?? orig;
+                if (addr.HasValue && back.HasValue) Runtime.WriteAll(c, addr.Value, back.Value);
+            }
         }
         _order.Remove(id);
         // cheats that depend on this one are no longer usable
         foreach (var d in Game.Cheats.Where(x => x.Requires?.Contains(id) == true && IsActive(x.Id)).ToList()) Disable(d.Id);
-        if (!c.Hidden) Emit(new CheatStateDto { Id = id, Enabled = false });
+        if (!c.Hidden) Emit(new CheatStateDto { Id = id, Enabled = false, Hint = null });
         RefreshDependents(id);
         // hidden helper hooks that were enabled only for this cheat go away with the last user
         foreach (var r in c.Requires ?? new())
@@ -126,7 +160,7 @@ public sealed class TrainerSession : IDisposable
         if (c.Min.HasValue) v = Math.Max(c.Min.Value, v);
         if (c.Max.HasValue) v = Math.Min(c.Max.Value, v);
         var addr = Runtime.ResolveAddress(c) ?? throw new CheatException(c.Hint ?? Strings.Get("ptr.null"));
-        if (!Runtime.WriteValue(addr, v, c.Impl.ValueType)) throw new CheatException(Strings.Get("write.fail", addr));
+        if (!Runtime.WriteAll(c, addr, v)) throw new CheatException(Strings.Get("write.fail", addr));
         if (c.Impl.Freeze) _frozen[id] = v;
         _valueState.Remove(id);
         Emit(new CheatStateDto { Id = id, Value = v });
@@ -152,11 +186,29 @@ public sealed class TrainerSession : IDisposable
     /// <summary>Freeze writes + value polling; emits only changes. Call every ~100-500 ms.</summary>
     public void Tick(bool pollValues = true)
     {
+        var waitChanges = new List<CheatStateDto>();
         foreach (var (id, v) in _frozen.ToList())
         {
-            var addr = SafeAddress(Cheat(id));
-            if (addr.HasValue) Runtime.WriteValue(addr.Value, v, Cheat(id).Impl.ValueType);
+            var c = Cheat(id);
+            var addr = SafeAddress(c);
+            bool isToggle = _toggleOrig.ContainsKey(id);
+            if (!addr.HasValue)
+            {
+                if (isToggle && _waiting.Add(id) && !c.Hidden) waitChanges.Add(new CheatStateDto { Id = id, Enabled = true, Hint = c.Hint ?? Strings.Get("ptr.wait") });
+                continue;
+            }
+            double value = v;
+            if (c.Impl.FreezeFrom != null)
+            {
+                var src = SourceValue(c);
+                if (!src.HasValue) continue;                                  // source not readable yet: never write a guess
+                value = src.Value;
+            }
+            if (isToggle && _toggleOrig[id] == null) _toggleOrig[id] = Runtime.ReadValue(addr.Value, c.Impl.ValueType);   // first time readable: remember the original
+            Runtime.WriteAll(c, addr.Value, value);
+            if (_waiting.Remove(id) && !c.Hidden) waitChanges.Add(new CheatStateDto { Id = id, Enabled = true, Hint = null });
         }
+        if (waitChanges.Count > 0) Changed?.Invoke(waitChanges);
         if (!pollValues) return;
         var changes = new List<CheatStateDto>();
         foreach (var c in Game.Cheats.Where(x => x.Type is "number" or "slider" && x.Impl.Type == "pointer"))
@@ -187,7 +239,7 @@ public sealed class TrainerSession : IDisposable
             foreach (var c in Game.Cheats.Where(x => x.ResetValue.HasValue && x.Impl.Type == "pointer"))
             {
                 var addr = SafeAddress(c);
-                if (addr.HasValue) Runtime.WriteValue(addr.Value, c.ResetValue!.Value, c.Impl.ValueType);
+                if (addr.HasValue) Runtime.WriteAll(c, addr.Value, c.ResetValue!.Value);
             }
     }
 
@@ -197,7 +249,7 @@ public sealed class TrainerSession : IDisposable
     /// <summary>The process is gone: forget everything without touching memory.</summary>
     public void Abandon()
     {
-        _applied.Clear(); _order.Clear(); _frozen.Clear(); _toggleOrig.Clear(); _valueState.Clear();
+        _applied.Clear(); _order.Clear(); _frozen.Clear(); _toggleOrig.Clear(); _valueState.Clear(); _waiting.Clear();
     }
 
     public void Dispose() => Memory.Dispose();

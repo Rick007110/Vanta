@@ -18,6 +18,7 @@ public static class Strings
         ["check.fail"] = ("{0}: onverwachte waarde op de gevonden plek ({1}). Niets gepatcht.", "{0}: unexpected value at the found location ({1}). Nothing patched."),
         ["requires.fail"] = ("Vereist '{0}': {1}", "Requires '{0}': {1}"),
         ["ptr.null"] = ("Nog niet beschikbaar", "Not available yet"),
+        ["ptr.wait"] = ("Wacht op de game: gaat vanzelf werken zodra de waarde leesbaar is", "Waiting for the game: starts working as soon as the value can be read"),
         ["ptr.sym"] = ("Symbool {0} bestaat niet (hook niet actief).", "Symbol {0} does not exist (hook not active)."),
         ["not.attached"] = ("Niet gekoppeld aan de game.", "Not attached to the game."),
         ["cheat.unknown"] = ("Onbekende cheat '{0}'.", "Unknown cheat '{0}'."),

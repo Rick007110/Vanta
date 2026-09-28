@@ -151,8 +151,20 @@ public sealed class ImplDef
     public double? OnValue { get; set; }
     public double? OffValue { get; set; }
     public bool Freeze { get; set; }
+    public PointerSourceDef? FreezeFrom { get; set; }           // toggle + freeze: each tick write the value read from this chain (e.g. max health)
+    public List<long>? Mirror { get; set; }                     // extra byte offsets from the final address that get the same value (e.g. BaseValue next to CurrentValue)
+    public bool? Restore { get; set; }                          // toggle off: write the original value back (default true)
     public string? Action { get; set; }                         // button: set | add
     public double? Amount { get; set; }
+}
+
+/// <summary>A second pointer chain that a freeze toggle copies its value from. Base defaults to the cheat's base.</summary>
+public sealed class PointerSourceDef
+{
+    public JsonElement? Base { get; set; }
+    public List<long>? Offsets { get; set; }
+    public string? ValueType { get; set; }                      // default: the cheat's valueType
+    public double? Scale { get; set; }                          // multiply the source value (default 1)
 }
 
 public sealed class SiteDef

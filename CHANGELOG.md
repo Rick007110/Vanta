@@ -3,6 +3,15 @@
 All notable changes to Vanta. English is the primary language; the Dutch version is in `LEESMIJ.txt`.
 Releases: https://github.com/Rick007110/Vanta/releases
 
+## v0.3.8 (2026-09-29)
+
+- Windrose: the values no longer show "Not available yet" forever. Vanta now finds the game's engine object directly (AOB, exactly 1 hit on Steam build 24803703, checked in the running game) instead of waiting for a hidden hook, and all offsets were read from the game's own Unreal type information in the running game. The old hook could also be blocked by a leftover hook from an earlier Vanta session; that problem is gone. Walk speed and movement speed pointed at the wrong object (camera arm) and are fixed.
+- Windrose: health, stamina, posture, corruption, armor, damage, crits and attributes are now on/off cheats (Infinite Health, Infinite Stamina, No Posture Damage, No Corruption, Max Attributes, Slow Motion, Low Gravity, Super Speed and more) instead of number fields. You can turn them on in the menu; they wait and start working once you are in your world. 25 cheats: 14 untested (offsets read live), 11 experimental. Revive time (co-op) was removed.
+- Avatar: Frontiers of Pandora: 11 → 17 cheats. New: Unlimited Oxygen, Unlimited Ikran Stamina, Ikran God Mode, and editors for Skill Points, Spare Parts and RDA Duty Rosters (open your inventory or skills menu once). The hook AOB is found exactly once on disk; the values are experimental.
+- Mafia III: Definitive Edition: new Cash 999,999 and Vault 999,999 toggles. Value editors now say what to do in the game to activate them.
+- Engine: pointer toggles can copy a value from another address (for example health from max health), write extra addresses at the same time, skip restoring on disable, and wait until the value is readable. Pointer bases found by AOB are scanned once per session and shared. `--verify --live` prints the current value of AOB-based pointer cheats.
+- None of the new cheats are tested in-game yet.
+
 ## v0.3.7 (2026-09-29)
 
 - The sidebar search moves to the centre of the window when focused (click or Ctrl+K), with a dimmed background and a keyboard-navigable result list.

@@ -1,4 +1,4 @@
-VANTA v0.3.7 - trainer voor singleplayer-games
+VANTA v0.3.8 - trainer voor singleplayer-games
 =============================================
 
 Vanta is een losstaand programma (geen Cheat Engine nodig). Het werkt alleen voor
@@ -6,6 +6,16 @@ singleplayer/offline games. Games met online anti-cheat worden bewust geweigerd.
 
 Dit is de Nederlandse versie; de hoofdversie is README.txt (Engels). Vanta start
 standaard in het Engels. Nederlands kiezen: Settings > Language > Nederlands.
+
+NIEUW IN v0.3.8
+  - Windrose: waarden blijven niet meer op "Nog niet beschikbaar"; gezondheid,
+    uithoudingsvermogen, houding, attributen, snelheid en zwaartekracht zijn nu
+    aan/uit-cheats die starten zodra je in je wereld bent. Loopsnelheid gefixt.
+  - Avatar: Frontiers of Pandora: 17 cheats: Onbeperkte zuurstof, Ikran-
+    uithoudingsvermogen en -godmode, editors voor vaardigheidspunten,
+    reserveonderdelen en RDA-dienstroosters.
+  - Mafia III: Geld 999.999 en Kluis 999.999.
+  - De nieuwe cheats zijn nog niet in-game getest.
 
 NIEUW IN v0.3.7
   - Windrose: 31 cheats (was 5): Reizen ontgrendelen plus editors voor

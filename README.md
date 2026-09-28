@@ -24,9 +24,9 @@ Version history: [CHANGELOG.md](CHANGELOG.md).
 | The Last Caretaker (EA 0.8.5) | 16 | 1 confirmed, rest untested |
 | Far Cry 6 (1.8.0, Ubisoft Connect/Steam) | 20 | untested: check with `--verify` |
 | Far Cry 5 (Steam build 18766066) | 16 | untested: check with `--verify` |
-| Mafia III: Definitive Edition (Steam build 5121098) | 27 | AOBs verified on disk (Free Shop experimental), value editors experimental, untested in-game |
-| Windrose (Early Access, Steam build 24803703) | 31 | Infinite Jumps and Unlock Travel verified; value editors experimental |
-| Avatar: Frontiers of Pandora (Steam build 22429549) | 11 | AOBs verified on disk (Denuvo: check `--verify --live`), value editors experimental, untested in-game |
+| Mafia III: Definitive Edition (Steam build 5121098) | 29 | AOBs verified on disk (Free Shop experimental), value editors experimental, untested in-game |
+| Windrose (Early Access, Steam build 24803703) | 25 | AOBs and offsets checked in the running game; untested in-game (11 experimental) |
+| Avatar: Frontiers of Pandora (Steam build 22429549) | 17 | AOBs verified on disk (Denuvo: check `--verify --live`), value editors experimental, untested in-game |
 
 Far Cry 5/6: solo campaign only, not in co-op or online. Far Cry 6 has no anti-cheat; Far Cry 5 had EasyAntiCheat removed
 in its last patch (2019). If Vanta still finds anti-cheat files, it refuses.

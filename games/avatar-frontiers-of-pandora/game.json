@@ -40,7 +40,8 @@
     "All AOBs were checked on Steam build 22429549 (afop.exe 1.0.2.2): each one is found exactly once on disk. Because of Denuvo, check the running game too: Vanta.exe --verify avatar-frontiers-of-pandora --live",
     "Enable cheats only after your save has fully loaded. Fast travel and cutscenes reload values; toggle God Mode again if it stops working.",
     "The Ubisoft Connect version is not detected automatically yet; point Vanta at afop.exe or start the game first.",
-    "Back up your save first (Ubisoft Connect\\savegames\\<account>\\<game id>)."
+    "Back up your save first (Ubisoft Connect\\savegames\\<account>\\<game id>).",
+    "Skill Points, Spare Parts and RDA Duty Rosters are found when the game looks them up: open your inventory or the skills menu once. There is no public AOB yet for arrows, bow tension, one-hit kills, jumps or movement speed on this build, so those are not included."
   ],
   "i18n": {
     "nl": {
@@ -49,7 +50,8 @@
         "Alle AOB's zijn gecontroleerd op Steam-build 22429549 (afop.exe 1.0.2.2): elk wordt precies één keer gevonden op schijf. Controleer vanwege Denuvo ook de draaiende game: Vanta.exe --verify avatar-frontiers-of-pandora --live",
         "Zet cheats pas aan als je save volledig geladen is. Fast travel en tussenfilmpjes laden waarden opnieuw; zet Godmode opnieuw aan als het stopt met werken.",
         "De Ubisoft Connect-versie wordt nog niet automatisch gevonden; wijs Vanta naar afop.exe of start eerst de game.",
-        "Maak eerst een backup van je save (Ubisoft Connect\\savegames\\<account>\\<game-id>)."
+        "Maak eerst een backup van je save (Ubisoft Connect\\savegames\\<account>\\<game-id>).",
+        "Vaardigheidspunten, reserveonderdelen en RDA-dienstroosters worden gevonden zodra de game ze opzoekt: open één keer je inventaris of het vaardighedenmenu. Er is voor deze build nog geen openbare AOB voor pijlen, boogspanning, one-hit kills, sprongen of loopsnelheid, dus die zitten er niet in."
       ],
       "scope": "Alleen voor de solo-campagne. Niet gebruiken in co-op of online.",
       "version": "Steam-build 22429549 (maart 2026)"
@@ -152,7 +154,8 @@
           }
         ],
         "exports": [
-          "afop_flags"
+          "afop_flags",
+          "health_ptr"
         ]
       }
     },
@@ -167,7 +170,8 @@
       "i18n": {
         "nl": {
           "name": "Godmode",
-          "description": "Je gezondheid blijft op het maximum."
+          "description": "Je gezondheid blijft op het maximum.",
+          "hint": "Werkt zodra je gezondheid/energie in de game één keer verandert (laad eerst je save)."
         }
       },
       "confidence": "untested",
@@ -181,7 +185,8 @@
         "valueType": "byte",
         "onValue": 1,
         "offValue": 0
-      }
+      },
+      "hint": "Takes effect after your health/energy changes once in-game (load your save first)."
     },
     {
       "id": "inf_energy",
@@ -194,7 +199,8 @@
       "i18n": {
         "nl": {
           "name": "Onbeperkte energie",
-          "description": "Je energie blijft op het maximum."
+          "description": "Je energie blijft op het maximum.",
+          "hint": "Werkt zodra je gezondheid/energie in de game één keer verandert (laad eerst je save)."
         }
       },
       "confidence": "untested",
@@ -208,6 +214,118 @@
         "valueType": "byte",
         "onValue": 1,
         "offValue": 0
+      },
+      "hint": "Takes effect after your health/energy changes once in-game (load your save first)."
+    },
+    {
+      "id": "inf_breath",
+      "name": "Unlimited Oxygen",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "heart",
+      "hotkey": "Numpad8",
+      "description": "Your breath under water is kept at its maximum.",
+      "hint": "Load your save and take or lose a little health once, so the stats object is found.",
+      "i18n": {
+        "nl": {
+          "name": "Onbeperkte zuurstof",
+          "description": "Je adem onder water blijft op het maximum.",
+          "hint": "Laad je save en verlies één keer een beetje gezondheid, zodat het stats-object gevonden wordt."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). Uses the same health hook as God Mode (AOB exactly 1 hit on Steam build 22429549, afop.exe 1.0.2.2, 2026-09-28). The value (+0xB8) and its maximum (+0xBC) are the table's own pointer records for this stat ('can be locked manually'); they cannot be checked on disk (Denuvo), so this is experimental. Every 200 ms the value is set to its maximum; a maximum of 0 is never copied. Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "afop_hook"
+      ],
+      "impl": {
+        "type": "pointer",
+        "base": "sym:health_ptr",
+        "offsets": [
+          184
+        ],
+        "valueType": "int32",
+        "freeze": true,
+        "freezeFrom": {
+          "offsets": [
+            188
+          ]
+        },
+        "restore": false
+      }
+    },
+    {
+      "id": "ikran_stamina",
+      "name": "Unlimited Ikran Stamina",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "bolt",
+      "hotkey": "Numpad9",
+      "description": "Your ikran's stamina is kept at its maximum while flying.",
+      "hint": "Load your save and take or lose a little health once, so the stats object is found.",
+      "i18n": {
+        "nl": {
+          "name": "Onbeperkt Ikran-uithoudingsvermogen",
+          "description": "Het uithoudingsvermogen van je ikran blijft op het maximum tijdens het vliegen.",
+          "hint": "Laad je save en verlies één keer een beetje gezondheid, zodat het stats-object gevonden wordt."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). Uses the same health hook as God Mode (AOB exactly 1 hit on Steam build 22429549, afop.exe 1.0.2.2, 2026-09-28). The value (+0xA8) and its maximum (+0xAC) are the table's own pointer records for this stat ('can be locked manually'); they cannot be checked on disk (Denuvo), so this is experimental. Every 200 ms the value is set to its maximum; a maximum of 0 is never copied. Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "afop_hook"
+      ],
+      "impl": {
+        "type": "pointer",
+        "base": "sym:health_ptr",
+        "offsets": [
+          168
+        ],
+        "valueType": "int32",
+        "freeze": true,
+        "freezeFrom": {
+          "offsets": [
+            172
+          ]
+        },
+        "restore": false
+      }
+    },
+    {
+      "id": "ikran_health",
+      "name": "Ikran God Mode",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "shield",
+      "hotkey": "Numpad0",
+      "description": "Your ikran's health is kept at its maximum.",
+      "hint": "Load your save and take or lose a little health once, so the stats object is found.",
+      "i18n": {
+        "nl": {
+          "name": "Ikran-godmode",
+          "description": "De gezondheid van je ikran blijft op het maximum.",
+          "hint": "Laad je save en verlies één keer een beetje gezondheid, zodat het stats-object gevonden wordt."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). Uses the same health hook as God Mode (AOB exactly 1 hit on Steam build 22429549, afop.exe 1.0.2.2, 2026-09-28). The value (+0xD8) and its maximum (+0xDC) are the table's own pointer records for this stat ('can be locked manually'); they cannot be checked on disk (Denuvo), so this is experimental. Every 200 ms the value is set to its maximum; a maximum of 0 is never copied. Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "afop_hook"
+      ],
+      "impl": {
+        "type": "pointer",
+        "base": "sym:health_ptr",
+        "offsets": [
+          216
+        ],
+        "valueType": "int32",
+        "freeze": true,
+        "freezeFrom": {
+          "offsets": [
+            220
+          ]
+        },
+        "restore": false
       }
     },
     {
@@ -440,7 +558,8 @@
       "i18n": {
         "nl": {
           "name": "Positie X",
-          "description": "Je X-coördinaat. Wijzig hem om te teleporteren. Bijwerkingen: de game kan je terugzetten, je kunt in rotsen belanden of van grote hoogte vallen (zet eerst Godmode aan). Gebruik fast travel als je vastzit."
+          "description": "Je X-coördinaat. Wijzig hem om te teleporteren. Bijwerkingen: de game kan je terugzetten, je kunt in rotsen belanden of van grote hoogte vallen (zet eerst Godmode aan). Gebruik fast travel als je vastzit.",
+          "hint": "Beweeg je personage één keer zodat de positie gevonden wordt."
         }
       },
       "confidence": "experimental",
@@ -458,7 +577,8 @@
           128
         ],
         "valueType": "float"
-      }
+      },
+      "hint": "Move your character once so the position can be found."
     },
     {
       "id": "pos_y",
@@ -470,7 +590,8 @@
       "i18n": {
         "nl": {
           "name": "Positie Y",
-          "description": "Je Y-coördinaat. Wijzig hem om te teleporteren. Bijwerkingen: de game kan je terugzetten, je kunt in rotsen belanden of van grote hoogte vallen (zet eerst Godmode aan). Gebruik fast travel als je vastzit."
+          "description": "Je Y-coördinaat. Wijzig hem om te teleporteren. Bijwerkingen: de game kan je terugzetten, je kunt in rotsen belanden of van grote hoogte vallen (zet eerst Godmode aan). Gebruik fast travel als je vastzit.",
+          "hint": "Beweeg je personage één keer zodat de positie gevonden wordt."
         }
       },
       "confidence": "experimental",
@@ -488,7 +609,8 @@
           136
         ],
         "valueType": "float"
-      }
+      },
+      "hint": "Move your character once so the position can be found."
     },
     {
       "id": "pos_height",
@@ -500,7 +622,8 @@
       "i18n": {
         "nl": {
           "name": "Hoogte (Z)",
-          "description": "Je hoogte. Verhoog hem een beetje om los te komen, of zet hem hoog om omhoog te vliegen. Bijwerkingen: de game kan je terugzetten, je kunt in rotsen belanden of van grote hoogte vallen (zet eerst Godmode aan). Gebruik fast travel als je vastzit."
+          "description": "Je hoogte. Verhoog hem een beetje om los te komen, of zet hem hoog om omhoog te vliegen. Bijwerkingen: de game kan je terugzetten, je kunt in rotsen belanden of van grote hoogte vallen (zet eerst Godmode aan). Gebruik fast travel als je vastzit.",
+          "hint": "Beweeg je personage één keer zodat de positie gevonden wordt."
         }
       },
       "confidence": "experimental",
@@ -518,7 +641,8 @@
           132
         ],
         "valueType": "float"
-      }
+      },
+      "hint": "Move your character once so the position can be found."
     },
     {
       "id": "daytime_hook",
@@ -695,7 +819,8 @@
       "i18n": {
         "nl": {
           "name": "Clangunst",
-          "description": "Je clangunst bij een handelaar. Open eerst een clanhandelaar en bekijk een item zodat de waarde gevonden wordt; controleer of de getoonde waarde klopt met je gunst voordat je hem wijzigt."
+          "description": "Je clangunst bij een handelaar. Open eerst een clanhandelaar en bekijk een item zodat de waarde gevonden wordt; controleer of de getoonde waarde klopt met je gunst voordat je hem wijzigt.",
+          "hint": "Open eerst een clanhandelaar en bekijk een item."
         }
       },
       "confidence": "experimental",
@@ -709,6 +834,201 @@
       "impl": {
         "type": "pointer",
         "base": "sym:fav_ptr",
+        "offsets": [
+          24
+        ],
+        "valueType": "int32"
+      },
+      "hint": "Open a clan trader and look at an item first."
+    },
+    {
+      "id": "inv_hook",
+      "name": "Inventory hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). AOB (the table's 'Inventory' injection point) checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk, and the surrounding bytes match the table's listing (list +0x08 items, +0x10 count; item +0x10 id). afop.exe is protected by Denuvo, so check the running game with Vanta.exe --verify avatar-frontiers-of-pandora --live. Not tested in-game yet. Vanta's own code (not the table's Lua): the original instructions run unchanged, then the list is scanned (max 1024 items) for the item ids of Spare Parts, Skill Points and RDA Duty Rosters listed in the table; only a matching item is remembered. All registers are preserved. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "inv": {
+            "patterns": [
+              {
+                "aob": "48 8B 40 18 33 C9"
+              }
+            ],
+            "overwrite": 6
+          }
+        },
+        "alloc": {
+          "size": 512,
+          "near": "inv"
+        },
+        "asm": [
+          "newmem:",
+          "mov rax,[rax+18]",
+          "push rcx",
+          "push rdx",
+          "push r8",
+          "push r10",
+          "push r11",
+          "test rax,rax",
+          "je inv_done",
+          "mov r8d,[rax+10]",
+          "test r8d,r8d",
+          "jle inv_done",
+          "cmp r8d,400",
+          "ja inv_done",
+          "mov r11,[rax+08]",
+          "test r11,r11",
+          "je inv_done",
+          "xor ecx,ecx",
+          "inv_loop:",
+          "mov rdx,[r11+rcx*8]",
+          "test rdx,rdx",
+          "je inv_next",
+          "mov r10,[rdx+10]",
+          "cmp r10,[inv_id_sp]",
+          "jne @f",
+          "mov [sp_ptr],rdx",
+          "@@:",
+          "cmp r10,[inv_id_sk]",
+          "jne @f",
+          "mov [sk_ptr],rdx",
+          "@@:",
+          "cmp r10,[inv_id_rd]",
+          "jne inv_next",
+          "mov [rd_ptr],rdx",
+          "inv_next:",
+          "inc ecx",
+          "cmp ecx,r8d",
+          "jl inv_loop",
+          "inv_done:",
+          "pop r11",
+          "pop r10",
+          "pop r8",
+          "pop rdx",
+          "pop rcx",
+          "xor ecx,ecx",
+          "jmp inv_ret",
+          "  db CC CC CC CC CC CC CC CC",
+          "inv_id_sp:",
+          "dq E6F0734D0851",
+          "inv_id_sk:",
+          "dq 896FD1F5BB9",
+          "inv_id_rd:",
+          "dq E6F2331271A4",
+          "sp_ptr:",
+          "dq 0",
+          "sk_ptr:",
+          "dq 0",
+          "rd_ptr:",
+          "dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "inv",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "sp_ptr",
+          "sk_ptr",
+          "rd_ptr"
+        ]
+      }
+    },
+    {
+      "id": "skill_points",
+      "name": "Skill Points",
+      "section": "punten",
+      "type": "number",
+      "icon": "coin",
+      "description": "Your unspent skill points. Check that the shown value matches the game before changing it.",
+      "hint": "Open your inventory or skills menu once so the value can be found.",
+      "i18n": {
+        "nl": {
+          "name": "Vaardigheidspunten",
+          "description": "Je ongebruikte vaardigheidspunten. Controleer of de getoonde waarde klopt met de game voordat je hem wijzigt.",
+          "hint": "Open één keer je inventaris of het vaardighedenmenu zodat de waarde gevonden wordt."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). The hook AOB has exactly 1 hit on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28). The item id and the count at +0x18 come from the table's inventory list and cannot be checked on disk (Denuvo). Not tested in-game. After loading another save, open the menu again before changing the value. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "inv_hook"
+      ],
+      "min": 0,
+      "max": 999,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:sk_ptr",
+        "offsets": [
+          24
+        ],
+        "valueType": "int32"
+      }
+    },
+    {
+      "id": "spare_parts",
+      "name": "Spare Parts",
+      "section": "punten",
+      "type": "number",
+      "icon": "coin",
+      "description": "Your spare parts. Check that the shown value matches the game before changing it.",
+      "hint": "Open your inventory or skills menu once so the value can be found.",
+      "i18n": {
+        "nl": {
+          "name": "Reserveonderdelen",
+          "description": "Je reserveonderdelen. Controleer of de getoonde waarde klopt met de game voordat je hem wijzigt.",
+          "hint": "Open één keer je inventaris of het vaardighedenmenu zodat de waarde gevonden wordt."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). The hook AOB has exactly 1 hit on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28). The item id and the count at +0x18 come from the table's inventory list and cannot be checked on disk (Denuvo). Not tested in-game. After loading another save, open the menu again before changing the value. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "inv_hook"
+      ],
+      "min": 0,
+      "max": 99999,
+      "step": 100,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:sp_ptr",
+        "offsets": [
+          24
+        ],
+        "valueType": "int32"
+      }
+    },
+    {
+      "id": "duty_rosters",
+      "name": "RDA Duty Rosters",
+      "section": "punten",
+      "type": "number",
+      "icon": "coin",
+      "description": "Your RDA duty rosters. Check that the shown value matches the game before changing it.",
+      "hint": "Open your inventory or skills menu once so the value can be found.",
+      "i18n": {
+        "nl": {
+          "name": "RDA-dienstroosters",
+          "description": "Je RDA-dienstroosters. Controleer of de getoonde waarde klopt met de game voordat je hem wijzigt.",
+          "hint": "Open één keer je inventaris of het vaardighedenmenu zodat de waarde gevonden wordt."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). The hook AOB has exactly 1 hit on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28). The item id and the count at +0x18 come from the table's inventory list and cannot be checked on disk (Denuvo). Not tested in-game. After loading another save, open the menu again before changing the value. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "inv_hook"
+      ],
+      "min": 0,
+      "max": 999,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:rd_ptr",
         "offsets": [
           24
         ],

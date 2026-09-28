@@ -1,4 +1,4 @@
-# Vanta v0.3.7 (developer notes)
+# Vanta v0.3.8 (developer notes)
 
 Standalone Windows trainer for **single-player/offline** games. It has no Cheat Engine dependency.
 Games marked `antiCheat` or `onlineOnly` are listed but refused (never opened, never launched).
@@ -119,6 +119,14 @@ messages: `src/Vanta.Core/Strings.cs`. Release notes: English first, Dutch in
 * `pointer`: `base` (`"Mod.exe+1234"` | `"sym:NAME±hex"` | `{aob, patternOffset, ripOffset, insnLength, module}`),
   `offsets[]` (CE order: first deref first), `valueType (int32|int64|float|double|byte|int16)`, `onValue/offValue/freeze`
   for toggles, `action (set|add)/amount` for buttons.
+  Extras (v0.3.8, pointer only): `freezeFrom {base?, offsets}` (freeze toggle copies that value every tick; source
+  values that are not finite or ≤ 0 are skipped, e.g. Windrose health ← max health), `mirror[]` (byte deltas from
+  the target that get the same value, e.g. BaseValue next to CurrentValue), `restore:false` (disable leaves the
+  value). A freeze toggle whose chain is not readable yet is enabled *pending* (hint `ptr.wait` or the cheat's `hint`)
+  and starts writing once it resolves; the original is recorded on the first successful read. AOB bases are scanned
+  once per session and shared between cheats with the same pattern (also a negative cache).
+  Windrose uses a static GEngine base (AOB + RIP, no hook): GEngine+0x1248 GameInstance → +0x38 LocalPlayers[0] →
+  +0x30 PlayerController → +0x350 pawn; offsets were read from the game's UE reflection data on build 24803703.
 
 Validate with `vanta-tool validate games` (or `Vanta.exe validate <map>`). This runs the schema check plus semantic
 checks: AOBs parse, sites and requires exist, hotkeys are unique, the asm assembles against fake addresses, and `sym:`

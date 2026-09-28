@@ -1,4 +1,4 @@
-VANTA v0.3.7 - trainer for single-player games
+VANTA v0.3.8 - trainer for single-player games
 ==============================================
 
 Vanta is a standalone program (no Cheat Engine required). It only works for
@@ -6,6 +6,15 @@ single-player/offline games. Games with online anti-cheat are refused on purpose
 
 Nederlandse versie: see LEESMIJ.txt. In Vanta: Settings > Language > Nederlands.
 Full version history: CHANGELOG.md.
+
+NEW IN v0.3.8
+  - Windrose: values no longer stay "Not available yet"; health, stamina,
+    posture, attributes, speed and gravity are now on/off cheats that start
+    once you are in your world. Walk speed fixed.
+  - Avatar: Frontiers of Pandora: 17 cheats: Unlimited Oxygen, Ikran stamina
+    and god mode, Skill Points, Spare Parts and RDA Duty Rosters editors.
+  - Mafia III: Cash 999,999 and Vault 999,999.
+  - The new cheats are not yet tested in-game.
 
 NEW IN v0.3.7
   - Windrose: 31 cheats (was 5): Unlock Travel plus editors for health, stamina,

@@ -38,7 +38,8 @@
   "notes": [
     "Windrose is in Early Access and updates often; every update can break cheats. Vanta refuses a cheat when its AOB is not found exactly once.",
     "No anti-cheat, but co-op sessions (up to 4 players) are shared: only use Vanta in a solo world. The game's EULA does not allow cheating in multiplayer.",
-    "Infinite Jumps and Unlock Travel were checked on Steam build 24803703 (1 hit each). The value editors use pointer offsets from public tables and are experimental: they cannot be checked on disk.",
+    "Checked on Steam build 24803703 with the game running (read-only): every AOB has exactly 1 hit and every value offset was read from the game's own type information. None of the cheats has been tried in-game yet; cheats whose effect depends on an undocumented game formula are marked experimental.",
+    "Character cheats work once you are in your world. You can turn toggles on in the menu: they wait and start by themselves.",
     "Back up your save first: %LOCALAPPDATA%\\R5\\Saved\\SaveProfiles\\<Steam ID>"
   ],
   "i18n": {
@@ -46,7 +47,8 @@
       "notes": [
         "Windrose is Early Access en krijgt vaak updates; elke update kan cheats breken. Vanta weigert een cheat als de AOB niet precies één keer gevonden wordt.",
         "Geen anti-cheat, maar co-op-sessies (tot 4 spelers) zijn gedeeld: gebruik Vanta alleen in een solowereld. De EULA van de game staat valsspelen in multiplayer niet toe.",
-        "Oneindig springen en Reizen ontgrendelen zijn gecontroleerd op Steam-build 24803703 (elk 1 treffer). De waarde-editors gebruiken pointer-offsets uit openbare tabellen en zijn experimenteel: ze kunnen niet op schijf gecontroleerd worden.",
+        "Gecontroleerd op Steam-build 24803703 met de game open (alleen lezen): elke AOB heeft precies 1 treffer en elke waarde-offset is uit de eigen type-informatie van de game gelezen. Geen enkele cheat is al in-game geprobeerd; cheats waarvan het effect van een ongedocumenteerde formule afhangt zijn experimenteel.",
+        "Personage-cheats werken zodra je in je wereld bent. Je kunt toggles al in het menu aanzetten: ze wachten en starten vanzelf.",
         "Maak eerst een backup van je save: %LOCALAPPDATA%\\R5\\Saved\\SaveProfiles\\<Steam ID>"
       ],
       "scope": "Alleen solowerelden. Niet gebruiken in co-op of op een server.",
@@ -79,7 +81,7 @@
         }
       },
       "confidence": "untested",
-      "confidenceNote": "From a public Cheat Engine table (April 2026): 'inc [rbx+468]' becomes 'dec' (1 byte); JumpMaxCount is not touched, so turning it off restores normal jumping (after landing). AOB checked on Steam build 24803703 (Windrose-Win64-Shipping.exe, 2026-09-28): exactly 1 hit on disk; [rbx+468] is JumpCurrentCount. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "confidenceNote": "From a public Cheat Engine table (April 2026): 'inc [rbx+468]' becomes 'dec' (1 byte); JumpMaxCount is not touched, so turning it off restores normal jumping (after landing). AOB checked on Steam build 24803703 (Windrose-Win64-Shipping.exe, 2026-09-28): exactly 1 hit on disk; [rbx+468] is JumpCurrentCount. Also 1 hit in the running game (live check 2026-09-29). Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
       "impl": {
         "type": "aobPatch",
         "sites": {
@@ -115,7 +117,7 @@
         }
       },
       "confidence": "untested",
-      "confidenceNote": "From a public Cheat Engine table (2026, client and server versions). AOB checked on Steam build 24803703 (Windrose-Win64-Shipping.exe, 2026-09-28): exactly 1 hit on disk. It NOPs 'mov r8d,[rdx+rcx+10]'. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "confidenceNote": "From a public Cheat Engine table (2026, client and server versions). AOB checked on Steam build 24803703 (Windrose-Win64-Shipping.exe, 2026-09-28): exactly 1 hit on disk. It NOPs 'mov r8d,[rdx+rcx+10]'. Also 1 hit in the running game (live check 2026-09-29). Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
       "impl": {
         "type": "aobPatch",
         "sites": {
@@ -137,74 +139,31 @@
       }
     },
     {
-      "id": "game_data",
-      "name": "Game data hook",
-      "section": "extra",
-      "type": "toggle",
-      "hidden": true,
-      "autoEnable": true,
-      "confidence": "untested",
-      "confidenceNote": "From a public Cheat Engine table (February 2026). AOB checked on Steam build 24803703: exactly 1 hit on disk. Stores the engine object the value editors start from. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
-      "impl": {
-        "type": "aobInject",
-        "sites": {
-          "pdata": {
-            "patterns": [
-              {
-                "aob": "48 8B 01 FF 90 F8 02 00 00 48 8B CE"
-              }
-            ],
-            "overwrite": 9
-          }
-        },
-        "alloc": {
-          "size": 256,
-          "near": "pdata"
-        },
-        "asm": [
-          "newmem:",
-          "mov [pBase],rcx",
-          "mov rax,[rcx]",
-          "call qword ptr [rax+000002F8]",
-          "jmp pdata_ret",
-          "pBase:",
-          "dq 0"
-        ],
-        "hooks": [
-          {
-            "site": "pdata",
-            "label": "newmem"
-          }
-        ],
-        "exports": [
-          "pBase"
-        ]
-      }
-    },
-    {
-      "id": "health",
-      "name": "Health",
+      "id": "inf_health",
+      "name": "Infinite Health",
       "section": "speler",
-      "type": "number",
+      "type": "toggle",
       "icon": "heart",
-      "description": "Your current health (freeze to stay at this value).",
+      "hotkey": "Numpad3",
+      "description": "Keeps your health at your maximum health (it follows level-ups and gear). Turn it on in the menu and it starts working once you are in your world.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Gezondheid",
-          "description": "Je huidige gezondheid (bevriezen om op deze waarde te blijven)."
+          "name": "Oneindige gezondheid",
+          "description": "Houdt je gezondheid op je maximale gezondheid (volgt level-ups en uitrusting). Zet hem in het menu aan en hij werkt zodra je in je wereld bent.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 100000,
-      "step": 10,
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.Health at +0x30 and MaxHealth at +0x50, FGameplayAttributeData: BaseValue +8, CurrentValue +0xC; read 480/480 live). Every 200 ms Health.Current and Health.Base are set to MaxHealth.Current; a MaxHealth of 0 (loading) is never copied. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -215,107 +174,52 @@
           1128,
           60
         ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "max_health",
-      "name": "Max Health",
-      "section": "speler",
-      "type": "number",
-      "icon": "heart",
-      "description": "Your maximum health. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Maximale gezondheid",
-          "description": "Je maximale gezondheid. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 100000,
-      "step": 10,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          92
+        "valueType": "float",
+        "freeze": true,
+        "freezeFrom": {
+          "offsets": [
+            4680,
+            56,
+            0,
+            48,
+            848,
+            712,
+            1128,
+            92
+          ]
+        },
+        "mirror": [
+          -4
         ],
-        "valueType": "float"
+        "restore": false
       }
     },
     {
-      "id": "health_regen",
-      "name": "Health Regeneration",
+      "id": "inf_stamina",
+      "name": "Infinite Stamina",
       "section": "speler",
-      "type": "number",
-      "icon": "heart",
-      "description": "Passive health regeneration. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Gezondheidsherstel",
-          "description": "Passief gezondheidsherstel. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 10000,
-      "step": 1,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          108
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "stamina",
-      "name": "Stamina",
-      "section": "speler",
-      "type": "number",
+      "type": "toggle",
       "icon": "bolt",
-      "description": "Your current stamina (freeze to stay at this value).",
+      "hotkey": "Numpad4",
+      "description": "Keeps your stamina at your maximum stamina, so sprinting, dodging and attacking never run out.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Uithoudingsvermogen",
-          "description": "Je huidige uithoudingsvermogen (bevriezen om op deze waarde te blijven)."
+          "name": "Oneindig uithoudingsvermogen",
+          "description": "Houdt je uithoudingsvermogen op het maximum, dus sprinten, ontwijken en aanvallen raken nooit op.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 100000,
-      "step": 10,
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.Stamina at +0xC0 and MaxStamina at +0xD0; read 123/150 live). Every 200 ms Stamina is set to MaxStamina. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -326,144 +230,52 @@
           1128,
           204
         ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "max_stamina",
-      "name": "Max Stamina",
-      "section": "speler",
-      "type": "number",
-      "icon": "bolt",
-      "description": "Your maximum stamina. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Maximaal uithoudingsvermogen",
-          "description": "Je maximale uithoudingsvermogen. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 100000,
-      "step": 10,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          220
+        "valueType": "float",
+        "freeze": true,
+        "freezeFrom": {
+          "offsets": [
+            4680,
+            56,
+            0,
+            48,
+            848,
+            712,
+            1128,
+            220
+          ]
+        },
+        "mirror": [
+          -4
         ],
-        "valueType": "float"
+        "restore": false
       }
     },
     {
-      "id": "stamina_regen",
-      "name": "Stamina Regeneration",
+      "id": "no_posture",
+      "name": "No Posture Damage",
       "section": "speler",
-      "type": "number",
-      "icon": "bolt",
-      "description": "How fast stamina comes back. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Herstel uithoudingsvermogen",
-          "description": "Hoe snel uithoudingsvermogen terugkomt. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 10000,
-      "step": 1,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          236
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "stamina_cost",
-      "name": "Stamina Cost Modifier",
-      "section": "speler",
-      "type": "number",
-      "icon": "bolt",
-      "description": "Modifier for how much stamina actions cost; lower means cheaper. Note the current value before changing it. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Kosten uithoudingsvermogen",
-          "description": "Factor voor hoeveel uithoudingsvermogen acties kosten; lager is goedkoper. Noteer de huidige waarde voordat je hem wijzigt. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 100,
-      "step": 0.1,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          268
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "posture",
-      "name": "Posture",
-      "section": "speler",
-      "type": "number",
+      "type": "toggle",
       "icon": "shield",
-      "description": "Your current posture (the guard/stagger bar).",
+      "hotkey": "Numpad5",
+      "description": "Keeps your posture meter empty, so blocking and taking hits should not break your guard or stagger you. Side effect: if the game counts posture the other way round, turning this on staggers you; turn it off again.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Houding",
-          "description": "Je huidige houding (de guard-/staggerbalk)."
+          "name": "Geen houdingsschade",
+          "description": "Houdt je houdingsmeter leeg, zodat blokkeren en klappen je verdediging niet breken en je niet wankelt. Bijwerking: als de game houding andersom telt, laat dit je juist wankelen; zet hem dan weer uit.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 100000,
-      "step": 10,
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5PostureAttributeSet.Posture at +0x40 (MaxPosture +0x50); read Posture 0 / MaxPosture 40 at rest, so it looks like a build-up meter). Freezes Posture (base + current) at 0. That 0 means 'no build-up' is an inference from the resting values, hence experimental. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -474,107 +286,41 @@
           1136,
           76
         ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "max_posture",
-      "name": "Max Posture",
-      "section": "speler",
-      "type": "number",
-      "icon": "shield",
-      "description": "Your maximum posture. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Maximale houding",
-          "description": "Je maximale houding. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 100000,
-      "step": 10,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1136,
-          92
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 0,
+        "mirror": [
+          -4
         ],
-        "valueType": "float"
+        "restore": false
       }
     },
     {
-      "id": "armor",
-      "name": "Armor",
+      "id": "no_corruption",
+      "name": "No Corruption",
       "section": "speler",
-      "type": "number",
-      "icon": "shield",
-      "description": "Your armor value. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Pantser",
-          "description": "Je pantserwaarde. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 100000,
-      "step": 10,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          316
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "corruption",
-      "name": "Corruption",
-      "section": "speler",
-      "type": "number",
+      "type": "toggle",
       "icon": "skull",
-      "description": "Your current corruption build-up; set it to 0 to clear it.",
+      "hotkey": "Numpad6",
+      "description": "Keeps your corruption build-up at 0.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Corruptie",
-          "description": "Je huidige corruptie-opbouw; zet hem op 0 om hem te wissen."
+          "name": "Geen corruptie",
+          "description": "Houdt je corruptie-opbouw op 0.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 100000,
-      "step": 1,
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.CorruptionStatus at +0x720 (MaxCorruptionStatus 100 at +0x730); read 0/100 live). Freezes CorruptionStatus (base + current) at 0. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -585,33 +331,41 @@
           1128,
           1836
         ],
-        "valueType": "float"
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 0,
+        "mirror": [
+          -4
+        ],
+        "restore": false
       }
     },
     {
-      "id": "damage_mod",
-      "name": "Global Damage Modifier",
-      "section": "wapens",
-      "type": "number",
-      "icon": "fire",
-      "description": "Modifier for all damage you deal. Note the current value before changing it. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "id": "no_stamina_cost",
+      "name": "No Stamina Cost",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "bolt",
+      "hotkey": "Numpad7",
+      "description": "Sets the stamina consumption modifier to -100%. Side effect: the scale of this modifier is not documented; if it does nothing use Infinite Stamina instead.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Algemene schadefactor",
-          "description": "Factor voor alle schade die je doet. Noteer de huidige waarde voordat je hem wijzigt. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+          "name": "Geen uithoudingsverbruik",
+          "description": "Zet de modifier voor uithoudingsverbruik op -100%. Bijwerking: de schaal van deze modifier is niet gedocumenteerd; doet hij niets, gebruik dan Oneindig uithoudingsvermogen.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 0.1,
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.StaminaConsumptionModifier at +0x100; read 0 live). Freezes it at -1 (assumed additive fraction, -1 = -100%). The scale is an assumption, hence experimental. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -620,35 +374,86 @@
           848,
           712,
           1128,
-          620
+          268
         ],
-        "valueType": "float"
+        "valueType": "float",
+        "freeze": true,
+        "onValue": -1,
+        "mirror": [
+          -4
+        ]
+      }
+    },
+    {
+      "id": "fast_health_regen",
+      "name": "Fast Health Regeneration",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "heart",
+      "hotkey": "Numpad8",
+      "description": "Sets passive health regeneration to 25 per second (normally 0).",
+      "hint": "Load into your world first (the value is read from your character).",
+      "i18n": {
+        "nl": {
+          "name": "Snel gezondheidsherstel",
+          "description": "Zet passief gezondheidsherstel op 25 per seconde (normaal 0).",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.PassiveHealthRegen at +0x60; read 0 live). Freezes it at 25; the unit (per second) is an assumption. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "impl": {
+        "type": "pointer",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          108
+        ],
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 25,
+        "mirror": [
+          -4
+        ]
       }
     },
     {
       "id": "damage_resist",
-      "name": "Global Damage Resistance",
-      "section": "wapens",
-      "type": "number",
+      "name": "Damage Resistance 90%",
+      "section": "speler",
+      "type": "toggle",
       "icon": "shield",
-      "description": "Resistance to all damage you take. Note the current value before changing it; too high values may behave oddly. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "hotkey": "Numpad9",
+      "description": "Sets the global damage-taken resistance to 90%. Side effect: the game may clamp it lower; combine with Infinite Health for full safety.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Algemene schadeweerstand",
-          "description": "Weerstand tegen alle schade die je krijgt. Noteer de huidige waarde voordat je hem wijzigt; te hoge waarden kunnen vreemd werken. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+          "name": "Schadebestendigheid 90%",
+          "description": "Zet de algemene schadebestendigheid op 90%. Bijwerking: de game kan hem lager afkappen; combineer met Oneindige gezondheid voor volledige veiligheid.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 0.1,
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.GlobalDamageTakenResist at +0x420; read 0 live; other resist attributes use fractions such as 0.65). Freezes it at 0.9 (fraction). The scale is an inference, hence experimental. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -659,33 +464,128 @@
           1128,
           1068
         ],
-        "valueType": "float"
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 0.9,
+        "mirror": [
+          -4
+        ]
       }
     },
     {
-      "id": "crit_chance",
-      "name": "Critical Chance",
-      "section": "wapens",
-      "type": "number",
-      "icon": "crosshair",
-      "description": "Base chance for critical hits. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "id": "high_armor",
+      "name": "High Armor",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "shield",
+      "hotkey": "Numpad0",
+      "description": "Sets the Armor attribute to 1000. Side effect: how armor turns into damage reduction is not documented; the effect may be small or none.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Kritieke kans",
-          "description": "Basiskans op kritieke treffers. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+          "name": "Hoge bepantsering",
+          "description": "Zet het Armor-attribuut op 1000. Bijwerking: hoe bepantsering schadereductie wordt is niet gedocumenteerd; het effect kan klein of nul zijn.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 100,
-      "step": 1,
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.Armor at +0x130; read 0 live). Freezes Armor (base + current) at 1000. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          316
+        ],
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 1000,
+        "mirror": [
+          -4
+        ]
+      }
+    },
+    {
+      "id": "damage_x5",
+      "name": "Damage x5",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "fire",
+      "hotkey": "Ctrl+Numpad1",
+      "description": "Adds +400% to the global damage-done modifier (about 5x damage if the modifier is a simple percentage). Side effect: the exact formula is not documented.",
+      "hint": "Load into your world first (the value is read from your character).",
+      "i18n": {
+        "nl": {
+          "name": "Schade x5",
+          "description": "Telt +400% op bij de algemene schade-modifier (ongeveer 5x schade als de modifier een simpel percentage is). Bijwerking: de precieze formule is niet gedocumenteerd.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.GlobalDamageDoneModifier at +0x260; read 0 live). Freezes it at 4 (assumed additive fraction). Overrides the Damage Modifier editor while on. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "impl": {
+        "type": "pointer",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          620
+        ],
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 4,
+        "mirror": [
+          -4
+        ]
+      }
+    },
+    {
+      "id": "always_crit",
+      "name": "Always Critical",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "crosshair",
+      "hotkey": "Ctrl+Numpad2",
+      "description": "Sets the base critical hit chance to 100%.",
+      "hint": "Load into your world first (the value is read from your character).",
+      "i18n": {
+        "nl": {
+          "name": "Altijd kritiek",
+          "description": "Zet de basiskans op een kritieke treffer op 100%.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.CriticalChanceBase at +0x6C0; read 0 live). Freezes it at 1 (assumed fraction, 1 = 100%). Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "impl": {
+        "type": "pointer",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -696,33 +596,40 @@
           1128,
           1740
         ],
-        "valueType": "float"
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 1,
+        "mirror": [
+          -4
+        ]
       }
     },
     {
       "id": "crit_damage",
-      "name": "Critical Damage Modifier",
+      "name": "Critical Damage +200%",
       "section": "wapens",
-      "type": "number",
+      "type": "toggle",
       "icon": "crosshair",
-      "description": "Extra damage of critical hits. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "hotkey": "Ctrl+Numpad3",
+      "description": "Adds +200% to critical hit damage.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Kritieke schadefactor",
-          "description": "Extra schade van kritieke treffers. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+          "name": "Kritieke schade +200%",
+          "description": "Telt +200% op bij kritieke schade.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 0.1,
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.CriticalDamageDoneModifier at +0x6E0; read 0 live). Freezes it at 2 (assumed additive fraction). Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -733,33 +640,40 @@
           1128,
           1772
         ],
-        "valueType": "float"
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 2,
+        "mirror": [
+          -4
+        ]
       }
     },
     {
-      "id": "strength",
-      "name": "Strength",
+      "id": "max_attributes",
+      "name": "All Attributes 50",
       "section": "punten",
-      "type": "number",
+      "type": "toggle",
       "icon": "star",
-      "description": "Your Strength attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "hotkey": "Ctrl+Numpad4",
+      "description": "Sets Strength, Agility, Precision, Mobility, Vitality, Mastery, Fortitude and Endurance to 50 while on; turning it off leaves the values as they are until the game recalculates them. Side effects: derived stats may only update after a level-up or re-equip, and the game can save the raised values. Back up your save first.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Kracht",
-          "description": "Je attribuut Kracht. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+          "name": "Alle attributen 50",
+          "description": "Zet Kracht, Behendigheid, Precisie, Mobiliteit, Vitaliteit, Meesterschap, Standvastigheid en Uithoudingsvermogen op 50 zolang hij aan staat; uitzetten laat de waarden staan tot de game ze herberekent. Bijwerkingen: afgeleide waarden worden misschien pas bijgewerkt na een level-up of opnieuw uitrusten, en de game kan de verhoogde waarden opslaan. Maak eerst een backup van je save.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 1,
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.Strength..Endurance at +0x7F0..+0x860 (16 bytes apart); read 0 live). Writes 50 to base + current of all eight attributes every 200 ms. What 50 means in the game's scale is unknown. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -770,336 +684,224 @@
           1128,
           2044
         ],
-        "valueType": "float"
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 50,
+        "mirror": [
+          -4,
+          12,
+          16,
+          28,
+          32,
+          44,
+          48,
+          60,
+          64,
+          76,
+          80,
+          92,
+          96,
+          108,
+          112
+        ],
+        "restore": false
       }
     },
     {
-      "id": "agility",
-      "name": "Agility",
-      "section": "punten",
-      "type": "number",
-      "icon": "star",
-      "description": "Your Agility attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "id": "slow_motion",
+      "name": "Slow Motion (0.5x)",
+      "section": "wereld",
+      "type": "toggle",
+      "icon": "clock",
+      "hotkey": "Ctrl+Numpad5",
+      "description": "Runs the whole game world at half speed while on.",
+      "hint": "Load into your world first.",
       "i18n": {
         "nl": {
-          "name": "Behendigheid",
-          "description": "Je attribuut Behendigheid. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+          "name": "Slow motion (0,5x)",
+          "description": "Laat de hele gamewereld op halve snelheid lopen zolang hij aan staat.",
+          "hint": "Laad eerst je wereld."
         }
       },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 1,
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (GEngine.GameViewport +0xC10 -> World +0x78 -> PersistentLevel +0x30 -> WorldSettings +0x2B0 -> TimeDilation +0x3E0; read 1.0 live). Freezes WorldSettings.TimeDilation at 0.5 and writes the original back when turned off. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
+        "offsets": [
+          3088,
+          120,
+          48,
+          688,
+          992
+        ],
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 0.5
+      }
+    },
+    {
+      "id": "low_gravity",
+      "name": "Low Gravity",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "jump",
+      "hotkey": "Ctrl+Numpad6",
+      "description": "Lowers your character's gravity to about a third, for long, floaty jumps. Side effect: falls can still hurt.",
+      "hint": "Load into your world first (the value is read from your character).",
+      "i18n": {
+        "nl": {
+          "name": "Lage zwaartekracht",
+          "description": "Verlaagt de zwaartekracht van je personage tot ongeveer een derde, voor lange zwevende sprongen. Bijwerking: vallen kan nog steeds pijn doen.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (CharacterMovementComponent.GravityScale at +0x1A0; read 1.75 live). Freezes GravityScale at 0.6 and writes the original back when turned off. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "impl": {
+        "type": "pointer",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
           0,
           48,
           848,
-          712,
-          1128,
-          2060
+          816,
+          416
         ],
-        "valueType": "float"
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 0.6
       }
     },
     {
-      "id": "precision",
-      "name": "Precision",
-      "section": "punten",
-      "type": "number",
-      "icon": "star",
-      "description": "Your Precision attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Precisie",
-          "description": "Je attribuut Precisie. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 1,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          2076
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "mobility",
-      "name": "Mobility",
-      "section": "punten",
-      "type": "number",
-      "icon": "star",
-      "description": "Your Mobility attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Mobiliteit",
-          "description": "Je attribuut Mobiliteit. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 1,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          2092
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "vitality",
-      "name": "Vitality",
-      "section": "punten",
-      "type": "number",
-      "icon": "star",
-      "description": "Your Vitality attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Vitaliteit",
-          "description": "Je attribuut Vitaliteit. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 1,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          2108
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "mastery",
-      "name": "Mastery",
-      "section": "punten",
-      "type": "number",
-      "icon": "star",
-      "description": "Your Mastery attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Meesterschap",
-          "description": "Je attribuut Meesterschap. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 1,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          2124
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "fortitude",
-      "name": "Fortitude",
-      "section": "punten",
-      "type": "number",
-      "icon": "star",
-      "description": "Your Fortitude attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Standvastigheid",
-          "description": "Je attribuut Standvastigheid. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 1,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          2140
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "endurance",
-      "name": "Endurance",
-      "section": "punten",
-      "type": "number",
-      "icon": "star",
-      "description": "Your Endurance attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
-      "i18n": {
-        "nl": {
-          "name": "Uithouding",
-          "description": "Je attribuut Uithouding. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 1000,
-      "step": 1,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          712,
-          1128,
-          2156
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "move_speed_mod",
-      "name": "Movement Speed Modifier",
-      "section": "extra",
-      "type": "number",
+      "id": "super_speed",
+      "name": "Super Speed (2x walk)",
+      "section": "speler",
+      "type": "toggle",
       "icon": "speed",
-      "description": "Multiplier for your movement speed.",
+      "hotkey": "Ctrl+Numpad7",
+      "description": "Doubles your maximum walk/run speed (1400 instead of 700). Side effect: sprinting and crouching use the same speed while on.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Bewegingssnelheidsfactor",
-          "description": "Vermenigvuldiger voor je bewegingssnelheid."
+          "name": "Supersnelheid (2x lopen)",
+          "description": "Verdubbelt je maximale loop-/rensnelheid (1400 in plaats van 700). Bijwerking: sprinten en sluipen gebruiken zolang dezelfde snelheid.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 20,
-      "step": 0.1,
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (CharacterMovementComponent.MaxWalkSpeed at +0x278; read 700 live). Freezes MaxWalkSpeed at 1400 and writes the original back when turned off. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
           0,
           48,
           848,
-          2200,
-          5288
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "walk_speed",
-      "name": "Max Walk Speed",
-      "section": "extra",
-      "type": "number",
-      "icon": "speed",
-      "description": "Maximum walking/running speed of your character (Unreal units).",
-      "i18n": {
-        "nl": {
-          "name": "Maximale loopsnelheid",
-          "description": "Maximale loop-/rensnelheid van je personage (Unreal-eenheden)."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from an older public Cheat Engine table (build 22010085, February 2026); the newer table no longer lists this value. The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 5000,
-      "step": 50,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          2200,
+          816,
           632
+        ],
+        "valueType": "float",
+        "freeze": true,
+        "onValue": 1400
+      }
+    },
+    {
+      "id": "game_speed",
+      "name": "Game Speed",
+      "section": "wereld",
+      "type": "number",
+      "icon": "clock",
+      "description": "Speed of the whole game world (1 = normal). Reset to 1 when you are done; Vanta also writes 1 back when it restores the game.",
+      "hint": "Load into your world first.",
+      "i18n": {
+        "nl": {
+          "name": "Spelsnelheid",
+          "description": "Snelheid van de hele gamewereld (1 = normaal). Zet terug op 1 als je klaar bent; Vanta schrijft ook 1 terug bij herstellen.",
+          "hint": "Laad eerst je wereld."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (WorldSettings.TimeDilation at +0x3E0 via GEngine.GameViewport.World.PersistentLevel.WorldSettings; read 1.0 live). The game clamps it between 0.0001 and 1000. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "min": 0.1,
+      "max": 5,
+      "step": 0.1,
+      "resetValue": 1,
+      "format": "{v}x",
+      "impl": {
+        "type": "pointer",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
+        "offsets": [
+          3088,
+          120,
+          48,
+          688,
+          992
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "time_dilation",
+      "name": "Character Time Speed",
+      "section": "extra",
+      "type": "number",
+      "icon": "clock",
+      "description": "Time speed of your character only (1 = normal). Higher makes you move and act faster; side effect: animations and physics can look odd.",
+      "hint": "Load into your world first (the value is read from your character).",
+      "i18n": {
+        "nl": {
+          "name": "Tijdsnelheid personage",
+          "description": "Tijdsnelheid van alleen jouw personage (1 = normaal). Hoger laat je sneller bewegen en handelen; bijwerking: animaties en physics kunnen vreemd ogen.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (AActor.CustomTimeDilation at +0x68 of your character; read 1.0 live). Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "min": 0.1,
+      "max": 10,
+      "step": 0.1,
+      "resetValue": 1,
+      "format": "{v}x",
+      "impl": {
+        "type": "pointer",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          104
         ],
         "valueType": "float"
       }
@@ -1110,24 +912,29 @@
       "section": "extra",
       "type": "number",
       "icon": "jump",
-      "description": "Upward speed of a jump (Unreal units).",
+      "description": "Jump strength (normal 700). Higher jumps higher.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
           "name": "Spronghoogte",
-          "description": "Opwaartse snelheid van een sprong (Unreal-eenheden)."
+          "description": "Sprongkracht (normaal 700). Hoger springt hoger.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (CharacterMovementComponent.JumpZVelocity at +0x1A8; read 700 live). Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "min": 100,
       "max": 5000,
       "step": 50,
+      "resetValue": 700,
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -1141,99 +948,157 @@
       }
     },
     {
-      "id": "jump_hold",
-      "name": "Jump Max Hold Time",
+      "id": "walk_speed",
+      "name": "Max Walk Speed",
+      "section": "extra",
+      "type": "number",
+      "icon": "speed",
+      "description": "Maximum walk/run speed (normal 700). The game may set it back when you sprint, crouch or swim; use Super Speed to keep it.",
+      "hint": "Load into your world first (the value is read from your character).",
+      "i18n": {
+        "nl": {
+          "name": "Maximale loopsnelheid",
+          "description": "Maximale loop-/rensnelheid (normaal 700). De game kan hem terugzetten als je sprint, sluipt of zwemt; gebruik Supersnelheid om hem vast te houden.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (CharacterMovementComponent.MaxWalkSpeed at +0x278; read 700 live. The v0.3.7 chain pointed at the camera boom (wrong).). Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "min": 100,
+      "max": 5000,
+      "step": 50,
+      "resetValue": 700,
+      "impl": {
+        "type": "pointer",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          816,
+          632
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "move_speed_mod",
+      "name": "Movement Speed Modifier",
+      "section": "extra",
+      "type": "number",
+      "icon": "speed",
+      "description": "The game's own debug speed modifier (normal 0). Side effect: its scale is not documented; try small steps.",
+      "hint": "Load into your world first (the value is read from your character).",
+      "i18n": {
+        "nl": {
+          "name": "Bewegingssnelheid-modifier",
+          "description": "De eigen debug-snelheidsmodifier van de game (normaal 0). Bijwerking: de schaal is niet gedocumenteerd; probeer kleine stappen.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5MovementComponent.CheatMovementSpeedModifer at +0x14A8; read 0 live. The v0.3.7 chain pointed at the camera boom (wrong).). Whether the game still reads this debug field in a shipping build is unknown, hence experimental. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "min": 0,
+      "max": 10,
+      "step": 0.1,
+      "resetValue": 0,
+      "impl": {
+        "type": "pointer",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          816,
+          5288
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "gravity_scale",
+      "name": "Gravity Scale",
       "section": "extra",
       "type": "number",
       "icon": "jump",
-      "description": "How long holding jump keeps pushing you up (seconds).",
+      "description": "Gravity for your character (normal 1.75). Lower = floatier jumps.",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Maximale springhoudtijd",
-          "description": "Hoe lang springen ingedrukt houden je omhoog blijft duwen (seconden)."
+          "name": "Zwaartekrachtschaal",
+          "description": "Zwaartekracht voor je personage (normaal 1,75). Lager = zwevender springen.",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 10,
-      "step": 0.1,
-      "impl": {
-        "type": "pointer",
-        "base": "sym:pBase",
-        "offsets": [
-          4680,
-          56,
-          0,
-          48,
-          848,
-          1120
-        ],
-        "valueType": "float"
-      }
-    },
-    {
-      "id": "time_dilation",
-      "name": "Character Time Speed",
-      "section": "extra",
-      "type": "number",
-      "icon": "clock",
-      "description": "Time speed of your character only (1 = normal). Higher makes you move and act faster; side effect: animations and physics can look odd.",
-      "i18n": {
-        "nl": {
-          "name": "Tijdsnelheid personage",
-          "description": "Tijdsnelheid van alleen jouw personage (1 = normaal). Hoger laat je sneller bewegen en handelen; bijwerking: animaties en physics kunnen vreemd ogen."
-        }
-      },
-      "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (CharacterMovementComponent.GravityScale at +0x1A0; read 1.75 live). Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
       "min": 0.1,
-      "max": 10,
-      "step": 0.1,
+      "max": 5,
+      "step": 0.05,
+      "resetValue": 1.75,
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
           0,
           48,
           848,
-          104
+          816,
+          416
         ],
         "valueType": "float"
       }
     },
     {
-      "id": "revive_time",
-      "name": "Revive Time",
-      "section": "extra",
+      "id": "damage_mod",
+      "name": "Damage Done Modifier",
+      "section": "wapens",
       "type": "number",
-      "icon": "clock",
-      "description": "Time needed to revive (seconds); lower is faster.",
+      "icon": "fire",
+      "description": "Global damage-done modifier (normal 0; assumed +1 = +100%).",
+      "hint": "Load into your world first (the value is read from your character).",
       "i18n": {
         "nl": {
-          "name": "Reanimatietijd",
-          "description": "Tijd nodig om te reanimeren (seconden); lager is sneller."
+          "name": "Schade-modifier",
+          "description": "Algemene schade-modifier (normaal 0; aangenomen +1 = +100%).",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
-      "requires": [
-        "game_data"
-      ],
-      "min": 0,
-      "max": 60,
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (R5AttributeSet.GlobalDamageDoneModifier at +0x260; read 0 live). Writes base + current once; the game can recalculate it (use Damage x5 to keep it). Scale assumed. Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "min": -1,
+      "max": 20,
       "step": 0.5,
+      "resetValue": 0,
       "impl": {
         "type": "pointer",
-        "base": "sym:pBase",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
         "offsets": [
           4680,
           56,
@@ -1241,9 +1106,51 @@
           48,
           848,
           712,
-          1192,
-          248,
-          52
+          1128,
+          620
+        ],
+        "valueType": "float",
+        "mirror": [
+          -4
+        ]
+      }
+    },
+    {
+      "id": "jump_hold",
+      "name": "Jump Max Hold Time",
+      "section": "extra",
+      "type": "number",
+      "icon": "jump",
+      "description": "How long holding jump keeps pushing you up (normal 0 = off).",
+      "hint": "Load into your world first (the value is read from your character).",
+      "i18n": {
+        "nl": {
+          "name": "Maximale springhoudtijd",
+          "description": "Hoe lang springen ingedrukt houden je omhoog blijft duwen (normaal 0 = uit).",
+          "hint": "Laad eerst je wereld (de waarde wordt van je personage gelezen)."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "Checked live on Steam build 24803703 (2026-09-29, game running, read-only): the base AOB (GEngine, no hook needed) has exactly 1 hit, and the offsets were read from the game's own Unreal type information (ACharacter.JumpMaxHoldTime at +0x460; read 0 live). Not tested in-game yet. Fails safe: if the base AOB is not found exactly once, Vanta writes nothing.",
+      "min": 0,
+      "max": 5,
+      "step": 0.1,
+      "resetValue": 0,
+      "impl": {
+        "type": "pointer",
+        "base": {
+          "aob": "C4 C1 79 2F 4E 18 73 0E 48 8D 15 ?? ?? ?? ?? 33 C9 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??",
+          "patternOffset": 22,
+          "ripOffset": 3,
+          "insnLength": 7
+        },
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          1120
         ],
         "valueType": "float"
       }

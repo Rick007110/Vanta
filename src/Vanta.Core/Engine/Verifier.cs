@@ -85,12 +85,32 @@ public sealed class Verifier
                     try
                     {
                         var addr = rt.ResolveAddressBaseOnly(c);
-                        Results.Add(new SiteResult(c.Id, "base", true, string.Join(", ", patternLog) + $" -> statisch adres {Rva(mem, addr)}", Rva(mem, addr)));
+                        var detail = (patternLog.Count > 0 ? string.Join(", ", patternLog) : "pattern 1 -> 1 hit(s) (shared base)") + $" -> statisch adres {Rva(mem, addr)}";
+                        if (mem is not PeFileMemory) detail += LiveValue(rt, c);
+                        Results.Add(new SiteResult(c.Id, "base", true, detail, Rva(mem, addr)));
                     }
                     catch (CheatException e) { Results.Add(new SiteResult(c.Id, "base", false, Tail(e.Message))); }
                 }
             }
         }
+    }
+
+    /// <summary>Live only (read-only): follows the whole pointer chain and shows the current value.</summary>
+    private static string LiveValue(CheatRuntime rt, CheatDef c)
+    {
+        static string Fmt(double? v) => v.HasValue ? v.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : "unreadable";
+        try
+        {
+            var a = rt.ResolveAddress(c);
+            var s = a.HasValue ? $", value {Fmt(rt.ReadValue(a.Value, c.Impl.ValueType))}" : ", value not readable yet (load into your world)";
+            if (c.Impl.FreezeFrom != null)
+            {
+                var sa = rt.ResolveSource(c);
+                s += sa.HasValue ? $", source {Fmt(rt.ReadValue(sa.Value, c.Impl.FreezeFrom.ValueType ?? c.Impl.ValueType))}" : ", source not readable yet";
+            }
+            return s;
+        }
+        catch (CheatException e) { return ", value: " + e.Message; }
     }
 
     private static string Tail(string msg)
