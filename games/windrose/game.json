@@ -1,0 +1,295 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "schemaVersion": 1,
+  "id": "windrose",
+  "name": "Windrose",
+  "short": "WR",
+  "steamAppId": 3041230,
+  "processNames": [
+    "Windrose-Win64-Shipping.exe"
+  ],
+  "launchExe": "Windrose.exe",
+  "module": "Windrose-Win64-Shipping.exe",
+  "stores": {
+    "steam": {
+      "appId": 3041230
+    }
+  },
+  "scope": "Solo worlds only. Do not use in co-op or on a server.",
+  "supportedVersions": [
+    {
+      "label": "Steam build 24803703 (2026-08-25)",
+      "fileVersion": "UE5-CL-0",
+      "fileSize": 291369024,
+      "headSha256": "667fbd56a17093f5573125e5ff2b265a5d96219cb2861d15e8228499fc77681c",
+      "tailSha256": "ba765ddaa18f87f4a11929a99dd2d454818ff47151645172af1dde690655cfb2",
+      "peTimestamp": 1410075513,
+      "moduleSize": 295976960
+    }
+  ],
+  "antiCheat": false,
+  "onlineOnly": false,
+  "categories": [
+    "survival",
+    "pirate",
+    "early access"
+  ],
+  "badge": "EA",
+  "notes": [
+    "Windrose is in Early Access and updates often; every update can break cheats. Vanta refuses a cheat when its AOB is not found exactly once.",
+    "No anti-cheat, but co-op sessions (up to 4 players) are shared: only use Vanta in a solo world. The game's EULA does not allow cheating in multiplayer.",
+    "Infinite Jumps was checked on Steam build 24803703 (1 hit). The value editors use pointer offsets from an older table and are experimental.",
+    "Back up your save first: %LOCALAPPDATA%\\R5\\Saved\\SaveProfiles\\<Steam ID>"
+  ],
+  "i18n": {
+    "nl": {
+      "notes": [
+        "Windrose is Early Access en krijgt vaak updates; elke update kan cheats breken. Vanta weigert een cheat als de AOB niet precies één keer gevonden wordt.",
+        "Geen anti-cheat, maar co-op-sessies (tot 4 spelers) zijn gedeeld: gebruik Vanta alleen in een solowereld. De EULA van de game staat valsspelen in multiplayer niet toe.",
+        "Oneindig springen is gecontroleerd op Steam-build 24803703 (1 treffer). De waarde-editors gebruiken pointer-offsets uit een oudere tabel en zijn experimenteel.",
+        "Maak eerst een backup van je save: %LOCALAPPDATA%\\R5\\Saved\\SaveProfiles\\<Steam ID>"
+      ],
+      "scope": "Alleen solowerelden. Niet gebruiken in co-op of op een server.",
+      "version": "Steam-build 24803703 (25-08-2026)"
+    }
+  },
+  "art": {
+    "sky": [
+      "#06121C",
+      "#12405A"
+    ],
+    "horizon": "#F6C177",
+    "ground": "#040B10",
+    "tint": "#38BDF8",
+    "motif": "sea"
+  },
+  "cheats": [
+    {
+      "id": "inf_jumps",
+      "name": "Infinite Jumps",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "jump",
+      "hotkey": "Numpad1",
+      "description": "The jump counter counts down instead of up, so you can keep jumping in mid-air.",
+      "i18n": {
+        "nl": {
+          "name": "Oneindig springen",
+          "description": "De sprongteller telt af in plaats van op, dus je kunt in de lucht blijven springen."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (April 2026): 'inc [rbx+468]' becomes 'dec' (1 byte); JumpMaxCount is not touched, so turning it off restores normal jumping (after landing). AOB checked on Steam build 24803703 (Windrose-Win64-Shipping.exe, 2026-09-28): exactly 1 hit on disk; [rbx+468] is JumpCurrentCount. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "jump": {
+            "patterns": [
+              {
+                "aob": "FF 83 68 04 00 00 48 89"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "jump",
+            "offset": 1,
+            "bytes": "8B"
+          }
+        ]
+      }
+    },
+    {
+      "id": "game_data",
+      "name": "Game data hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "autoEnable": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (February 2026). AOB checked on Steam build 24803703: exactly 1 hit on disk. Stores the engine object the value editors start from. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "pdata": {
+            "patterns": [
+              {
+                "aob": "48 8B 01 FF 90 F8 02 00 00 48 8B CE"
+              }
+            ],
+            "overwrite": 9
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "pdata"
+        },
+        "asm": [
+          "newmem:",
+          "mov [pBase],rcx",
+          "mov rax,[rcx]",
+          "call qword ptr [rax+000002F8]",
+          "jmp pdata_ret",
+          "pBase:",
+          "dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "pdata",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "pBase"
+        ]
+      }
+    },
+    {
+      "id": "health",
+      "name": "Health",
+      "section": "speler",
+      "type": "number",
+      "icon": "heart",
+      "description": "Your current health (freeze to stay at this value).",
+      "i18n": {
+        "nl": {
+          "name": "Gezondheid",
+          "description": "Je huidige gezondheid (bevriezen om op deze waarde te blijven)."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from a public Cheat Engine table made for build 22010085 (February 2026, UE 5.6). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk and may have moved in later builds. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 100000,
+      "step": 10,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          60
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "stamina",
+      "name": "Stamina",
+      "section": "speler",
+      "type": "number",
+      "icon": "bolt",
+      "description": "Your current stamina.",
+      "i18n": {
+        "nl": {
+          "name": "Uithoudingsvermogen",
+          "description": "Je huidige uithoudingsvermogen."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from a public Cheat Engine table made for build 22010085 (February 2026, UE 5.6). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk and may have moved in later builds. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 100000,
+      "step": 10,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          204
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "walk_speed",
+      "name": "Max Walk Speed",
+      "section": "extra",
+      "type": "number",
+      "icon": "speed",
+      "description": "Maximum walking/running speed of your character (Unreal units).",
+      "i18n": {
+        "nl": {
+          "name": "Maximale loopsnelheid",
+          "description": "Maximale loop-/rensnelheid van je personage (Unreal-eenheden)."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from a public Cheat Engine table made for build 22010085 (February 2026, UE 5.6). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk and may have moved in later builds. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 5000,
+      "step": 50,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          2200,
+          632
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "jump_velocity",
+      "name": "Jump Height",
+      "section": "extra",
+      "type": "number",
+      "icon": "jump",
+      "description": "Upward speed of a jump (Unreal units).",
+      "i18n": {
+        "nl": {
+          "name": "Spronghoogte",
+          "description": "Opwaartse snelheid van een sprong (Unreal-eenheden)."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from a public Cheat Engine table made for build 22010085 (February 2026, UE 5.6). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk and may have moved in later builds. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 5000,
+      "step": 50,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          744,
+          816,
+          424
+        ],
+        "valueType": "float"
+      }
+    }
+  ]
+}

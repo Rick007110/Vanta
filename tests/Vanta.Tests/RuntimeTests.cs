@@ -75,20 +75,46 @@ public class RuntimeTests
     }
 
     [Fact]
-    public void Jump_offsets_are_read_from_the_found_instruction()
+    public void Unlimited_jump_only_flips_inc_to_dec_and_disable_restores_everything()
+    {
+        // Regression (v0.3.5): the old cave wrote JumpMaxCount = 99 into the character object, which stayed after
+        // disabling, so the cheat kept working. Now only the counter instruction is changed and nothing else is written.
+        var g = TestUtil.Tlc();
+        var (proc, orig, sites) = TestUtil.TlcProcess(g);
+        var sa = sites["inf_jump/j"];
+        var before = proc.Peek(sa, 6);
+        Assert.Equal(new byte[] { 0xFF, 0x83 }, before[..2]);           // inc dword ptr [rbx+disp32]
+        var rt = new CheatRuntime(proc, g);
+        var jump = g.Cheats.First(c => c.Id == "inf_jump");
+        var applied = rt.Apply(jump);
+        var on = proc.Peek(sa, 6);
+        var d = Decoder.Create(64, new ByteArrayCodeReader(on)); d.IP = sa;
+        var ins = d.Decode();
+        Assert.Equal(Mnemonic.Dec, ins.Mnemonic);
+        Assert.Equal(Register.RBX, ins.MemoryBase);
+        Assert.Equal(BitConverter.ToUInt32(before, 2), (uint)ins.MemoryDisplacement64);   // same field (JumpCurrentCount)
+        Assert.Equal(0, proc.AllocatedCount);                                               // no cave, no data writes
+        Assert.All(proc.WriteLog, w => Assert.True(w.addr >= sa && w.addr + (ulong)w.data.Length <= sa + 6));
+        rt.Restore(applied, immediateFree: true);
+        Assert.Equal(before, proc.Peek(sa, 6));
+        Assert.Equal(orig, proc.Peek(TestUtil.ModBase, orig.Length));
+    }
+
+    [Fact]
+    public void Every_tlc_toggle_restores_the_module_on_its_own_disable()
     {
         var g = TestUtil.Tlc();
-        var (proc, _, sites) = TestUtil.TlcProcess(g);
-        var rt = new CheatRuntime(proc, g);
-        rt.Apply(g.Cheats.First(c => c.Id == "inf_jump"));
-        var sa = sites["inf_jump/j"];
-        var d = Decoder.Create(64, new ByteArrayCodeReader(proc.Peek(sa, 5))); d.IP = sa;
-        var cave = d.Decode().NearBranchTarget;
-        var cd = Decoder.Create(64, new ByteArrayCodeReader(proc.Peek(cave, 32))); cd.IP = cave;
-        var i1 = cd.Decode(); var i2 = cd.Decode();
-        Assert.Equal(0x464UL, i1.MemoryDisplacement64);   // JumpMaxCount = 0x468 - 4
-        Assert.Equal(0x63U, i1.Immediate32);
-        Assert.Equal(0x468UL, i2.MemoryDisplacement64);
+        foreach (var c in g.Cheats.Where(c => c.Type == "toggle"))
+        {
+            var (proc, orig, _) = TestUtil.TlcProcess(g);
+            var s = new TrainerSession(g, proc);
+            s.Runtime.FreeDelay = TimeSpan.Zero;
+            s.Enable(c.Id);
+            s.Disable(c.Id);
+            foreach (var r in c.Requires ?? new()) if (s.IsActive(r)) s.Disable(r);
+            Assert.Equal(orig, proc.Peek(TestUtil.ModBase, orig.Length));
+            Assert.Equal(0, proc.AllocatedCount);
+        }
     }
 
     [Fact]

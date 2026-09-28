@@ -1,0 +1,499 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "schemaVersion": 1,
+  "id": "mafia-3-de",
+  "name": "Mafia III: Definitive Edition",
+  "short": "M3",
+  "steamAppId": 360430,
+  "processNames": [
+    "Mafia3DefinitiveEdition.exe"
+  ],
+  "launchExe": "Mafia3DefinitiveEdition.exe",
+  "module": "Mafia3DefinitiveEdition.exe",
+  "stores": {
+    "steam": {
+      "appId": 360430
+    }
+  },
+  "scope": "Single-player game.",
+  "supportedVersions": [
+    {
+      "label": "Steam build 5121098 (June 2020)",
+      "fileVersion": "1. 0. 0. 1",
+      "fileSize": 114788864,
+      "headSha256": "7cd4f03fb1a6634b0cf38b27bc784a15110b228b9d1c17d3d809c8c3f6509eca",
+      "tailSha256": "4a119f15c9eac49c3381e6efa1a1fb61b330fb1064925700521275712def4f3a",
+      "peTimestamp": 1588863291,
+      "moduleSize": 120979456
+    }
+  ],
+  "antiCheat": false,
+  "onlineOnly": false,
+  "categories": [
+    "action",
+    "open world"
+  ],
+  "badge": "build 5121098",
+  "notes": [
+    "Mafia III: Definitive Edition is single-player and has no anti-cheat.",
+    "All AOBs were checked on Steam build 5121098 (the last update, June 2020): each one is found exactly once. They have not all been tested in-game yet. Check first with: Vanta.exe --verify mafia-3-de",
+    "Cash: open the map once after enabling so Vanta can find your wallet and vault.",
+    "Back up your save first: %LOCALAPPDATA%\\2K Games\\Mafia III\\Data\\<number>\\gamesaves"
+  ],
+  "i18n": {
+    "nl": {
+      "notes": [
+        "Mafia III: Definitive Edition is singleplayer en heeft geen anti-cheat.",
+        "Alle AOB's zijn gecontroleerd op Steam-build 5121098 (de laatste update, juni 2020): elk wordt precies één keer gevonden. Nog niet allemaal in-game getest. Controleer eerst met: Vanta.exe --verify mafia-3-de",
+        "Geld: open na het aanzetten één keer de kaart, zodat Vanta je portemonnee en kluis kan vinden.",
+        "Maak eerst een backup van je save: %LOCALAPPDATA%\\2K Games\\Mafia III\\Data\\<number>\\gamesaves"
+      ],
+      "scope": "Singleplayer-game.",
+      "version": "Steam-build 5121098 (juni 2020)"
+    }
+  },
+  "art": {
+    "sky": [
+      "#140A0E",
+      "#4A1B24"
+    ],
+    "horizon": "#F4B860",
+    "ground": "#080405",
+    "tint": "#F43F5E",
+    "motif": "ridge"
+  },
+  "cheats": [
+    {
+      "id": "godmode",
+      "name": "God Mode",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "shield",
+      "hotkey": "Numpad1",
+      "description": "You take no damage: the damage function returns right away.",
+      "i18n": {
+        "nl": {
+          "name": "Godmode",
+          "description": "Je neemt geen schade: de schadefunctie keert meteen terug."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. The table notes that enemies can also become invulnerable; turn it off if a mission stalls. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "nodamage": {
+            "patterns": [
+              {
+                "aob": "48 8B C4 55 56 57 48 81 EC 90 00 00 00 48 C7 40 88 FE FF FF FF 48 89 58 10"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "nodamage",
+            "offset": 0,
+            "bytes": "C3 90 90 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_ammo",
+      "name": "Infinite Ammo",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "ammo",
+      "hotkey": "Numpad2",
+      "description": "Your magazine is never used up.",
+      "i18n": {
+        "nl": {
+          "name": "Oneindige munitie",
+          "description": "Je magazijn raakt nooit leeg."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "ammo": {
+            "patterns": [
+              {
+                "aob": "74 23 41 39 10 74 09"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "ammo",
+            "offset": 0,
+            "bytes": "EB"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_throwables",
+      "name": "Infinite Throwables",
+      "section": "inventaris",
+      "type": "toggle",
+      "icon": "grenade",
+      "hotkey": "Numpad3",
+      "description": "Grenades, molotovs and other throwables are refilled when you use them.",
+      "i18n": {
+        "nl": {
+          "name": "Oneindig werpbare items",
+          "description": "Granaten, molotovs en andere werpbare items worden aangevuld als je ze gebruikt."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "throw": {
+            "patterns": [
+              {
+                "aob": "44 01 40 04 48 83 C4 28"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "throw",
+            "offset": 0,
+            "bytes": "83 40 04 07"
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_recoil",
+      "name": "No Recoil",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "crosshair",
+      "hotkey": "Numpad4",
+      "description": "Weapons do not kick up or sideways when you fire.",
+      "i18n": {
+        "nl": {
+          "name": "Geen terugslag",
+          "description": "Wapens slaan niet omhoog of opzij als je schiet."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "lateral": {
+            "patterns": [
+              {
+                "aob": "F3 41 0F 11 45 0C 48 8B CB E8"
+              }
+            ]
+          },
+          "longitude": {
+            "patterns": [
+              {
+                "aob": "F3 41 0F 11 45 10 41 C7 45 20 00 00 80 3F"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "lateral",
+            "offset": 0,
+            "bytes": "90 90 90 90 90 90"
+          },
+          {
+            "site": "longitude",
+            "offset": 0,
+            "bytes": "90 90 90 90 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_spread",
+      "name": "No Spread",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "target",
+      "hotkey": "Numpad5",
+      "description": "Bullets go exactly where the crosshair points.",
+      "i18n": {
+        "nl": {
+          "name": "Geen spreiding",
+          "description": "Kogels gaan precies waar het vizier op staat."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "view": {
+            "patterns": [
+              {
+                "aob": "F3 0F 11 8B ?? ?? ?? ?? 0F 28 74 24 ?? 0F 28 7C 24"
+              }
+            ],
+            "overwrite": 8
+          },
+          "fire": {
+            "patterns": [
+              {
+                "aob": "F3 41 0F 11 95 ?? ?? ?? ?? F3 0F 10 9B"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "fire",
+            "offset": 0,
+            "bytes": "90 90 90 90 90 90 90 90 90"
+          }
+        ],
+        "alloc": {
+          "size": 256,
+          "near": "view"
+        },
+        "asm": [
+          "newmem:",
+          "movss [rbx+104],xmm1",
+          "cmp rsi,0",
+          "jne view_ret",
+          "mov dword ptr [rbx+104],(float)0.0001",
+          "jmp view_ret"
+        ],
+        "hooks": [
+          {
+            "site": "view",
+            "label": "newmem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_adrenaline",
+      "name": "Infinite Adrenaline Shots",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "heart",
+      "hotkey": "Numpad6",
+      "description": "Using an adrenaline shot (health kit) does not use it up.",
+      "i18n": {
+        "nl": {
+          "name": "Oneindige adrenalineshots",
+          "description": "Een adrenalineshot (medkit) gebruiken kost er geen."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "adrenaline": {
+            "patterns": [
+              {
+                "aob": "FF C9 89 4A 18"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "adrenaline",
+            "offset": 0,
+            "bytes": "90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "car_slowmo",
+      "name": "Infinite Driving Slow-Motion",
+      "section": "voertuig",
+      "type": "toggle",
+      "icon": "car",
+      "hotkey": "Numpad7",
+      "description": "The slow-motion meter while driving does not run out.",
+      "i18n": {
+        "nl": {
+          "name": "Oneindige slow-motion (rijden)",
+          "description": "De slow-motionmeter tijdens het rijden raakt niet op."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "slowmo": {
+            "patterns": [
+              {
+                "aob": "48 8B C4 55 57 41 56 48 8D 68 A1 48 81 EC 00 01 00 00 48 C7 45 8F FE FF FF FF"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "slowmo",
+            "offset": 0,
+            "bytes": "C3 90 90 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "race_timer",
+      "name": "Race Timer Frozen",
+      "section": "extra",
+      "type": "toggle",
+      "icon": "clock",
+      "hotkey": "Numpad8",
+      "description": "The race clock stays at its start value, so every race is won on time.",
+      "i18n": {
+        "nl": {
+          "name": "Racetimer bevroren",
+          "description": "De raceklok blijft op de startwaarde staan, dus je wint elke race op tijd."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Racing side content only. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "racetime": {
+            "patterns": [
+              {
+                "aob": "F3 41 0F 58 48 ?? 49 8B D8"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "racetime",
+            "offset": 0,
+            "bytes": "90 90 90 90 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cash_hook",
+      "name": "Cash hook",
+      "section": "punten",
+      "type": "toggle",
+      "hidden": true,
+      "autoEnable": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Captures the cash object when the map is opened. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "cash": {
+            "patterns": [
+              {
+                "aob": "41 8B 40 04 C3 41"
+              }
+            ],
+            "overwrite": 5
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "cash"
+        },
+        "asm": [
+          "newmem:",
+          "mov rax,cash_ptr",
+          "mov [rax],r8",
+          "xor rax,rax",
+          "mov eax,[r8+04]",
+          "ret",
+          "cash_ptr:",
+          "dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "cash",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "cash_ptr"
+        ]
+      }
+    },
+    {
+      "id": "cash_wallet",
+      "name": "Cash in Wallet",
+      "section": "punten",
+      "type": "number",
+      "icon": "coin",
+      "description": "The cash you carry. Open the map once so the value can be found.",
+      "i18n": {
+        "nl": {
+          "name": "Geld in portemonnee",
+          "description": "Het geld dat je bij je hebt. Open één keer de kaart zodat de waarde gevonden wordt."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Pointer layout from the same table. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "cash_hook"
+      ],
+      "min": 0,
+      "max": 1000000000,
+      "step": 1000,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:cash_ptr",
+        "offsets": [
+          0
+        ],
+        "valueType": "int32"
+      }
+    },
+    {
+      "id": "cash_vault",
+      "name": "Cash in Vault",
+      "section": "punten",
+      "type": "number",
+      "icon": "coin",
+      "description": "The cash stored in your vault (safe). Open the map once so the value can be found.",
+      "i18n": {
+        "nl": {
+          "name": "Geld in kluis",
+          "description": "Het geld in je kluis. Open één keer de kaart zodat de waarde gevonden wordt."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk, same code offsets as in the table. Not tested in-game yet. Pointer layout from the same table. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "cash_hook"
+      ],
+      "min": 0,
+      "max": 1000000000,
+      "step": 1000,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:cash_ptr",
+        "offsets": [
+          4
+        ],
+        "valueType": "int32"
+      }
+    }
+  ]
+}

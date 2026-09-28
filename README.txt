@@ -1,4 +1,4 @@
-VANTA v0.3.4 - trainer for single-player games
+VANTA v0.3.5 - trainer for single-player games
 ==============================================
 
 Vanta is a standalone program (no Cheat Engine required). It only works for
@@ -6,6 +6,19 @@ single-player/offline games. Games with online anti-cheat are refused on purpose
 
 Nederlandse versie: see LEESMIJ.txt. In Vanta: Settings > Language > Nederlands.
 Full version history: CHANGELOG.md.
+
+NEW IN v0.3.5
+  - 3 new games: Mafia III: Definitive Edition (10 cheats), Windrose (Early Access,
+    5 cheats) and Avatar: Frontiers of Pandora (5 cheats). Every AOB was checked
+    against the current Steam build (found exactly once); the cheats are not yet
+    tested in-game. The Windrose value editors (health, stamina, speed, jump) are
+    experimental.
+  - Phasmophobia is listed but blocked: it detects cheat tools and is mostly co-op,
+    so Vanta refuses to attach.
+  - Windrose and Avatar: only use cheats in a solo world/campaign, never in co-op.
+  - The Last Caretaker: Unlimited Jump no longer stays active after turning it off
+    (fixed in code, not yet tested in-game). Used the old version? Reload your
+    save once to get the normal jump count back.
 
 NEW IN v0.3.4
   - English is now the default language everywhere: the app, error messages,
@@ -129,12 +142,16 @@ STEP 3 - PLAY
   3. Turn cheats on with a click or the hotkey. If a cheat fails, a red message
      appears (e.g. "no unique AOB found") and NOTHING has been changed.
   4. "All off", detaching or closing Vanta restores everything in the game.
-  Far Cry 5/6: solo campaign only. Do not use in co-op or online.
+  Far Cry 5/6, Avatar: solo campaign only. Windrose: solo worlds only. Do not use in
+  co-op or online.
 
 BACK UP YOUR SAVE FIRST
   The Last Caretaker: %LOCALAPPDATA%\Voyage\Saved\SaveGames
   Far Cry 6 (Ubisoft Connect): ...\Ubisoft Game Launcher\savegames\<account>\5266
   Far Cry 5: ...\Ubisoft Game Launcher\savegames\<account>\<number> (copy the whole folder)
+  Mafia III: %LOCALAPPDATA%\2K Games\Mafia III\Data\<number>\gamesaves
+  Windrose: %LOCALAPPDATA%\R5\Saved\SaveProfiles\<Steam ID>
+  Avatar: Frontiers of Pandora: ...\Ubisoft Game Launcher\savegames\<account>\<number>
 
 HOTKEYS
   Also work while the game is in the foreground. To change: "Hotkeys" tab,

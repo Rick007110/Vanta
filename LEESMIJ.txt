@@ -1,4 +1,4 @@
-VANTA v0.3.4 - trainer voor singleplayer-games
+VANTA v0.3.5 - trainer voor singleplayer-games
 =============================================
 
 Vanta is een losstaand programma (geen Cheat Engine nodig). Het werkt alleen voor
@@ -6,6 +6,19 @@ singleplayer/offline games. Games met online anti-cheat worden bewust geweigerd.
 
 Dit is de Nederlandse versie; de hoofdversie is README.txt (Engels). Vanta start
 standaard in het Engels. Nederlands kiezen: Settings > Language > Nederlands.
+
+NIEUW IN v0.3.5
+  - 3 nieuwe games: Mafia III: Definitive Edition (10 cheats), Windrose (Early
+    Access, 5 cheats) en Avatar: Frontiers of Pandora (5 cheats). Elke AOB is
+    gecontroleerd op de huidige Steam-build (precies één keer gevonden); de cheats
+    zijn nog niet in-game getest. De waarde-editors van Windrose (gezondheid,
+    uithoudingsvermogen, snelheid, sprong) zijn experimenteel.
+  - Phasmophobia staat in de lijst maar is geblokkeerd: de game detecteert
+    cheat-tools en is vooral co-op, dus Vanta weigert te koppelen.
+  - Windrose en Avatar: gebruik cheats alleen in een solowereld/-campagne, nooit in co-op.
+  - The Last Caretaker: Onbeperkt springen blijft niet meer actief na uitzetten
+    (opgelost in de code, nog niet in-game getest). Oude versie gebruikt? Laad je
+    save één keer opnieuw om het normale aantal sprongen terug te krijgen.
 
 NIEUW IN v0.3.4
   - Engels is nu overal de standaardtaal: de app, foutmeldingen, game-notities,
@@ -129,12 +142,16 @@ STAP 3 - SPELEN
   3. Zet cheats aan met een klik of de sneltoets. Lukt een cheat niet, dan staat er
      een rode melding (bijv. "geen unieke AOB gevonden") en is er NIETS veranderd.
   4. "Alles uit", ontkoppelen of Vanta sluiten zet alles in de game terug.
-  Far Cry 5/6: alleen voor de solo-campagne. Niet gebruiken in co-op of online.
+  Far Cry 5/6, Avatar: alleen voor de solo-campagne. Windrose: alleen solowerelden.
+  Niet gebruiken in co-op of online.
 
 MAAK EERST EEN BACKUP VAN JE SAVE
   The Last Caretaker: %LOCALAPPDATA%\Voyage\Saved\SaveGames
   Far Cry 6 (Ubisoft Connect): ...\Ubisoft Game Launcher\savegames\<account>\5266
   Far Cry 5: ...\Ubisoft Game Launcher\savegames\<account>\<nummer> (kopieer de hele map)
+  Mafia III: %LOCALAPPDATA%\2K Games\Mafia III\Data\<nummer>\gamesaves
+  Windrose: %LOCALAPPDATA%\R5\Saved\SaveProfiles\<Steam-ID>
+  Avatar: Frontiers of Pandora: ...\Ubisoft Game Launcher\savegames\<account>\<nummer>
 
 SNELTOETSEN
   Werken ook als de game op de voorgrond staat. Wijzigen: tabblad "Sneltoetsen",

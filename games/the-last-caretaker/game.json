@@ -692,17 +692,19 @@
       "name": "Unlimited Jump",
       "i18n": {
         "nl": {
-          "name": "Onbeperkt springen"
+          "name": "Onbeperkt springen",
+          "description": "Je kunt in de lucht blijven springen. De sprongteller telt af in plaats van op; uitzetten zet de originele instructie terug."
         }
       },
       "section": "extra",
       "type": "toggle",
       "icon": "jump",
       "hotkey": "F10",
+      "description": "You can keep jumping in mid-air. The jump counter counts down instead of up; turning it off restores the original instruction.",
       "confidence": "untested",
-      "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Offsets worden uit de gevonden instructie gelezen. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
+      "confidenceNote": "Based on a public Cheat Engine script. v0.3.5: rewritten to only turn 'inc [rbx+JumpCurrentCount]' into 'dec' (1 byte, offset read from the found instruction). The old version wrote JumpMaxCount = 99 into the character object, which stayed after disabling. Fixed in code, not tested in-game in 0.8.5.651238. Fails safe: if the AOB is not found exactly once, nothing is patched.",
       "impl": {
-        "type": "aobInject",
+        "type": "aobPatch",
         "sites": {
           "j": {
             "patterns": [
@@ -725,20 +727,14 @@
                 "min": 8,
                 "max": 16384
               }
-            ],
-            "overwrite": 6
+            ]
           }
         },
-        "asm": [
-          "code:",
-          "  mov dword ptr [rbx+${i32:j:2:-4}],63",
-          "  mov dword ptr [rbx+${i32:j:2}],0",
-          "  jmp j_ret"
-        ],
-        "hooks": [
+        "patches": [
           {
             "site": "j",
-            "label": "code"
+            "offset": 1,
+            "bytes": "8B"
           }
         ]
       }

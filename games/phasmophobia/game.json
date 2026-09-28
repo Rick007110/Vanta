@@ -1,0 +1,65 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "schemaVersion": 1,
+  "id": "phasmophobia",
+  "name": "Phasmophobia",
+  "short": "PH",
+  "steamAppId": 739630,
+  "processNames": [
+    "Phasmophobia.exe"
+  ],
+  "launchExe": "Phasmophobia.exe",
+  "module": "GameAssembly.dll",
+  "stores": {
+    "steam": {
+      "appId": 739630
+    }
+  },
+  "scope": "Not supported: co-op game with cheat-tool detection.",
+  "supportedVersions": [
+    {
+      "label": "Steam build 25327237 (2026-09-16)",
+      "fileSize": 112837120,
+      "headSha256": "24c56f55e4a1509ece52604646630617f51e8fdc7dd18709e7a2ddec284542d3",
+      "tailSha256": "1054e377736e229723e2b5386cad39adc3b2b8f0eed78bc8f4c83ca4a4e017e2",
+      "peTimestamp": 1789484138,
+      "moduleSize": 115814400
+    }
+  ],
+  "antiCheat": true,
+  "onlineOnly": false,
+  "categories": [
+    "horror",
+    "co-op"
+  ],
+  "badge": "blocked",
+  "notes": [
+    "Vanta does not offer cheats for Phasmophobia. The game detects cheat tools (it closes when it finds Cheat Engine-like programs), bans are handed out based on reports, and its terms forbid modifying the game.",
+    "Every public table needs an anti-cheat bypass first. Vanta will not bypass anti-cheat.",
+    "The game is built with Unity IL2CPP: its code lives in GameAssembly.dll and changes with every update. Vanta has no IL2CPP metadata support, so stable cheats are not possible yet.",
+    "Most sessions are co-op; cheats there affect other players. The game is listed so it is recognised, but Vanta refuses to attach."
+  ],
+  "i18n": {
+    "nl": {
+      "notes": [
+        "Vanta biedt geen cheats voor Phasmophobia. De game detecteert cheat-tools (hij sluit als hij programma's zoals Cheat Engine vindt), bans worden uitgedeeld op basis van meldingen en de voorwaarden verbieden het aanpassen van de game.",
+        "Elke openbare tabel heeft eerst een anti-cheat-bypass nodig. Vanta omzeilt geen anti-cheat.",
+        "De game is gebouwd met Unity IL2CPP: de code zit in GameAssembly.dll en verandert bij elke update. Vanta heeft geen IL2CPP-metadata-ondersteuning, dus stabiele cheats zijn nog niet mogelijk.",
+        "De meeste sessies zijn co-op; cheats hebben daar invloed op andere spelers. De game staat in de lijst zodat hij herkend wordt, maar Vanta weigert te koppelen."
+      ],
+      "scope": "Niet ondersteund: co-op-game met detectie van cheat-tools.",
+      "version": "Steam-build 25327237 (16-09-2026)"
+    }
+  },
+  "art": {
+    "sky": [
+      "#05070A",
+      "#1B2530"
+    ],
+    "horizon": "#9FB7C9",
+    "ground": "#030405",
+    "tint": "#94A3B8",
+    "motif": "ridge"
+  },
+  "cheats": []
+}

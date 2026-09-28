@@ -3,12 +3,42 @@ window.VantaDev = { library: {
   "type": "library",
   "app": {
     "name": "Vanta",
-    "version": "0.3.4",
+    "version": "0.3.5",
     "production": true,
     "lang": "en",
     "ackTimeout": 30000
   },
   "games": [
+    {
+      "id": "avatar-frontiers-of-pandora",
+      "name": "Avatar: Frontiers of Pandora",
+      "short": "AFP",
+      "badge": "1.0.2.2",
+      "version": "Steam build 22429549 (March 2026)",
+      "cheatCount": 5,
+      "steamAppId": 2840770,
+      "categories": [
+        "action",
+        "open world",
+        "sci-fi"
+      ],
+      "antiCheat": false,
+      "onlineOnly": false,
+      "group": "all",
+      "art": {
+        "tint": "#22D3EE",
+        "motif": "planet",
+        "sky": [
+          "#050B1A",
+          "#1B3A6B"
+        ],
+        "horizon": "#7DF9FF",
+        "ground": "#03060D"
+      },
+      "process": "afop.exe",
+      "cheats": [],
+      "lazy": true
+    },
     {
       "id": "far-cry-5",
       "name": "Far Cry 5",
@@ -68,6 +98,64 @@ window.VantaDev = { library: {
       "lazy": true
     },
     {
+      "id": "mafia-3-de",
+      "name": "Mafia III: Definitive Edition",
+      "short": "M3",
+      "badge": "build 5121098",
+      "version": "Steam build 5121098 (June 2020)",
+      "cheatCount": 10,
+      "steamAppId": 360430,
+      "categories": [
+        "action",
+        "open world"
+      ],
+      "antiCheat": false,
+      "onlineOnly": false,
+      "group": "all",
+      "art": {
+        "tint": "#F43F5E",
+        "motif": "ridge",
+        "sky": [
+          "#140A0E",
+          "#4A1B24"
+        ],
+        "horizon": "#F4B860",
+        "ground": "#080405"
+      },
+      "process": "Mafia3DefinitiveEdition.exe",
+      "cheats": [],
+      "lazy": true
+    },
+    {
+      "id": "phasmophobia",
+      "name": "Phasmophobia",
+      "short": "PH",
+      "badge": "blocked",
+      "version": "Steam build 25327237 (2026-09-16)",
+      "cheatCount": 0,
+      "steamAppId": 739630,
+      "categories": [
+        "horror",
+        "co-op"
+      ],
+      "antiCheat": true,
+      "onlineOnly": false,
+      "group": "all",
+      "art": {
+        "tint": "#94A3B8",
+        "motif": "ridge",
+        "sky": [
+          "#05070A",
+          "#1B2530"
+        ],
+        "horizon": "#9FB7C9",
+        "ground": "#030405"
+      },
+      "process": "Phasmophobia.exe",
+      "cheats": [],
+      "lazy": true
+    },
+    {
       "id": "the-last-caretaker",
       "name": "The Last Caretaker",
       "short": "LC",
@@ -96,10 +184,172 @@ window.VantaDev = { library: {
       "process": "VoyageSteam-Win64-Shipping.exe",
       "cheats": [],
       "lazy": true
+    },
+    {
+      "id": "windrose",
+      "name": "Windrose",
+      "short": "WR",
+      "badge": "EA",
+      "version": "Steam build 24803703 (2026-08-25)",
+      "cheatCount": 5,
+      "steamAppId": 3041230,
+      "categories": [
+        "survival",
+        "pirate",
+        "early access"
+      ],
+      "antiCheat": false,
+      "onlineOnly": false,
+      "group": "all",
+      "art": {
+        "tint": "#38BDF8",
+        "motif": "sea",
+        "sky": [
+          "#06121C",
+          "#12405A"
+        ],
+        "horizon": "#F6C177",
+        "ground": "#040B10"
+      },
+      "process": "Windrose-Win64-Shipping.exe",
+      "cheats": [],
+      "lazy": true
     }
   ],
   "selected": "the-last-caretaker"
 }, games: {
+  "avatar-frontiers-of-pandora": {
+    "id": "avatar-frontiers-of-pandora",
+    "name": "Avatar: Frontiers of Pandora",
+    "short": "AFP",
+    "badge": "1.0.2.2",
+    "version": "Steam build 22429549 (March 2026)",
+    "process": "afop.exe",
+    "steamAppId": 2840770,
+    "categories": [
+      "action",
+      "open world",
+      "sci-fi"
+    ],
+    "antiCheat": false,
+    "onlineOnly": false,
+    "cheatCount": 5,
+    "notes": [
+      "Avatar: Frontiers of Pandora has no anti-cheat (only Denuvo DRM). Only use the cheats solo: co-op sessions are online and nobody there should be affected by you.",
+      "All AOBs were checked on Steam build 22429549 (afop.exe 1.0.2.2): each one is found exactly once on disk. Because of Denuvo, check the running game too: Vanta.exe --verify avatar-frontiers-of-pandora --live",
+      "Enable cheats only after your save has fully loaded. Fast travel and cutscenes reload values; toggle God Mode again if it stops working.",
+      "The Ubisoft Connect version is not detected automatically yet; point Vanta at afop.exe or start the game first.",
+      "Back up your save first (Ubisoft Connect\\savegames\\<account>\\<game id>)."
+    ],
+    "scope": "Solo campaign only. Do not use in co-op or online.",
+    "install": {
+      "owned": [],
+      "all": []
+    },
+    "art": {
+      "tint": "#22D3EE",
+      "motif": "planet",
+      "sky": [
+        "#050B1A",
+        "#1B3A6B"
+      ],
+      "horizon": "#7DF9FF",
+      "ground": "#03060D"
+    },
+    "statusVersion": "label:Steam build 22429549 (March 2026)",
+    "cheats": [
+      {
+        "id": "godmode",
+        "section": "speler",
+        "type": "toggle",
+        "name": "God Mode",
+        "icon": "shield",
+        "hotkey": "Numpad1",
+        "defaultHotkey": "Numpad1",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "Your health is kept at its maximum.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "inf_energy",
+        "section": "speler",
+        "type": "toggle",
+        "name": "Unlimited Energy",
+        "icon": "bolt",
+        "hotkey": "Numpad2",
+        "defaultHotkey": "Numpad2",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "Your energy is kept at its maximum.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "lock_consumables",
+        "section": "inventaris",
+        "type": "toggle",
+        "name": "Lock Consumables",
+        "icon": "box",
+        "hotkey": "Numpad3",
+        "defaultHotkey": "Numpad3",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "Food, medicine and crafting items are not used up.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "lock_clip",
+        "section": "wapens",
+        "type": "toggle",
+        "name": "No Reload",
+        "icon": "ammo",
+        "hotkey": "Numpad4",
+        "defaultHotkey": "Numpad4",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "The ammo in your magazine does not go down.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "inf_hack_time",
+        "section": "extra",
+        "type": "toggle",
+        "name": "Infinite Hack Time",
+        "icon": "clock",
+        "hotkey": "Numpad5",
+        "defaultHotkey": "Numpad5",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "The timer during hacking minigames does not run.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      }
+    ]
+  },
   "far-cry-5": {
     "id": "far-cry-5",
     "name": "Far Cry 5",
@@ -858,6 +1108,263 @@ window.VantaDev = { library: {
       }
     ]
   },
+  "mafia-3-de": {
+    "id": "mafia-3-de",
+    "name": "Mafia III: Definitive Edition",
+    "short": "M3",
+    "badge": "build 5121098",
+    "version": "Steam build 5121098 (June 2020)",
+    "process": "Mafia3DefinitiveEdition.exe",
+    "steamAppId": 360430,
+    "categories": [
+      "action",
+      "open world"
+    ],
+    "antiCheat": false,
+    "onlineOnly": false,
+    "cheatCount": 10,
+    "notes": [
+      "Mafia III: Definitive Edition is single-player and has no anti-cheat.",
+      "All AOBs were checked on Steam build 5121098 (the last update, June 2020): each one is found exactly once. They have not all been tested in-game yet. Check first with: Vanta.exe --verify mafia-3-de",
+      "Cash: open the map once after enabling so Vanta can find your wallet and vault.",
+      "Back up your save first: %LOCALAPPDATA%\\2K Games\\Mafia III\\Data\\<number>\\gamesaves"
+    ],
+    "scope": "Single-player game.",
+    "install": {
+      "owned": [],
+      "all": []
+    },
+    "art": {
+      "tint": "#F43F5E",
+      "motif": "ridge",
+      "sky": [
+        "#140A0E",
+        "#4A1B24"
+      ],
+      "horizon": "#F4B860",
+      "ground": "#080405"
+    },
+    "statusVersion": "label:Steam build 5121098 (June 2020)",
+    "cheats": [
+      {
+        "id": "godmode",
+        "section": "speler",
+        "type": "toggle",
+        "name": "God Mode",
+        "icon": "shield",
+        "hotkey": "Numpad1",
+        "defaultHotkey": "Numpad1",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "You take no damage: the damage function returns right away.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "inf_ammo",
+        "section": "wapens",
+        "type": "toggle",
+        "name": "Infinite Ammo",
+        "icon": "ammo",
+        "hotkey": "Numpad2",
+        "defaultHotkey": "Numpad2",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "Your magazine is never used up.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "inf_throwables",
+        "section": "inventaris",
+        "type": "toggle",
+        "name": "Infinite Throwables",
+        "icon": "grenade",
+        "hotkey": "Numpad3",
+        "defaultHotkey": "Numpad3",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "Grenades, molotovs and other throwables are refilled when you use them.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "no_recoil",
+        "section": "wapens",
+        "type": "toggle",
+        "name": "No Recoil",
+        "icon": "crosshair",
+        "hotkey": "Numpad4",
+        "defaultHotkey": "Numpad4",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "Weapons do not kick up or sideways when you fire.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "no_spread",
+        "section": "wapens",
+        "type": "toggle",
+        "name": "No Spread",
+        "icon": "target",
+        "hotkey": "Numpad5",
+        "defaultHotkey": "Numpad5",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "Bullets go exactly where the crosshair points.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "inf_adrenaline",
+        "section": "speler",
+        "type": "toggle",
+        "name": "Infinite Adrenaline Shots",
+        "icon": "heart",
+        "hotkey": "Numpad6",
+        "defaultHotkey": "Numpad6",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "Using an adrenaline shot (health kit) does not use it up.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "car_slowmo",
+        "section": "voertuig",
+        "type": "toggle",
+        "name": "Infinite Driving Slow-Motion",
+        "icon": "car",
+        "hotkey": "Numpad7",
+        "defaultHotkey": "Numpad7",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "The slow-motion meter while driving does not run out.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "race_timer",
+        "section": "extra",
+        "type": "toggle",
+        "name": "Race Timer Frozen",
+        "icon": "clock",
+        "hotkey": "Numpad8",
+        "defaultHotkey": "Numpad8",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "The race clock stays at its start value, so every race is won on time.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "cash_wallet",
+        "section": "punten",
+        "type": "number",
+        "name": "Cash in Wallet",
+        "icon": "coin",
+        "min": 0,
+        "max": 1000000000,
+        "step": 1000,
+        "format": "{v}",
+        "hint": "Not available yet",
+        "note": "Not verified for this version.",
+        "description": "The cash you carry. Open the map once so the value can be found.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "cash_vault",
+        "section": "punten",
+        "type": "number",
+        "name": "Cash in Vault",
+        "icon": "coin",
+        "min": 0,
+        "max": 1000000000,
+        "step": 1000,
+        "format": "{v}",
+        "hint": "Not available yet",
+        "note": "Not verified for this version.",
+        "description": "The cash stored in your vault (safe). Open the map once so the value can be found.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      }
+    ]
+  },
+  "phasmophobia": {
+    "id": "phasmophobia",
+    "name": "Phasmophobia",
+    "short": "PH",
+    "badge": "blocked",
+    "version": "Steam build 25327237 (2026-09-16)",
+    "process": "Phasmophobia.exe",
+    "steamAppId": 739630,
+    "categories": [
+      "horror",
+      "co-op"
+    ],
+    "antiCheat": true,
+    "onlineOnly": false,
+    "cheatCount": 0,
+    "notes": [
+      "Vanta does not offer cheats for Phasmophobia. The game detects cheat tools (it closes when it finds Cheat Engine-like programs), bans are handed out based on reports, and its terms forbid modifying the game.",
+      "Every public table needs an anti-cheat bypass first. Vanta will not bypass anti-cheat.",
+      "The game is built with Unity IL2CPP: its code lives in GameAssembly.dll and changes with every update. Vanta has no IL2CPP metadata support, so stable cheats are not possible yet.",
+      "Most sessions are co-op; cheats there affect other players. The game is listed so it is recognised, but Vanta refuses to attach."
+    ],
+    "scope": "Not supported: co-op game with cheat-tool detection.",
+    "install": {
+      "owned": [],
+      "all": []
+    },
+    "art": {
+      "tint": "#94A3B8",
+      "motif": "ridge",
+      "sky": [
+        "#05070A",
+        "#1B2530"
+      ],
+      "horizon": "#9FB7C9",
+      "ground": "#030405"
+    },
+    "statusVersion": "label:Steam build 25327237 (2026-09-16)",
+    "cheats": []
+  },
   "the-last-caretaker": {
     "id": "the-last-caretaker",
     "name": "The Last Caretaker",
@@ -1104,6 +1611,7 @@ window.VantaDev = { library: {
         "step": 1,
         "format": "{v}",
         "note": "Not verified for this version.",
+        "description": "You can keep jumping in mid-air. The jump counter counts down instead of up; turning it off restores the original instruction.",
         "confidence": "untested",
         "baseConfidence": "untested",
         "enabled": false
@@ -1180,17 +1688,174 @@ window.VantaDev = { library: {
         "enabled": false
       }
     ]
+  },
+  "windrose": {
+    "id": "windrose",
+    "name": "Windrose",
+    "short": "WR",
+    "badge": "EA",
+    "version": "Steam build 24803703 (2026-08-25)",
+    "process": "Windrose-Win64-Shipping.exe",
+    "steamAppId": 3041230,
+    "categories": [
+      "survival",
+      "pirate",
+      "early access"
+    ],
+    "antiCheat": false,
+    "onlineOnly": false,
+    "cheatCount": 5,
+    "notes": [
+      "Windrose is in Early Access and updates often; every update can break cheats. Vanta refuses a cheat when its AOB is not found exactly once.",
+      "No anti-cheat, but co-op sessions (up to 4 players) are shared: only use Vanta in a solo world. The game's EULA does not allow cheating in multiplayer.",
+      "Infinite Jumps was checked on Steam build 24803703 (1 hit). The value editors use pointer offsets from an older table and are experimental.",
+      "Back up your save first: %LOCALAPPDATA%\\R5\\Saved\\SaveProfiles\\<Steam ID>"
+    ],
+    "scope": "Solo worlds only. Do not use in co-op or on a server.",
+    "install": {
+      "owned": [],
+      "all": []
+    },
+    "art": {
+      "tint": "#38BDF8",
+      "motif": "sea",
+      "sky": [
+        "#06121C",
+        "#12405A"
+      ],
+      "horizon": "#F6C177",
+      "ground": "#040B10"
+    },
+    "statusVersion": "label:Steam build 24803703 (2026-08-25)",
+    "cheats": [
+      {
+        "id": "inf_jumps",
+        "section": "speler",
+        "type": "toggle",
+        "name": "Infinite Jumps",
+        "icon": "jump",
+        "hotkey": "Numpad1",
+        "defaultHotkey": "Numpad1",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Not verified for this version.",
+        "description": "The jump counter counts down instead of up, so you can keep jumping in mid-air.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "health",
+        "section": "speler",
+        "type": "number",
+        "name": "Health",
+        "icon": "heart",
+        "min": 0,
+        "max": 100000,
+        "step": 10,
+        "format": "{v}",
+        "hint": "Not available yet",
+        "note": "Experimental: may crash the game. Save first.",
+        "description": "Your current health (freeze to stay at this value).",
+        "confidence": "experimental",
+        "baseConfidence": "experimental",
+        "enabled": false
+      },
+      {
+        "id": "stamina",
+        "section": "speler",
+        "type": "number",
+        "name": "Stamina",
+        "icon": "bolt",
+        "min": 0,
+        "max": 100000,
+        "step": 10,
+        "format": "{v}",
+        "hint": "Not available yet",
+        "note": "Experimental: may crash the game. Save first.",
+        "description": "Your current stamina.",
+        "confidence": "experimental",
+        "baseConfidence": "experimental",
+        "enabled": false
+      },
+      {
+        "id": "walk_speed",
+        "section": "extra",
+        "type": "number",
+        "name": "Max Walk Speed",
+        "icon": "speed",
+        "min": 0,
+        "max": 5000,
+        "step": 50,
+        "format": "{v}",
+        "hint": "Not available yet",
+        "note": "Experimental: may crash the game. Save first.",
+        "description": "Maximum walking/running speed of your character (Unreal units).",
+        "confidence": "experimental",
+        "baseConfidence": "experimental",
+        "enabled": false
+      },
+      {
+        "id": "jump_velocity",
+        "section": "extra",
+        "type": "number",
+        "name": "Jump Height",
+        "icon": "jump",
+        "min": 0,
+        "max": 5000,
+        "step": 50,
+        "format": "{v}",
+        "hint": "Not available yet",
+        "note": "Experimental: may crash the game. Save first.",
+        "description": "Upward speed of a jump (Unreal units).",
+        "confidence": "experimental",
+        "baseConfidence": "experimental",
+        "enabled": false
+      }
+    ]
   }
 }, nl: { library: {
   "type": "library",
   "app": {
     "name": "Vanta",
-    "version": "0.3.4",
+    "version": "0.3.5",
     "production": true,
     "lang": "nl",
     "ackTimeout": 30000
   },
   "games": [
+    {
+      "id": "avatar-frontiers-of-pandora",
+      "name": "Avatar: Frontiers of Pandora",
+      "short": "AFP",
+      "badge": "1.0.2.2",
+      "version": "Steam build 22429549 (March 2026)",
+      "cheatCount": 5,
+      "steamAppId": 2840770,
+      "categories": [
+        "action",
+        "open world",
+        "sci-fi"
+      ],
+      "antiCheat": false,
+      "onlineOnly": false,
+      "group": "all",
+      "art": {
+        "tint": "#22D3EE",
+        "motif": "planet",
+        "sky": [
+          "#050B1A",
+          "#1B3A6B"
+        ],
+        "horizon": "#7DF9FF",
+        "ground": "#03060D"
+      },
+      "process": "afop.exe",
+      "cheats": [],
+      "lazy": true
+    },
     {
       "id": "far-cry-5",
       "name": "Far Cry 5",
@@ -1250,6 +1915,64 @@ window.VantaDev = { library: {
       "lazy": true
     },
     {
+      "id": "mafia-3-de",
+      "name": "Mafia III: Definitive Edition",
+      "short": "M3",
+      "badge": "build 5121098",
+      "version": "Steam build 5121098 (June 2020)",
+      "cheatCount": 10,
+      "steamAppId": 360430,
+      "categories": [
+        "action",
+        "open world"
+      ],
+      "antiCheat": false,
+      "onlineOnly": false,
+      "group": "all",
+      "art": {
+        "tint": "#F43F5E",
+        "motif": "ridge",
+        "sky": [
+          "#140A0E",
+          "#4A1B24"
+        ],
+        "horizon": "#F4B860",
+        "ground": "#080405"
+      },
+      "process": "Mafia3DefinitiveEdition.exe",
+      "cheats": [],
+      "lazy": true
+    },
+    {
+      "id": "phasmophobia",
+      "name": "Phasmophobia",
+      "short": "PH",
+      "badge": "blocked",
+      "version": "Steam build 25327237 (2026-09-16)",
+      "cheatCount": 0,
+      "steamAppId": 739630,
+      "categories": [
+        "horror",
+        "co-op"
+      ],
+      "antiCheat": true,
+      "onlineOnly": false,
+      "group": "all",
+      "art": {
+        "tint": "#94A3B8",
+        "motif": "ridge",
+        "sky": [
+          "#05070A",
+          "#1B2530"
+        ],
+        "horizon": "#9FB7C9",
+        "ground": "#030405"
+      },
+      "process": "Phasmophobia.exe",
+      "cheats": [],
+      "lazy": true
+    },
+    {
       "id": "the-last-caretaker",
       "name": "The Last Caretaker",
       "short": "LC",
@@ -1278,10 +2001,172 @@ window.VantaDev = { library: {
       "process": "VoyageSteam-Win64-Shipping.exe",
       "cheats": [],
       "lazy": true
+    },
+    {
+      "id": "windrose",
+      "name": "Windrose",
+      "short": "WR",
+      "badge": "EA",
+      "version": "Steam build 24803703 (2026-08-25)",
+      "cheatCount": 5,
+      "steamAppId": 3041230,
+      "categories": [
+        "survival",
+        "pirate",
+        "early access"
+      ],
+      "antiCheat": false,
+      "onlineOnly": false,
+      "group": "all",
+      "art": {
+        "tint": "#38BDF8",
+        "motif": "sea",
+        "sky": [
+          "#06121C",
+          "#12405A"
+        ],
+        "horizon": "#F6C177",
+        "ground": "#040B10"
+      },
+      "process": "Windrose-Win64-Shipping.exe",
+      "cheats": [],
+      "lazy": true
     }
   ],
   "selected": "the-last-caretaker"
 }, games: {
+  "avatar-frontiers-of-pandora": {
+    "id": "avatar-frontiers-of-pandora",
+    "name": "Avatar: Frontiers of Pandora",
+    "short": "AFP",
+    "badge": "1.0.2.2",
+    "version": "Steam-build 22429549 (maart 2026)",
+    "process": "afop.exe",
+    "steamAppId": 2840770,
+    "categories": [
+      "action",
+      "open world",
+      "sci-fi"
+    ],
+    "antiCheat": false,
+    "onlineOnly": false,
+    "cheatCount": 5,
+    "notes": [
+      "Avatar: Frontiers of Pandora heeft geen anti-cheat (alleen Denuvo-DRM). Gebruik de cheats alleen solo: co-op-sessies zijn online en daar hoort niemand last van jou te hebben.",
+      "Alle AOB's zijn gecontroleerd op Steam-build 22429549 (afop.exe 1.0.2.2): elk wordt precies één keer gevonden op schijf. Controleer vanwege Denuvo ook de draaiende game: Vanta.exe --verify avatar-frontiers-of-pandora --live",
+      "Zet cheats pas aan als je save volledig geladen is. Fast travel en tussenfilmpjes laden waarden opnieuw; zet Godmode opnieuw aan als het stopt met werken.",
+      "De Ubisoft Connect-versie wordt nog niet automatisch gevonden; wijs Vanta naar afop.exe of start eerst de game.",
+      "Maak eerst een backup van je save (Ubisoft Connect\\savegames\\<account>\\<game-id>)."
+    ],
+    "scope": "Alleen voor de solo-campagne. Niet gebruiken in co-op of online.",
+    "install": {
+      "owned": [],
+      "all": []
+    },
+    "art": {
+      "tint": "#22D3EE",
+      "motif": "planet",
+      "sky": [
+        "#050B1A",
+        "#1B3A6B"
+      ],
+      "horizon": "#7DF9FF",
+      "ground": "#03060D"
+    },
+    "statusVersion": "label:Steam build 22429549 (March 2026)",
+    "cheats": [
+      {
+        "id": "godmode",
+        "section": "speler",
+        "type": "toggle",
+        "name": "Godmode",
+        "icon": "shield",
+        "hotkey": "Numpad1",
+        "defaultHotkey": "Numpad1",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Je gezondheid blijft op het maximum.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "inf_energy",
+        "section": "speler",
+        "type": "toggle",
+        "name": "Onbeperkte energie",
+        "icon": "bolt",
+        "hotkey": "Numpad2",
+        "defaultHotkey": "Numpad2",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Je energie blijft op het maximum.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "lock_consumables",
+        "section": "inventaris",
+        "type": "toggle",
+        "name": "Verbruiksartikelen vastzetten",
+        "icon": "box",
+        "hotkey": "Numpad3",
+        "defaultHotkey": "Numpad3",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Eten, medicijnen en craftmaterialen raken niet op.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "lock_clip",
+        "section": "wapens",
+        "type": "toggle",
+        "name": "Niet herladen",
+        "icon": "ammo",
+        "hotkey": "Numpad4",
+        "defaultHotkey": "Numpad4",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "De munitie in je magazijn neemt niet af.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "inf_hack_time",
+        "section": "extra",
+        "type": "toggle",
+        "name": "Oneindige hacktijd",
+        "icon": "clock",
+        "hotkey": "Numpad5",
+        "defaultHotkey": "Numpad5",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "De timer tijdens hack-minigames loopt niet.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      }
+    ]
+  },
   "far-cry-5": {
     "id": "far-cry-5",
     "name": "Far Cry 5",
@@ -2040,6 +2925,263 @@ window.VantaDev = { library: {
       }
     ]
   },
+  "mafia-3-de": {
+    "id": "mafia-3-de",
+    "name": "Mafia III: Definitive Edition",
+    "short": "M3",
+    "badge": "build 5121098",
+    "version": "Steam-build 5121098 (juni 2020)",
+    "process": "Mafia3DefinitiveEdition.exe",
+    "steamAppId": 360430,
+    "categories": [
+      "action",
+      "open world"
+    ],
+    "antiCheat": false,
+    "onlineOnly": false,
+    "cheatCount": 10,
+    "notes": [
+      "Mafia III: Definitive Edition is singleplayer en heeft geen anti-cheat.",
+      "Alle AOB's zijn gecontroleerd op Steam-build 5121098 (de laatste update, juni 2020): elk wordt precies één keer gevonden. Nog niet allemaal in-game getest. Controleer eerst met: Vanta.exe --verify mafia-3-de",
+      "Geld: open na het aanzetten één keer de kaart, zodat Vanta je portemonnee en kluis kan vinden.",
+      "Maak eerst een backup van je save: %LOCALAPPDATA%\\2K Games\\Mafia III\\Data\\<number>\\gamesaves"
+    ],
+    "scope": "Singleplayer-game.",
+    "install": {
+      "owned": [],
+      "all": []
+    },
+    "art": {
+      "tint": "#F43F5E",
+      "motif": "ridge",
+      "sky": [
+        "#140A0E",
+        "#4A1B24"
+      ],
+      "horizon": "#F4B860",
+      "ground": "#080405"
+    },
+    "statusVersion": "label:Steam build 5121098 (June 2020)",
+    "cheats": [
+      {
+        "id": "godmode",
+        "section": "speler",
+        "type": "toggle",
+        "name": "Godmode",
+        "icon": "shield",
+        "hotkey": "Numpad1",
+        "defaultHotkey": "Numpad1",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Je neemt geen schade: de schadefunctie keert meteen terug.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "inf_ammo",
+        "section": "wapens",
+        "type": "toggle",
+        "name": "Oneindige munitie",
+        "icon": "ammo",
+        "hotkey": "Numpad2",
+        "defaultHotkey": "Numpad2",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Je magazijn raakt nooit leeg.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "inf_throwables",
+        "section": "inventaris",
+        "type": "toggle",
+        "name": "Oneindig werpbare items",
+        "icon": "grenade",
+        "hotkey": "Numpad3",
+        "defaultHotkey": "Numpad3",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Granaten, molotovs en andere werpbare items worden aangevuld als je ze gebruikt.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "no_recoil",
+        "section": "wapens",
+        "type": "toggle",
+        "name": "Geen terugslag",
+        "icon": "crosshair",
+        "hotkey": "Numpad4",
+        "defaultHotkey": "Numpad4",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Wapens slaan niet omhoog of opzij als je schiet.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "no_spread",
+        "section": "wapens",
+        "type": "toggle",
+        "name": "Geen spreiding",
+        "icon": "target",
+        "hotkey": "Numpad5",
+        "defaultHotkey": "Numpad5",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Kogels gaan precies waar het vizier op staat.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "inf_adrenaline",
+        "section": "speler",
+        "type": "toggle",
+        "name": "Oneindige adrenalineshots",
+        "icon": "heart",
+        "hotkey": "Numpad6",
+        "defaultHotkey": "Numpad6",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Een adrenalineshot (medkit) gebruiken kost er geen.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "car_slowmo",
+        "section": "voertuig",
+        "type": "toggle",
+        "name": "Oneindige slow-motion (rijden)",
+        "icon": "car",
+        "hotkey": "Numpad7",
+        "defaultHotkey": "Numpad7",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "De slow-motionmeter tijdens het rijden raakt niet op.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "race_timer",
+        "section": "extra",
+        "type": "toggle",
+        "name": "Racetimer bevroren",
+        "icon": "clock",
+        "hotkey": "Numpad8",
+        "defaultHotkey": "Numpad8",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "De raceklok blijft op de startwaarde staan, dus je wint elke race op tijd.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "cash_wallet",
+        "section": "punten",
+        "type": "number",
+        "name": "Geld in portemonnee",
+        "icon": "coin",
+        "min": 0,
+        "max": 1000000000,
+        "step": 1000,
+        "format": "{v}",
+        "hint": "Nog niet beschikbaar",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Het geld dat je bij je hebt. Open één keer de kaart zodat de waarde gevonden wordt.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "cash_vault",
+        "section": "punten",
+        "type": "number",
+        "name": "Geld in kluis",
+        "icon": "coin",
+        "min": 0,
+        "max": 1000000000,
+        "step": 1000,
+        "format": "{v}",
+        "hint": "Nog niet beschikbaar",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "Het geld in je kluis. Open één keer de kaart zodat de waarde gevonden wordt.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      }
+    ]
+  },
+  "phasmophobia": {
+    "id": "phasmophobia",
+    "name": "Phasmophobia",
+    "short": "PH",
+    "badge": "blocked",
+    "version": "Steam-build 25327237 (16-09-2026)",
+    "process": "Phasmophobia.exe",
+    "steamAppId": 739630,
+    "categories": [
+      "horror",
+      "co-op"
+    ],
+    "antiCheat": true,
+    "onlineOnly": false,
+    "cheatCount": 0,
+    "notes": [
+      "Vanta biedt geen cheats voor Phasmophobia. De game detecteert cheat-tools (hij sluit als hij programma's zoals Cheat Engine vindt), bans worden uitgedeeld op basis van meldingen en de voorwaarden verbieden het aanpassen van de game.",
+      "Elke openbare tabel heeft eerst een anti-cheat-bypass nodig. Vanta omzeilt geen anti-cheat.",
+      "De game is gebouwd met Unity IL2CPP: de code zit in GameAssembly.dll en verandert bij elke update. Vanta heeft geen IL2CPP-metadata-ondersteuning, dus stabiele cheats zijn nog niet mogelijk.",
+      "De meeste sessies zijn co-op; cheats hebben daar invloed op andere spelers. De game staat in de lijst zodat hij herkend wordt, maar Vanta weigert te koppelen."
+    ],
+    "scope": "Niet ondersteund: co-op-game met detectie van cheat-tools.",
+    "install": {
+      "owned": [],
+      "all": []
+    },
+    "art": {
+      "tint": "#94A3B8",
+      "motif": "ridge",
+      "sky": [
+        "#05070A",
+        "#1B2530"
+      ],
+      "horizon": "#9FB7C9",
+      "ground": "#030405"
+    },
+    "statusVersion": "label:Steam build 25327237 (2026-09-16)",
+    "cheats": []
+  },
   "the-last-caretaker": {
     "id": "the-last-caretaker",
     "name": "The Last Caretaker",
@@ -2286,6 +3428,7 @@ window.VantaDev = { library: {
         "step": 1,
         "format": "{v}",
         "note": "Niet geverifieerd voor deze versie.",
+        "description": "Je kunt in de lucht blijven springen. De sprongteller telt af in plaats van op; uitzetten zet de originele instructie terug.",
         "confidence": "untested",
         "baseConfidence": "untested",
         "enabled": false
@@ -2359,6 +3502,133 @@ window.VantaDev = { library: {
         "description": "De bronstapel daalt niet bij splitsen.",
         "confidence": "untested",
         "baseConfidence": "untested",
+        "enabled": false
+      }
+    ]
+  },
+  "windrose": {
+    "id": "windrose",
+    "name": "Windrose",
+    "short": "WR",
+    "badge": "EA",
+    "version": "Steam-build 24803703 (25-08-2026)",
+    "process": "Windrose-Win64-Shipping.exe",
+    "steamAppId": 3041230,
+    "categories": [
+      "survival",
+      "pirate",
+      "early access"
+    ],
+    "antiCheat": false,
+    "onlineOnly": false,
+    "cheatCount": 5,
+    "notes": [
+      "Windrose is Early Access en krijgt vaak updates; elke update kan cheats breken. Vanta weigert een cheat als de AOB niet precies één keer gevonden wordt.",
+      "Geen anti-cheat, maar co-op-sessies (tot 4 spelers) zijn gedeeld: gebruik Vanta alleen in een solowereld. De EULA van de game staat valsspelen in multiplayer niet toe.",
+      "Oneindig springen is gecontroleerd op Steam-build 24803703 (1 treffer). De waarde-editors gebruiken pointer-offsets uit een oudere tabel en zijn experimenteel.",
+      "Maak eerst een backup van je save: %LOCALAPPDATA%\\R5\\Saved\\SaveProfiles\\<Steam ID>"
+    ],
+    "scope": "Alleen solowerelden. Niet gebruiken in co-op of op een server.",
+    "install": {
+      "owned": [],
+      "all": []
+    },
+    "art": {
+      "tint": "#38BDF8",
+      "motif": "sea",
+      "sky": [
+        "#06121C",
+        "#12405A"
+      ],
+      "horizon": "#F6C177",
+      "ground": "#040B10"
+    },
+    "statusVersion": "label:Steam build 24803703 (2026-08-25)",
+    "cheats": [
+      {
+        "id": "inf_jumps",
+        "section": "speler",
+        "type": "toggle",
+        "name": "Oneindig springen",
+        "icon": "jump",
+        "hotkey": "Numpad1",
+        "defaultHotkey": "Numpad1",
+        "min": 0,
+        "max": 999999,
+        "step": 1,
+        "format": "{v}",
+        "note": "Niet geverifieerd voor deze versie.",
+        "description": "De sprongteller telt af in plaats van op, dus je kunt in de lucht blijven springen.",
+        "confidence": "untested",
+        "baseConfidence": "untested",
+        "enabled": false
+      },
+      {
+        "id": "health",
+        "section": "speler",
+        "type": "number",
+        "name": "Gezondheid",
+        "icon": "heart",
+        "min": 0,
+        "max": 100000,
+        "step": 10,
+        "format": "{v}",
+        "hint": "Nog niet beschikbaar",
+        "note": "Experimenteel: kan de game laten crashen. Sla eerst op.",
+        "description": "Je huidige gezondheid (bevriezen om op deze waarde te blijven).",
+        "confidence": "experimental",
+        "baseConfidence": "experimental",
+        "enabled": false
+      },
+      {
+        "id": "stamina",
+        "section": "speler",
+        "type": "number",
+        "name": "Uithoudingsvermogen",
+        "icon": "bolt",
+        "min": 0,
+        "max": 100000,
+        "step": 10,
+        "format": "{v}",
+        "hint": "Nog niet beschikbaar",
+        "note": "Experimenteel: kan de game laten crashen. Sla eerst op.",
+        "description": "Je huidige uithoudingsvermogen.",
+        "confidence": "experimental",
+        "baseConfidence": "experimental",
+        "enabled": false
+      },
+      {
+        "id": "walk_speed",
+        "section": "extra",
+        "type": "number",
+        "name": "Maximale loopsnelheid",
+        "icon": "speed",
+        "min": 0,
+        "max": 5000,
+        "step": 50,
+        "format": "{v}",
+        "hint": "Nog niet beschikbaar",
+        "note": "Experimenteel: kan de game laten crashen. Sla eerst op.",
+        "description": "Maximale loop-/rensnelheid van je personage (Unreal-eenheden).",
+        "confidence": "experimental",
+        "baseConfidence": "experimental",
+        "enabled": false
+      },
+      {
+        "id": "jump_velocity",
+        "section": "extra",
+        "type": "number",
+        "name": "Spronghoogte",
+        "icon": "jump",
+        "min": 0,
+        "max": 5000,
+        "step": 50,
+        "format": "{v}",
+        "hint": "Nog niet beschikbaar",
+        "note": "Experimenteel: kan de game laten crashen. Sla eerst op.",
+        "description": "Opwaartse snelheid van een sprong (Unreal-eenheden).",
+        "confidence": "experimental",
+        "baseConfidence": "experimental",
         "enabled": false
       }
     ]

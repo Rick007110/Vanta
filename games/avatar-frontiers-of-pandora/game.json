@@ -1,0 +1,391 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "schemaVersion": 1,
+  "id": "avatar-frontiers-of-pandora",
+  "name": "Avatar: Frontiers of Pandora",
+  "short": "AFP",
+  "steamAppId": 2840770,
+  "processNames": [
+    "afop.exe"
+  ],
+  "launchExe": "afop.exe",
+  "module": "afop.exe",
+  "stores": {
+    "steam": {
+      "appId": 2840770
+    }
+  },
+  "scope": "Solo campaign only. Do not use in co-op or online.",
+  "supportedVersions": [
+    {
+      "label": "Steam build 22429549 (March 2026)",
+      "fileVersion": "1.0.2.2",
+      "fileSize": 355902136,
+      "headSha256": "7547db0091a99a336ab40fa73d5a32ea4c8441ae01135b4c8a3af12ceafda48a",
+      "tailSha256": "ee6c477efd2de2b12d53d0b8781eac3e759e570583b16be95c4397887d3ec667",
+      "peTimestamp": 1773962162,
+      "moduleSize": 367779840
+    }
+  ],
+  "antiCheat": false,
+  "onlineOnly": false,
+  "categories": [
+    "action",
+    "open world",
+    "sci-fi"
+  ],
+  "badge": "1.0.2.2",
+  "notes": [
+    "Avatar: Frontiers of Pandora has no anti-cheat (only Denuvo DRM). Only use the cheats solo: co-op sessions are online and nobody there should be affected by you.",
+    "All AOBs were checked on Steam build 22429549 (afop.exe 1.0.2.2): each one is found exactly once on disk. Because of Denuvo, check the running game too: Vanta.exe --verify avatar-frontiers-of-pandora --live",
+    "Enable cheats only after your save has fully loaded. Fast travel and cutscenes reload values; toggle God Mode again if it stops working.",
+    "The Ubisoft Connect version is not detected automatically yet; point Vanta at afop.exe or start the game first.",
+    "Back up your save first (Ubisoft Connect\\savegames\\<account>\\<game id>)."
+  ],
+  "i18n": {
+    "nl": {
+      "notes": [
+        "Avatar: Frontiers of Pandora heeft geen anti-cheat (alleen Denuvo-DRM). Gebruik de cheats alleen solo: co-op-sessies zijn online en daar hoort niemand last van jou te hebben.",
+        "Alle AOB's zijn gecontroleerd op Steam-build 22429549 (afop.exe 1.0.2.2): elk wordt precies één keer gevonden op schijf. Controleer vanwege Denuvo ook de draaiende game: Vanta.exe --verify avatar-frontiers-of-pandora --live",
+        "Zet cheats pas aan als je save volledig geladen is. Fast travel en tussenfilmpjes laden waarden opnieuw; zet Godmode opnieuw aan als het stopt met werken.",
+        "De Ubisoft Connect-versie wordt nog niet automatisch gevonden; wijs Vanta naar afop.exe of start eerst de game.",
+        "Maak eerst een backup van je save (Ubisoft Connect\\savegames\\<account>\\<game-id>)."
+      ],
+      "scope": "Alleen voor de solo-campagne. Niet gebruiken in co-op of online.",
+      "version": "Steam-build 22429549 (maart 2026)"
+    }
+  },
+  "art": {
+    "sky": [
+      "#050B1A",
+      "#1B3A6B"
+    ],
+    "horizon": "#7DF9FF",
+    "ground": "#03060D",
+    "tint": "#22D3EE",
+    "motif": "planet"
+  },
+  "cheats": [
+    {
+      "id": "afop_hook",
+      "name": "Health/energy hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). AOB checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk; the code moved compared to the table but the bytes are unchanged. afop.exe is protected by Denuvo, so the running game should be checked with Vanta.exe --verify avatar-frontiers-of-pandora --live. Not tested in-game yet. Captures the player stats object; God Mode and Unlimited Energy keep the value at its maximum. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "health": {
+            "patterns": [
+              {
+                "aob": "F3 0F 2C C8 39 88 68 01 00 00"
+              }
+            ],
+            "overwrite": 10
+          },
+          "clamp": {
+            "patterns": [
+              {
+                "aob": "0F 4E D0 41 89 51 08"
+              }
+            ],
+            "overwrite": 7
+          }
+        },
+        "alloc": {
+          "size": 512,
+          "near": "health"
+        },
+        "asm": [
+          "newmem:",
+          "push r15",
+          "mov r15,health_ptr",
+          "mov [r15],rcx",
+          "pop r15",
+          "cvttss2si ecx,xmm0",
+          "cmp [rax+00000168],ecx",
+          "jmp health_ret",
+          "  db CC CC CC CC CC CC CC CC",
+          "newmem2:",
+          "cmovle edx,eax",
+          "push r14",
+          "push r15",
+          "mov r15,[health_ptr]",
+          "mov r14,r15",
+          "add r14,80",
+          "add r15,70",
+          "cmp r15,r9",
+          "je god",
+          "cmp r14,r9",
+          "je energy",
+          "jmp code2",
+          "god:",
+          "cmp byte ptr [afop_flags],1",
+          "jne code2",
+          "mov edx,[r9+0C]",
+          "jmp code2",
+          "energy:",
+          "cmp byte ptr [afop_flags+1],1",
+          "jne code2",
+          "mov edx,[r9+0C]",
+          "code2:",
+          "pop r15",
+          "pop r14",
+          "mov [r9+08],edx",
+          "jmp clamp_ret",
+          "  db CC CC CC CC CC CC CC CC",
+          "health_ptr:",
+          "dq 0",
+          "afop_flags:",
+          "db 00 00"
+        ],
+        "hooks": [
+          {
+            "site": "health",
+            "label": "newmem"
+          },
+          {
+            "site": "clamp",
+            "label": "newmem2"
+          }
+        ],
+        "exports": [
+          "afop_flags"
+        ]
+      }
+    },
+    {
+      "id": "godmode",
+      "name": "God Mode",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "shield",
+      "hotkey": "Numpad1",
+      "description": "Your health is kept at its maximum.",
+      "i18n": {
+        "nl": {
+          "name": "Godmode",
+          "description": "Je gezondheid blijft op het maximum."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). AOB checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk; the code moved compared to the table but the bytes are unchanged. afop.exe is protected by Denuvo, so the running game should be checked with Vanta.exe --verify avatar-frontiers-of-pandora --live. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "afop_hook"
+      ],
+      "impl": {
+        "type": "pointer",
+        "base": "sym:afop_flags",
+        "valueType": "byte",
+        "onValue": 1,
+        "offValue": 0
+      }
+    },
+    {
+      "id": "inf_energy",
+      "name": "Unlimited Energy",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "bolt",
+      "hotkey": "Numpad2",
+      "description": "Your energy is kept at its maximum.",
+      "i18n": {
+        "nl": {
+          "name": "Onbeperkte energie",
+          "description": "Je energie blijft op het maximum."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). AOB checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk; the code moved compared to the table but the bytes are unchanged. afop.exe is protected by Denuvo, so the running game should be checked with Vanta.exe --verify avatar-frontiers-of-pandora --live. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "afop_hook"
+      ],
+      "impl": {
+        "type": "pointer",
+        "base": "sym:afop_flags+1",
+        "valueType": "byte",
+        "onValue": 1,
+        "offValue": 0
+      }
+    },
+    {
+      "id": "lock_consumables",
+      "name": "Lock Consumables",
+      "section": "inventaris",
+      "type": "toggle",
+      "icon": "box",
+      "hotkey": "Numpad3",
+      "description": "Food, medicine and crafting items are not used up.",
+      "i18n": {
+        "nl": {
+          "name": "Verbruiksartikelen vastzetten",
+          "description": "Eten, medicijnen en craftmaterialen raken niet op."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). AOB checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk; the code moved compared to the table but the bytes are unchanged. afop.exe is protected by Denuvo, so the running game should be checked with Vanta.exe --verify avatar-frontiers-of-pandora --live. Not tested in-game yet. Counts can still go up, never down. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "consumables": {
+            "patterns": [
+              {
+                "aob": "48 89 42 18 B0 01 C6 42"
+              }
+            ],
+            "overwrite": 6
+          },
+          "spares": {
+            "patterns": [
+              {
+                "aob": "4C 89 59 18 B3 01"
+              }
+            ],
+            "overwrite": 6
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "consumables"
+        },
+        "asm": [
+          "newmem:",
+          "push rcx",
+          "mov ecx,[rdx+18]",
+          "cmp eax,ecx",
+          "cmovl eax,ecx",
+          "pop rcx",
+          "mov [rdx+18],rax",
+          "mov al,01",
+          "jmp consumables_ret",
+          "  db CC CC CC CC CC CC CC CC",
+          "newmem2:",
+          "push r15",
+          "mov r15d,dword ptr [rcx+18]",
+          "cmp r15d,r11d",
+          "cmovg r11d,r15d",
+          "pop r15",
+          "mov [rcx+18],r11",
+          "mov bl,01",
+          "jmp spares_ret"
+        ],
+        "hooks": [
+          {
+            "site": "consumables",
+            "label": "newmem"
+          },
+          {
+            "site": "spares",
+            "label": "newmem2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "lock_clip",
+      "name": "No Reload",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "ammo",
+      "hotkey": "Numpad4",
+      "description": "The ammo in your magazine does not go down.",
+      "i18n": {
+        "nl": {
+          "name": "Niet herladen",
+          "description": "De munitie in je magazijn neemt niet af."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). AOB checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk; the code moved compared to the table but the bytes are unchanged. afop.exe is protected by Denuvo, so the running game should be checked with Vanta.exe --verify avatar-frontiers-of-pandora --live. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "clip": {
+            "patterns": [
+              {
+                "aob": "48 8B 41 10 42 89 54 C0 10",
+                "offset": 4
+              }
+            ],
+            "overwrite": 5
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "clip"
+        },
+        "asm": [
+          "newmem:",
+          "push r15",
+          "mov r15,r8",
+          "shl r15,3",
+          "add r15,rax",
+          "add r15,10",
+          "mov r15d,dword ptr [r15]",
+          "cmp r15d,1",
+          "je @f",
+          "cmp r15d,edx",
+          "cmovg edx,r15d",
+          "@@:",
+          "pop r15",
+          "mov [rax+r8*8+10],edx",
+          "jmp clip_ret"
+        ],
+        "hooks": [
+          {
+            "site": "clip",
+            "label": "newmem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inf_hack_time",
+      "name": "Infinite Hack Time",
+      "section": "extra",
+      "type": "toggle",
+      "icon": "clock",
+      "hotkey": "Numpad5",
+      "description": "The timer during hacking minigames does not run.",
+      "i18n": {
+        "nl": {
+          "name": "Oneindige hacktijd",
+          "description": "De timer tijdens hack-minigames loopt niet."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (N3rveMods, 2025). AOB checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk. afop.exe is protected by Denuvo, so check the running game with --verify --live. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "hack": {
+            "patterns": [
+              {
+                "aob": "F3 0F 58 87 78 01 00 00 F3 0F 11 87 78 01 00 00"
+              }
+            ],
+            "overwrite": 16
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "hack"
+        },
+        "asm": [
+          "newmem:",
+          "xorps xmm0,xmm0",
+          "movss [rdi+00000178],xmm0",
+          "jmp hack_ret"
+        ],
+        "hooks": [
+          {
+            "site": "hack",
+            "label": "newmem"
+          }
+        ]
+      }
+    }
+  ]
+}

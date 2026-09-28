@@ -1,4 +1,4 @@
-# Vanta v0.3.4 (developer notes)
+# Vanta v0.3.5 (developer notes)
 
 Standalone Windows trainer for **single-player/offline** games. It has no Cheat Engine dependency.
 Games marked `antiCheat` or `onlineOnly` are listed but refused (never opened, never launched).
