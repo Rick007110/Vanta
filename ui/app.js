@@ -276,7 +276,7 @@
             <button class="winbtn modal-x" type="button" data-action="modal-close" aria-label="${esc(t('win.close'))}">${I('x', 16)}</button></header>
           <div class="modal-body">
             <label class="field"><span class="field-k">${esc(t('set.lang'))}</span>
-              <select class="input" data-set="language"><option value="nl"${s.language === 'nl' ? ' selected' : ''}>Nederlands</option><option value="en"${s.language === 'en' ? ' selected' : ''}>English</option></select></label>
+              <select class="input" data-set="language"><option value="en"${s.language !== 'nl' ? ' selected' : ''}>English</option><option value="nl"${s.language === 'nl' ? ' selected' : ''}>Nederlands</option></select></label>
             <label class="field"><span class="field-k">${esc(t('set.catalog'))}</span>
               <input class="input mono" data-set="catalogDir" value="${esc(s.catalogDir || '')}" placeholder="…\\Vanta\\games" spellcheck="false">
               <span class="field-help">${esc(t('set.catalog.help'))}${info.catalog ? ` · ${esc(t('set.games', { n: info.catalog.games }))}` : ''}</span></label>

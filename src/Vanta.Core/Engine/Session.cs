@@ -121,7 +121,7 @@ public sealed class TrainerSession : IDisposable
     public double SetValue(string id, double v)
     {
         var c = Cheat(id);
-        if (c.Impl.Type != "pointer") throw new CheatException($"{c.Name}: geen waarde-cheat");
+        if (c.Impl.Type != "pointer") throw new CheatException(Strings.Get("cheat.notValue", c.Name));
         EnsureRequires(c);
         if (c.Min.HasValue) v = Math.Max(c.Min.Value, v);
         if (c.Max.HasValue) v = Math.Min(c.Max.Value, v);

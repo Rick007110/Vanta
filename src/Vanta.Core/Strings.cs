@@ -3,7 +3,7 @@ namespace Vanta.Core;
 /// <summary>Host-side user-facing texts (nl default, en). UI texts live in ui/shared/i18n.js.</summary>
 public static class Strings
 {
-    public static string Lang { get; set; } = "nl";
+    public static string Lang { get; set; } = "en";
 
     private static readonly Dictionary<string, (string nl, string en)> T = new()
     {
@@ -64,12 +64,27 @@ public static class Strings
         ["anticheat.files"] = ("Anti-cheat gevonden in deze installatie ({0}). Vanta koppelt niet.", "Anti-cheat found in this installation ({0}). Vanta will not attach."),
         ["anticheat.module"] = ("Anti-cheat actief in het proces ({0}). Vanta koppelt niet.", "Anti-cheat running in the process ({0}). Vanta will not attach."),
         ["value.set"] = ("{0} = {1}", "{0} = {1}"),
+        ["app.startFail"] = ("Vanta kon niet starten:\n\n{0}\n\nLog: {1}", "Vanta could not start:\n\n{0}\n\nLog: {1}"),
+        ["app.helperFail"] = ("De update-helper kon niet starten.", "The update helper could not start."),
+        ["webview2.missing"] = ("Vanta heeft de Microsoft Edge WebView2 Runtime nodig om de interface te tonen.\n\nOp Windows 11 is die normaal al geïnstalleerd. Op jouw pc ontbreekt hij (of is hij beschadigd).\n\nKlik op OK om de gratis download van Microsoft te openen:\n{0}\n\nInstalleer hem en start Vanta daarna opnieuw.",
+            "Vanta needs the Microsoft Edge WebView2 Runtime to show its interface.\n\nIt is normally preinstalled on Windows 11, but it is missing (or damaged) on this PC.\n\nClick OK to open the free download from Microsoft:\n{0}\n\nInstall it and then start Vanta again."),
+        ["webview2.missing.title"] = ("{0}: WebView2 ontbreekt", "{0}: WebView2 missing"),
+        ["update.splash.title"] = ("Vanta wordt bijgewerkt…", "Updating Vanta…"),
+        ["update.splash.sub"] = ("Versie {0} wordt geïnstalleerd. Vanta start daarna vanzelf opnieuw.", "Installing version {0}. Vanta restarts automatically afterwards."),
+        ["update.noSha"] = ("De release heeft geen .sha256-bestand; update geweigerd.", "The release has no .sha256 file; update refused."),
+        ["update.noHash"] = ("Het .sha256-bestand bevat geen hash voor {0}.", "The .sha256 file contains no hash for {0}."),
+        ["update.shaMismatch"] = ("SHA-256 klopt niet (verwacht {0}…, gekregen {1}…); download verwijderd.", "SHA-256 mismatch (expected {0}…, got {1}…); download deleted."),
+        ["update.noExe"] = ("Vanta.exe niet gevonden in het updatepakket.", "Vanta.exe not found in the update package."),
+        ["update.pkgMismatch"] = ("SHA-256 van het updatepakket klopt niet; niets gewijzigd.", "SHA-256 of the update package does not match; nothing changed."),
+        ["account.unavailable"] = ("account niet beschikbaar", "account not available"),
+        ["cheat.notValue"] = ("{0}: geen waarde-cheat", "{0}: not a value cheat"),
+        ["x86.unsupported"] = ("32-bit games worden niet ondersteund", "32-bit games are not supported"),
     };
 
     public static string Get(string key, params object?[] args)
     {
         if (!T.TryGetValue(key, out var v)) return key;
-        var fmt = Lang == "en" ? v.en : v.nl;
+        var fmt = Lang == "nl" ? v.nl : v.en;
         return args.Length == 0 ? fmt : string.Format(System.Globalization.CultureInfo.InvariantCulture, fmt, args);
     }
 }

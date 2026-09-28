@@ -64,7 +64,7 @@ internal sealed class Host : IDisposable
                 Path.Combine(Settings.DataDir, "report-queue.json"),
                 url => { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); return Task.CompletedTask; },
                 Send, log: t => Log.Write("account", t));
-            Log.Info(Controller.Account.Configured ? "account: backend " + Controller.Account.Client!.BaseUrl : "account: geen backend ingesteld");
+            Log.Info(Controller.Account.Configured ? "account: backend " + Controller.Account.Client!.BaseUrl : "account: no backend configured");
         }
         catch (Exception e) { Log.Error("account: " + e.Message); }
         ((ManualResetEventSlim)readyObj!).Set();

@@ -1,8 +1,24 @@
-VANTA v0.3.3 - trainer voor singleplayer-games
+VANTA v0.3.4 - trainer voor singleplayer-games
 =============================================
 
 Vanta is een losstaand programma (geen Cheat Engine nodig). Het werkt alleen voor
 singleplayer/offline games. Games met online anti-cheat worden bewust geweigerd.
+
+Dit is de Nederlandse versie; de hoofdversie is README.txt (Engels). Vanta start
+standaard in het Engels. Nederlands kiezen: Settings > Language > Nederlands.
+
+NIEUW IN v0.3.4
+  - Engels is nu overal de standaardtaal: de app, foutmeldingen, game-notities,
+    update-meldingen, "Wat is er nieuw", de documentatie en de Discord-bot.
+    Nederlands blijft beschikbaar: Instellingen > Taal > Nederlands. Heb je nooit
+    zelf een taal gekozen, dan start Vanta nu in het Engels; een taal die je zelf
+    kiest, blijft voortaan bewaard.
+  - Game-teksten (notities, scope, cheatnamen en hints) in game.json zijn Engels,
+    met Nederlandse vertalingen onder "i18n": { "nl": ... }.
+  - Release-opmerkingen staan eerst in het Engels, met de Nederlandse tekst in een
+    inklapbaar blok. "Wat is er nieuw" toont het deel in jouw taal.
+  - README.txt en CHANGELOG.md zijn de hoofddocumentatie; dit bestand is de
+    Nederlandse versie.
 
 NIEUW IN v0.3.3
   - Game aanvragen: het venster is breder, zodat lange gamenamen en de uitleg
@@ -75,6 +91,7 @@ INHOUD VAN DEZE MAP
   schema\                 JSON Schema voor game.json (voor wie zelf games toevoegt)
   selftest\vanta_dummy.exe  onschuldig testprogramma voor "Vanta.exe --selftest"
   docs\                   technische documentatie (README-DEV.md, BRANDING.md, privacy.md)
+  README.txt, CHANGELOG.md  Engelse hoofdversie van dit bestand en de versiegeschiedenis
 
 VEREISTEN
   - Windows 10/11 64-bit.
@@ -87,7 +104,7 @@ STAP 1 - SELFTEST (1 minuut)
      (liefst niet in "Program Files" en niet vanuit de zip starten).
   2. Open die map, klik in de adresbalk, typ  cmd  en druk op Enter.
   3. Typ:  Vanta.exe --selftest   en druk op Enter.
-  4. Verwacht: een lijst met [OK  ] en onderaan "RESULTAAT: GESLAAGD (39 controles)".
+  4. Verwacht: een lijst met [OK  ] en onderaan "RESULT: PASSED (39 checks)".
      Het resultaat staat ook in %LOCALAPPDATA%\Vanta\selftest.log
      Windows Defender/SmartScreen kan waarschuwen: het programma is niet
      digitaal ondertekend. Kies "Meer informatie" -> "Toch uitvoeren".
@@ -102,13 +119,13 @@ STAP 2 - CONTROLEER JE GAME-VERSIE (FAR CRY 5/6)
     Vanta.exe --verify far-cry-5 "...\steamapps\common\FarCry5\bin\FC_m64.dll"
   Of terwijl de game draait (alleen lezen):  Vanta.exe --verify far-cry-6 --live
   Per cheat zie je of de AOB precies 1 keer gevonden wordt. Onderaan staat
-  "RESULTAAT: x/y". Het rapport staat ook in %LOCALAPPDATA%\Vanta\verify-<game>.txt.
+  "RESULT: x/y". Het rapport staat ook in %LOCALAPPDATA%\Vanta\verify-<game>.txt.
   Stuur dat bestand op: daarmee worden cheats bevestigd of gerepareerd.
 
 STAP 3 - SPELEN
   1. Dubbelklik Vanta.exe en kies links een game.
   2. Klik "Start via Steam/Ubisoft Connect/..." of start de game zelf.
-     Vanta koppelt na enkele seconden automatisch ("Gekoppeld").
+     Vanta koppelt na enkele seconden automatisch ("Gekoppeld" / "Attached").
   3. Zet cheats aan met een klik of de sneltoets. Lukt een cheat niet, dan staat er
      een rode melding (bijv. "geen unieke AOB gevonden") en is er NIETS veranderd.
   4. "Alles uit", ontkoppelen of Vanta sluiten zet alles in de game terug.
@@ -135,7 +152,7 @@ UPDATES
   toestemming (UAC). Je instellingen en eigen games in %LOCALAPPDATA%\Vanta blijven altijd staan.
 
 INSTELLINGEN (knop linksonder)
-  Taal (Nederlands/English), catalogusmap, automatisch koppelen, updates.
+  Taal (English/Nederlands; standaard English), catalogusmap, automatisch koppelen, updates.
   Instellingen, logs en art-cache: %LOCALAPPDATA%\Vanta
 
 ADMINISTRATOR?

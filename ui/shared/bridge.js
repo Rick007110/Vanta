@@ -37,12 +37,14 @@
 
   // ---- Mock host (browser only): simulates the Vanta host with the dev fixture ----
   const Mock = {
-    status: {}, settings: { language: (root.location && new URLSearchParams(root.location.search).get('lang')) || 'nl', catalogDir: '', catalogUrl: '', autoAttach: true }, hotkeys: {},
+    status: {}, settings: { language: (root.location && new URLSearchParams(root.location.search).get('lang')) || 'en', catalogDir: '', catalogUrl: '', autoAttach: true }, hotkeys: {},
     now() { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); },
     later(fn, ms = 160) { setTimeout(fn, ms); },
+    L: (en, nl) => (Mock.settings.language === 'nl' ? nl : en),   // mock texts follow the language like the host does
     log(text, level = 'info') { receive({ type: 'log', time: Mock.now(), text, level }); },
     game(id) {
-      const full = root.VantaDev && root.VantaDev.games && root.VantaDev.games[id];
+      const src = root.VantaDev && (Mock.settings.language === 'nl' && root.VantaDev.nl ? root.VantaDev.nl : root.VantaDev);
+      const full = src && src.games && src.games[id];
       if (full) return JSON.parse(JSON.stringify(full));
       const g = root.TrainerData.games.find((x) => x.id === id);
       return Object.assign({}, g, { cheats: [], lazy: false });
@@ -64,18 +66,18 @@
           const c = Mock.cheat(gid, m.id);
           Mock.later(() => {
             if (m.enabled && c && c.id === 'inf_grenades') {
-              const err = 'Infinite Grenades: geen unieke AOB gevonden (patroon 1: 0 treffer(s), patroon 2: 3 treffer(s), patroon 3: 3 treffer(s)). Niets gepatcht.';
+              const err = Mock.L('Infinite Grenades: no unique AOB found (pattern 1: 0 hit(s), pattern 2: 3 hit(s), pattern 3: 3 hit(s)). Nothing patched.', 'Infinite Grenades: geen unieke AOB gevonden (patroon 1: 0 treffer(s), patroon 2: 3 treffer(s), patroon 3: 3 treffer(s)). Niets gepatcht.');
               receive({ type: 'state', gameId: gid, cheats: [{ id: m.id, enabled: false, error: err }] }); Mock.log(err, 'error'); ack(false, err);
-            } else { receive({ type: 'state', gameId: gid, cheats: [{ id: m.id, enabled: m.enabled, error: null }] }); Mock.log(`${c ? c.name : m.id} ${m.enabled ? 'ingeschakeld' : 'uitgeschakeld'}`); ack(); }
+            } else { receive({ type: 'state', gameId: gid, cheats: [{ id: m.id, enabled: m.enabled, error: null }] }); Mock.log(`${c ? c.name : m.id} ${m.enabled ? Mock.L('enabled', 'ingeschakeld') : Mock.L('disabled', 'uitgeschakeld')}`); ack(); }
           });
           return;
         }
         case 'setValue': Mock.later(() => { receive({ type: 'state', gameId: gid, cheats: [{ id: m.id, value: m.value, error: null, hint: null }] }); ack(); }, 100); return;
-        case 'button': Mock.later(() => { Mock.log('Uitgevoerd'); ack(); }); return;
-        case 'disableAll': Mock.later(() => { Mock.log('Alle cheats uitgeschakeld'); ack(); }); return;
+        case 'button': Mock.later(() => { Mock.log(Mock.L('Done', 'Uitgevoerd')); ack(); }); return;
+        case 'disableAll': Mock.later(() => { Mock.log(Mock.L('All cheats disabled', 'Alle cheats uitgeschakeld')); ack(); }); return;
         case 'launch':
-          Mock.status[gid] = 'launching'; receive({ type: 'status', gameId: gid, process: 'launching' }); Mock.log('Game wordt gestart via Steam…');
-          Mock.later(() => { Mock.status[gid] = 'attached'; receive({ type: 'status', gameId: gid, process: 'attached', pid: 4242 }); Mock.log('Gekoppeld'); }, 1500);
+          Mock.status[gid] = 'launching'; receive({ type: 'status', gameId: gid, process: 'launching' }); Mock.log(Mock.L('Starting game via Steam…', 'Game wordt gestart via Steam…'));
+          Mock.later(() => { Mock.status[gid] = 'attached'; receive({ type: 'status', gameId: gid, process: 'attached', pid: 4242 }); Mock.log(Mock.L('Attached', 'Gekoppeld')); }, 1500);
           return ack();
         case 'attach': Mock.status[gid] = 'attached'; Mock.later(() => receive({ type: 'status', gameId: gid, process: 'attached', pid: 4242 }), 500); return ack();
         case 'detach': Mock.status[gid] = 'notfound'; Mock.later(() => receive({ type: 'status', gameId: gid, process: 'notfound' })); return ack();
@@ -110,7 +112,7 @@
     requests: [
       { appid: 264710, name: 'Subnautica', status: 'planned', note: null, votes: 41, votes7d: 9, voted: true },
       { appid: 105600, name: 'Terraria', status: 'open', note: null, votes: 27, votes7d: 6, voted: false },
-      { appid: 413150, name: 'Stardew Valley', status: 'in_progress', note: 'Eerst geld en energie.', votes: 23, votes7d: 4, voted: false },
+      { appid: 413150, name: 'Stardew Valley', status: 'in_progress', note: 'Money and energy first.', votes: 23, votes7d: 4, voted: false },
       { appid: 367520, name: 'Hollow Knight', status: 'open', note: null, votes: 14, votes7d: 3, voted: false },
       { appid: 632360, name: 'Risk of Rain 2', status: 'open', note: null, votes: 6, votes7d: 1, voted: false },
     ].map((x) => Object.assign({ cover: null }, x)),
@@ -123,10 +125,16 @@
 
   // dev preview only: sample release notes for ?update=x.y.z&whatsnew=1
   root.VantaMockReleaseNotes = [
+    '## New', '', '- **Request a game**: search Steam for a game and vote for it via *Request a game* at the bottom left.',
+    '- Compact update toast; the full release notes are under **What\'s new**.', '',
+    '## Improved', '', '1. Voting works after signing in with Discord; the list is visible to everyone.', '2. Links open in your own browser.',
+    '   - Long lists scroll nicely too.', '', '### Note', '', '> Updating turns off all cheats and restores your games.', '',
+    '<details>', '<summary>Nederlands</summary>', '',
     '## Nieuw', '', '- **Game aanvragen**: zoek een game op Steam en stem erop via *Game aanvragen* linksonder.',
     '- Compacte update-melding; de volledige release-opmerkingen staan onder **Wat is er nieuw**.', '',
     '## Verbeterd', '', '1. Stemmen kan na inloggen met Discord, de lijst is voor iedereen zichtbaar.', '2. Links openen in je eigen browser.',
     '   - Ook lange lijsten scrollen netjes.', '', '### Let op', '', '> Updaten zet alle cheats uit en herstelt je games.', '',
+    '</details>', '',
     '---', '', '**Full Changelog**: https://github.com/Rick007110/Vanta/compare/v0.3.1...v0.3.2',
   ].join('\n');
 

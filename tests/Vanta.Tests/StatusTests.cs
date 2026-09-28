@@ -61,7 +61,7 @@ public class StatusTests : IDisposable
         hook.Confidence = "broken";
         var f = GameValidator.Semantic(g);
         Assert.Contains(f, x => x.Level == "warn" && x.Message.Contains("autoEnable"));
-        Assert.Contains(f, x => x.Level == "warn" && x.Message.Contains("vereisen deze 'broken'"));
+        Assert.Contains(f, x => x.Level == "warn" && x.Message.Contains("require this 'broken'"));
     }
 
     [Fact]
@@ -115,14 +115,14 @@ public class StatusTests : IDisposable
         var (c, prov, g) = Make(x => x.Cheats.First(ch => ch.Id == "inf_battery").Confidence = "broken");
         var ui = S(c.UiGame(g.Id));
         Assert.Contains("\"id\":\"inf_battery\"", ui);
-        Assert.Contains("Werkt niet in deze versie.", ui);
+        Assert.Contains("Does not work in this version.", ui);
         Assert.Contains("\"confidence\":\"broken\",\"baseConfidence\":\"broken\"", ui);
         Assert.DoesNotContain("\"localStatus\":\"", ui);
 
         Attach(c, prov, g);
         var ack = Toggle(c, g, "inf_battery", true);
         Assert.Contains("\"ok\":false", ack);
-        Assert.Contains("werkt niet in deze versie", ack);
+        Assert.Contains("does not work in this version", ack);
         Assert.False(c.SessionOf(g.Id)!.IsActive("inf_battery"));
 
         // hotkey is refused too

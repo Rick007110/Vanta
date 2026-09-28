@@ -53,8 +53,8 @@ public static class CtImporter
         {
             Id = opt.Id ?? Slug(name), Name = name, SteamAppId = opt.SteamAppId, AntiCheat = false,
             Author = "CE-import", Source = fallbackName + ".CT",
-            Notes = new() { "Automatisch geïmporteerd uit een Cheat Engine-tabel; alle cheats zijn ongetest in Vanta." },
-            SupportedVersions = new() { new VersionDef { Label = "onbekend (import)" } },
+            Notes = new() { "Imported automatically from a Cheat Engine table; all cheats are untested in Vanta." },
+            SupportedVersions = new() { new VersionDef { Label = "unknown (import)" } },
         };
         var res = new ImportResult { Game = game };
         var symbolOwner = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -99,7 +99,7 @@ public static class CtImporter
             catch (ImportException ex) { res.Items.Add((desc, "fail", ex.Message)); }
         }
         var mod = opt.Process ?? modules.GroupBy(m => m, StringComparer.OrdinalIgnoreCase).OrderByDescending(g => g.Count()).Select(g => g.Key).FirstOrDefault(m => m.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
-        game.ProcessNames = mod != null ? new() { mod } : new() { "onbekend.exe" };
+        game.ProcessNames = mod != null ? new() { mod } : new() { "unknown.exe" };
         game.Module = mod;
         game.Short = new string(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => char.ToUpperInvariant(w[0])).ToArray());
         return res;
@@ -160,11 +160,11 @@ public static class CtImporter
 
     private static (CheatDef, Script) ConvertScript(string src, string id, string desc, string section, Dictionary<string, string> known)
     {
-        if (Regex.IsMatch(src, @"\{\$lua\}", RegexOptions.IgnoreCase)) throw new ImportException("Lua-script: niet automatisch omzetbaar");
+        if (Regex.IsMatch(src, @"\{\$lua\}", RegexOptions.IgnoreCase)) throw new ImportException("Lua script: cannot be converted automatically");
         foreach (var bad in new[] { "readmem", "reassemble", "aobscanregion", "createthread", "loadlibrary", "luacall", "{$try}", "fullaccess", "assert(" })
-            if (src.Contains(bad, StringComparison.OrdinalIgnoreCase)) throw new ImportException($"'{bad}' wordt niet ondersteund");
+            if (src.Contains(bad, StringComparison.OrdinalIgnoreCase)) throw new ImportException($"'{bad}' is not supported");
         var m = Regex.Match(src, @"\[ENABLE\](.*?)\[DISABLE\](.*)$", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-        if (!m.Success) throw new ImportException("geen [ENABLE]/[DISABLE]");
+        if (!m.Success) throw new ImportException("no [ENABLE]/[DISABLE]");
         var sc = new Script();
         string? cur = null;
         foreach (var raw in Lines(m.Groups[1].Value))
@@ -192,11 +192,11 @@ public static class CtImporter
                 var baseName = label.Split('+')[0];
                 bool isBlockStart = sc.Scans.ContainsKey(baseName) || sc.Allocs.Any(a => a.name.Equals(baseName, StringComparison.OrdinalIgnoreCase));
                 if (isBlockStart) { cur = label; if (!sc.Blocks.ContainsKey(cur)) { sc.Blocks[cur] = new(); sc.BlockOrder.Add(cur); } }
-                else { if (cur == null) throw new ImportException($"label '{label}' buiten een blok"); sc.Blocks[cur].Add(label + ":"); }
+                else { if (cur == null) throw new ImportException($"label '{label}' outside a block"); sc.Blocks[cur].Add(label + ":"); }
                 if (lm.Groups[3].Value.Trim().Length > 0) sc.Blocks[cur!].Add(lm.Groups[3].Value.Trim());
                 continue;
             }
-            if (cur == null) { if (line.Trim().Length > 0) throw new ImportException($"code buiten een blok: '{line.Trim()}'"); continue; }
+            if (cur == null) { if (line.Trim().Length > 0) throw new ImportException($"code outside a block: '{line.Trim()}'"); continue; }
             sc.Blocks[cur].Add(line.Trim());
         }
         // [DISABLE]: original bytes per site (db lines)
@@ -213,7 +213,7 @@ public static class CtImporter
                 sc.DisableBytes[dcur] = sc.DisableBytes.TryGetValue(dcur, out var prev) ? prev.Concat(bytes).ToArray() : bytes;
             }
         }
-        if (sc.Scans.Count == 0) throw new ImportException("geen aobscanmodule/aobscan (vaste adressen worden niet ondersteund)");
+        if (sc.Scans.Count == 0) throw new ImportException("no aobscanmodule/aobscan (fixed addresses are not supported)");
 
         var impl = new ImplDef { Sites = new(), Patches = new(), Hooks = new(), Asm = new(), Exports = new() };
         List<string>? crossRequires = null;
@@ -236,7 +236,7 @@ public static class CtImporter
             long off = parts.Length > 1 ? long.Parse(parts[1], NumberStyles.HexNumber) : 0;
             if (caveNames.Contains(baseName))
             {
-                if (off != 0) throw new ImportException("code op alloc+offset wordt niet ondersteund");
+                if (off != 0) throw new ImportException("code at alloc+offset is not supported");
                 if (caveLines.Count > 0) caveLines.Add("  db " + string.Join(" ", Enumerable.Repeat("CC", 16)));   // separator between alloc blocks
                 caveLines.Add(baseName + ":"); caveLines.AddRange(lines); continue;
             }
@@ -255,7 +255,7 @@ public static class CtImporter
                     sid = nsid; site = impl.Sites[nsid];
                     siteOf[blk] = nsid;
                 }
-                if (jm.Groups[1].Value.Equals("call", StringComparison.OrdinalIgnoreCase)) throw new ImportException("call-hook wordt niet ondersteund");
+                if (jm.Groups[1].Value.Equals("call", StringComparison.OrdinalIgnoreCase)) throw new ImportException("call hook is not supported");
                 int len = 5; string? ret = null;
                 foreach (var l in lines.Skip(lines.IndexOf(first!) + 1))
                 {
@@ -310,13 +310,13 @@ public static class CtImporter
             if (err != null) throw new ImportException("asm: " + err);
         }
         else if (impl.Patches.Count > 0) { impl.Type = "aobPatch"; impl.Asm = null; impl.Hooks = null; impl.Alloc = null; }
-        else throw new ImportException("geen hook of patch gevonden");
+        else throw new ImportException("no hook or patch found");
         if (impl.Exports.Count == 0) impl.Exports = null;
         if (impl.Patches?.Count == 0) impl.Patches = null;
         var cheat = new CheatDef
         {
             Id = id, Name = Regex.Replace(desc, @"\s*\((F\d+|Ctrl[^)]*)\)", "").Trim(), Section = section, Type = "toggle", Icon = IconFor(desc),
-            Confidence = "untested", ConfidenceNote = "Geïmporteerd uit CE-tabel; ongetest.", Impl = impl, Requires = crossRequires,
+            Confidence = "untested", ConfidenceNote = "Imported from a CE table; untested.", Impl = impl, Requires = crossRequires,
             Hint = crossRequires != null ? "Activeer eerst: " + string.Join(", ", crossRequires) : null,
         };
         return (cheat, sc);
@@ -378,16 +378,16 @@ public static class CtImporter
         string valueType = vt switch
         {
             "4 Bytes" => "int32", "8 Bytes" => "int64", "Float" => "float", "Double" => "double", "Byte" => "byte", "2 Bytes" => "int16",
-            _ => throw new ImportException($"type '{vt}' niet ondersteund"),
+            _ => throw new ImportException($"type '{vt}' not supported"),
         };
-        var offsets = e.Element("Offsets")?.Elements("Offset").Select(o => MiniAssembler.TryNumber(o.Value.Trim(), out var ov) ? ov : throw new ImportException($"offset '{o.Value}' ongeldig")).Reverse().ToList();
+        var offsets = e.Element("Offsets")?.Elements("Offset").Select(o => MiniAssembler.TryNumber(o.Value.Trim(), out var ov) ? ov : throw new ImportException($"offset '{o.Value}' invalid")).Reverse().ToList();
         string baseStr; List<string>? requires = null;
         var mm = Regex.Match(addr, @"^""?([^""+]+\.(exe|dll))""?\s*\+\s*([0-9A-Fa-f]+)$", RegexOptions.IgnoreCase);
         var sm = Regex.Match(addr, @"^([A-Za-z_]\w*)\s*(\+\s*([0-9A-Fa-f]+))?$");
         var dm = Regex.Match(addr, @"^\[([A-Za-z_]\w*)\]\s*(\+\s*([0-9A-Fa-f]+))?$");
         if (dm.Success)
         {
-            if (!symbolOwner.TryGetValue(dm.Groups[1].Value, out var own)) throw new ImportException($"symbool '{dm.Groups[1].Value}' komt niet uit een omgezet script");
+            if (!symbolOwner.TryGetValue(dm.Groups[1].Value, out var own)) throw new ImportException($"symbol '{dm.Groups[1].Value}' does not come from a converted script");
             offsets ??= new();
             offsets.Insert(0, dm.Groups[3].Success ? long.Parse(dm.Groups[3].Value, NumberStyles.HexNumber) : 0);
             baseStr = "sym:" + dm.Groups[1].Value; requires = new() { own };
@@ -398,14 +398,14 @@ public static class CtImporter
             baseStr = "sym:" + sm.Groups[1].Value + (sm.Groups[3].Success ? "+0x" + sm.Groups[3].Value.ToUpperInvariant() : "");
             requires = new() { owner };
         }
-        else if (sm.Success) throw new ImportException($"symbool '{sm.Groups[1].Value}' komt niet uit een omgezet script");
-        else throw new ImportException($"adres '{addr}' niet ondersteund");
+        else if (sm.Success) throw new ImportException($"symbol '{sm.Groups[1].Value}' does not come from a converted script");
+        else throw new ImportException($"address '{addr}' not supported");
         return new CheatDef
         {
             Id = id, Name = desc.Length > 60 ? desc[..60] : desc, Section = section, Type = "number", Icon = IconFor(desc),
             Min = valueType is "float" or "double" ? -1e9 : 0, Max = valueType == "byte" ? 255 : 1e9, Step = 1, Requires = requires,
-            Hint = requires != null ? "Activeer eerst het bijbehorende script" : null,
-            Confidence = "untested", ConfidenceNote = "Geïmporteerd uit CE-tabel; ongetest.",
+            Hint = requires != null ? "Activate the matching script first" : null,
+            Confidence = "untested", ConfidenceNote = "Imported from a CE table; untested.",
             Impl = new ImplDef { Type = "pointer", Base = JsonDocument.Parse(JsonSerializer.Serialize(baseStr)).RootElement.Clone(), Offsets = offsets is { Count: > 0 } ? offsets : null, ValueType = valueType },
         };
     }

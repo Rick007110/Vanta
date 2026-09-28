@@ -122,15 +122,15 @@ public static class MiniAssembler
                 }
                 else if (TryRegister(term, out var r))
                 {
-                    if (neg) throw new AsmException($"'-{term}' niet toegestaan");
-                    if (o.Base == Register.None) o.Base = r; else if (o.Index == Register.None) o.Index = r; else throw new AsmException($"te veel registers in '{text}'");
+                    if (neg) throw new AsmException($"'-{term}' not allowed");
+                    if (o.Base == Register.None) o.Base = r; else if (o.Index == Register.None) o.Index = r; else throw new AsmException($"too many registers in '{text}'");
                 }
                 else if (symbols.Contains(term) && !neg && o.Sym == null) o.Sym = term;
                 else if (TryNumber(term, out var n)) o.Disp += neg ? -n : n;
                 else if (!neg && o.Sym == null) o.Sym = term;       // unknown symbol: reported at resolve time
                 else throw new AsmException($"onbekende term '{term}' in '{text}'");
             }
-            if (o.Sym != null && (o.Base != Register.None || o.Index != Register.None)) throw new AsmException($"symbool + register in één operand wordt niet ondersteund: '{text}'");
+            if (o.Sym != null && (o.Base != Register.None || o.Index != Register.None)) throw new AsmException($"symbol + register in one operand is not supported: '{text}'");
             return o;
         }
         if (size != 0) throw new AsmException($"ongeldige operand '{text}'");
@@ -230,7 +230,7 @@ public static class MiniAssembler
                 var lm = Regex.Match(t, @"^([A-Za-z_.@][\w.@]*):(?!:)");
                 if (!lm.Success) break;
                 var name = lm.Groups[1].Value;
-                if (!labels.Add(name)) throw new AsmException($"regel {i + 1}: label '{name}' dubbel gedefinieerd");
+                if (!labels.Add(name)) throw new AsmException($"line {i + 1}: label '{name}' defined twice");
                 lines.Add(new Line { No = i + 1, Text = t, Label = name, Kind = "label" });
                 t = t[lm.Length..].Trim();
             }
@@ -270,13 +270,13 @@ public static class MiniAssembler
                     bytes = (byte[])ln.Data!.Clone();
                     foreach (var (o, sym, add, sz) in ln.DataRelocs ?? new())
                     {
-                        if (!addr.TryGetValue(sym, out var a)) throw new AsmException($"onbekend symbool '{sym}'");
+                        if (!addr.TryGetValue(sym, out var a)) throw new AsmException($"unknown symbol '{sym}'");
                         ulong v = a + (ulong)add;
-                        if (sz == 4 && v > uint.MaxValue) throw new AsmException($"adres van '{sym}' past niet in dd");
+                        if (sz == 4 && v > uint.MaxValue) throw new AsmException($"address of '{sym}' does not fit in dd");
                         BitConverter.GetBytes(v).AsSpan(0, sz).CopyTo(bytes.AsSpan(o));
                     }
                 }
-                if (bytes.Length != ln.Size) throw new AsmException($"interne fout: lengte {bytes.Length} != {ln.Size}");
+                if (bytes.Length != ln.Size) throw new AsmException($"internal error: length {bytes.Length} != {ln.Size}");
                 bytes.CopyTo(output, ln.Offset);
             }
             catch (AsmException e) when (!e.Message.StartsWith("regel ")) { throw new AsmException($"regel {ln.No} '{ln.Text}': {e.Message}"); }
@@ -307,8 +307,8 @@ public static class MiniAssembler
                     if (fm.Success)
                     {
                         double d = double.Parse(fm.Groups[2].Value, CultureInfo.InvariantCulture);
-                        if (fm.Groups[1].Value.ToLower() == "float") { if (sz != 4) throw new AsmException("(float) alleen in dd"); data.AddRange(BitConverter.GetBytes((float)d)); }
-                        else { if (sz != 8) throw new AsmException("(double) alleen in dq"); data.AddRange(BitConverter.GetBytes(d)); }
+                        if (fm.Groups[1].Value.ToLower() == "float") { if (sz != 4) throw new AsmException("(float) only in dd"); data.AddRange(BitConverter.GetBytes((float)d)); }
+                        else { if (sz != 8) throw new AsmException("(double) only in dq"); data.AddRange(BitConverter.GetBytes(d)); }
                         continue;
                     }
                     if (!symbols.Contains(it) && TryNumber(it, out var v)) { data.AddRange(BitConverter.GetBytes(v).AsSpan(0, sz).ToArray()); continue; }
@@ -320,11 +320,11 @@ public static class MiniAssembler
             }
             case "nop" when rest.Length > 0:
             {
-                if (!TryNumber(rest, out var n) || n < 1 || n > 4096) throw new AsmException("nop N: ongeldig aantal");
+                if (!TryNumber(rest, out var n) || n < 1 || n > 4096) throw new AsmException("nop N: invalid count");
                 ln.Kind = "data"; ln.Data = Enumerable.Repeat((byte)0x90, (int)n).ToArray(); ln.Size = (int)n; return;
             }
             case "alloc": case "label": case "registersymbol": case "unregistersymbol": case "dealloc": case "aobscanmodule": case "aobscan": case "define": case "assert": case "globalalloc": case "readmem": case "reassemble": case "createthread": case "loadlibrary":
-                throw new AsmException($"AA-commando '{mn}' wordt hier niet ondersteund (gebruik de velden van de definitie)");
+                throw new AsmException($"AA command '{mn}' is not supported here (use the fields of the definition)");
         }
         ln.Kind = "insn";
         ln.Mnem = mn;
@@ -398,7 +398,7 @@ public static class MiniAssembler
                     if (o.Sym != null)
                     {
                         ulong target = ip;   // pass 1 placeholder (rel32 either way)
-                        if (addr != null) { if (!addr.TryGetValue(o.Sym, out target)) throw new AsmException($"onbekend symbool '{o.Sym}'"); }
+                        if (addr != null) { if (!addr.TryGetValue(o.Sym, out target)) throw new AsmException($"unknown symbol '{o.Sym}'"); }
                         ins.MemoryBase = Register.RIP; ins.MemoryDisplacement64 = target + (ulong)o.Disp; ins.MemoryDisplSize = 8;
                     }
                     else
@@ -415,7 +415,7 @@ public static class MiniAssembler
                         if (addr != null)
                         {
                             if (o.ImmSym == null) target = (ulong)o.Imm;
-                            else if (!addr.TryGetValue(o.ImmSym, out target)) throw new AsmException($"onbekend label '{o.ImmSym}'");
+                            else if (!addr.TryGetValue(o.ImmSym, out target)) throw new AsmException($"unknown label '{o.ImmSym}'");
                             else target += (ulong)o.Imm;
                         }
                         ins.SetOpKind(i, OpKind.NearBranch64); ins.NearBranch64 = target;
@@ -425,7 +425,7 @@ public static class MiniAssembler
                     if (kind == null) { why = "immediate"; return false; }
                     ins.SetOpKind(i, kind.Value);
                     long val = o.Imm;
-                    if (o.ImmSym != null && addr != null) { if (!addr.TryGetValue(o.ImmSym, out var a)) throw new AsmException($"onbekend symbool '{o.ImmSym}'"); val = (long)(a + (ulong)o.Imm); }
+                    if (o.ImmSym != null && addr != null) { if (!addr.TryGetValue(o.ImmSym, out var a)) throw new AsmException($"unknown symbol '{o.ImmSym}'"); val = (long)(a + (ulong)o.Imm); }
                     long sv = kind switch
                     {
                         OpKind.Immediate8to32 or OpKind.Immediate8to16 => (sbyte)val,
@@ -461,7 +461,7 @@ public static class MiniAssembler
     private static void ChooseEncoding(Line ln, ulong ip)
     {
         var mn = ResolveMnemonic(ln.Mnem!);
-        if (!Index.Value.TryGetValue(mn, out var codes)) throw new AsmException($"instructie '{ln.Mnem}' niet beschikbaar in 64-bit");
+        if (!Index.Value.TryGetValue(mn, out var codes)) throw new AsmException($"instruction '{ln.Mnem}' not available in 64-bit");
         var ok = new List<(Code code, int len, int memSize)>();
         string? lastWhy = null, encErr = null;
         foreach (var c in codes)
@@ -471,7 +471,7 @@ public static class MiniAssembler
             if (b == null) { encErr = err; continue; }
             ok.Add((c, b.Length, ln.Ops.Any(o => o.T == OpT.Mem) ? ins.MemorySize.GetSize() : 0));
         }
-        if (ok.Count == 0) throw new AsmException($"geen geldige codering voor '{ln.Text}' ({encErr ?? lastWhy})");
+        if (ok.Count == 0) throw new AsmException($"no valid encoding for '{ln.Text}' ({encErr ?? lastWhy})");
         // ambiguous memory size (e.g. "mov [x],0"): CE defaults to dword
         var mem = ln.Ops.FirstOrDefault(o => o.T == OpT.Mem);
         if (mem != null && mem.Size == 0 && !ln.Ops.Any(o => o.T == OpT.Reg))
@@ -485,17 +485,17 @@ public static class MiniAssembler
 
     private static byte[] EncodeFinal(Line ln, ulong ip, IReadOnlyDictionary<string, ulong> addr)
     {
-        if (!TryBuild(ln.Chosen, ln.Ops, ip, addr, out var ins, out var why)) throw new AsmException($"coderen mislukt ({why})");
-        var b = TryEncode(ins, ip, out var err) ?? throw new AsmException($"coderen mislukt: {err} (doel te ver weg voor rel32?)");
+        if (!TryBuild(ln.Chosen, ln.Ops, ip, addr, out var ins, out var why)) throw new AsmException($"encoding failed ({why})");
+        var b = TryEncode(ins, ip, out var err) ?? throw new AsmException($"encoding failed: {err} (target too far for rel32?)");
         return b;
     }
 
     /// <summary>jmp rel32 from <paramref name="from"/> to <paramref name="to"/>, padded with NOPs to <paramref name="length"/> (≥5).</summary>
     public static byte[] JmpRel32(ulong from, ulong to, int length = 5)
     {
-        if (length < 5) throw new AsmException("minstens 5 bytes nodig voor een jmp");
+        if (length < 5) throw new AsmException("at least 5 bytes needed for a jmp");
         long rel = (long)to - (long)(from + 5);
-        if (rel < int.MinValue || rel > int.MaxValue) throw new AsmException("doel te ver weg voor jmp rel32 (±2 GB)");
+        if (rel < int.MinValue || rel > int.MaxValue) throw new AsmException("target too far for jmp rel32 (±2 GB)");
         var b = new byte[length];
         b[0] = 0xE9;
         BitConverter.GetBytes((int)rel).CopyTo(b, 1);
@@ -506,7 +506,7 @@ public static class MiniAssembler
     /// <summary>14-byte absolute jmp: jmp [rip+0]; dq target.</summary>
     public static byte[] JmpAbs64(ulong to, int length = 14)
     {
-        if (length < 14) throw new AsmException("minstens 14 bytes nodig voor een absolute jmp");
+        if (length < 14) throw new AsmException("at least 14 bytes needed for an absolute jmp");
         var b = new byte[length];
         b[0] = 0xFF; b[1] = 0x25;
         BitConverter.GetBytes(to).CopyTo(b, 6);

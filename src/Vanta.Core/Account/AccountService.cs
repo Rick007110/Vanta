@@ -66,7 +66,7 @@ public sealed class AccountService : IDisposable
         { log?.Invoke("account: ongeldige Supabase-URL (https vereist)"); return null; }
         var key = keys.Take(i + 1).FirstOrDefault(k => !string.IsNullOrWhiteSpace(k))?.Trim();
         if (key == null) return null;
-        if (!IsPublicKey(key)) { log?.Invoke("account: geweigerd: dit is geen publishable/anon key (secret keys horen nooit in Vanta)"); return null; }
+        if (!IsPublicKey(key)) { log?.Invoke("account: refused: this is not a publishable/anon key (secret keys never belong in Vanta)"); return null; }
         return new SupabaseConfig(url, key);
     }
 
@@ -116,7 +116,7 @@ public sealed class AccountService : IDisposable
         {
             var s = await Client.LoginAsync(_openBrowser, cts.Token).ConfigureAwait(false);
             lock (_gate) _session = s;
-            try { _store.Save(s); } catch (Exception e) { _log("account: token opslaan mislukt: " + e.Message); }
+            try { _store.Save(s); } catch (Exception e) { _log("account: saving token failed: " + e.Message); }
             _log("account: " + Strings.Get("account.loggedin", s.User.Username));
             Busy = false; Push();
             _ = FlushAsync();
@@ -179,7 +179,7 @@ public sealed class AccountService : IDisposable
             catch (AccountException e) when (!e.Transient) { Expire(); throw new AccountException("session_expired", 401); }
             if (fresh.User.Username == "?") fresh = fresh with { User = cur.User };
             lock (_gate) _session = fresh;
-            try { _store.Save(fresh); } catch (Exception e) { _log("account: token opslaan mislukt: " + e.Message); }
+            try { _store.Save(fresh); } catch (Exception e) { _log("account: saving token failed: " + e.Message); }
             return fresh.Token;
         }
         finally { _refreshLock.Release(); }
@@ -315,7 +315,7 @@ public sealed class AccountService : IDisposable
             return (true, r, null);
         }
         catch (AccountException e) when (e.Status == 401 && e.Code is "session_expired" or "unauthorized" or "jwt_invalid") { if (Session != null) Expire(); return (false, null, "session_expired"); }
-        catch (AccountException e) { _log($"account: aanvraag {appId} mislukt ({e.Code})"); return (false, null, e.Code); }
+        catch (AccountException e) { _log($"account: request {appId} failed ({e.Code})"); return (false, null, e.Code); }
     }
 
     // ---------------- anonymous usage (opt-in) ----------------

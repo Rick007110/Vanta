@@ -35,11 +35,11 @@ public sealed class Verifier
         string dir;
         if (File.Exists(path)) { found[g.MainModule] = Path.GetFullPath(path); dir = Path.GetDirectoryName(Path.GetFullPath(path))!; }
         else if (Directory.Exists(path)) dir = path;
-        else throw new FileNotFoundException("bestand of map niet gevonden: " + path);
+        else throw new FileNotFoundException("file or folder not found: " + path);
         foreach (var n in need.Where(n => !found.ContainsKey(n)))
         {
             var f = Search(dir, n, 3) ?? (Path.GetDirectoryName(dir) is string up ? Search(up, n, 2) : null);
-            if (f != null) found[n] = f; else warn?.Invoke($"module {n} niet gevonden onder {dir}");
+            if (f != null) found[n] = f; else warn?.Invoke($"module {n} not found under {dir}");
         }
         return found;
     }
@@ -122,22 +122,22 @@ public sealed class Verifier
                         if (fileVersion != null) L.Add($"  fileVersion: {fileVersion}");
                         L.Add($"  supportedVersions: {fp.ToJson("<label>", fileVersion)}");
                         var match = g.SupportedVersions.FirstOrDefault(v => v.FileSize != null && v.FileSize == fp.Size && (v.HeadSha256 == null || v.HeadSha256.Equals(fp.HeadSha256, StringComparison.OrdinalIgnoreCase)));
-                        L.Add(match != null ? $"  versie: OK ({match.Label})" : g.SupportedVersions.Any(v => v.FileSize != null) ? "  versie: ANDERS dan ondersteund" : "  versie: nog geen vingerafdruk in game.json");
+                        L.Add(match != null ? $"  version: OK ({match.Label})" : g.SupportedVersions.Any(v => v.FileSize != null) ? "  version: DIFFERENT from supported" : "  version: no fingerprint in game.json yet");
                     }
                 }
-                catch (Exception e) { L.Add("  vingerafdruk mislukt: " + e.Message); }
+                catch (Exception e) { L.Add("  fingerprint failed: " + e.Message); }
             }
         var v = new Verifier();
         var sw = System.Diagnostics.Stopwatch.StartNew();
         v.Run(g, mem);
         foreach (var r in v.Results)
-            L.Add($"[{(r.Ok ? "OK  " : "FOUT")}] {r.CheatId}/{r.Site}: {r.Detail}{(r.Ok && r.Rva != null && !r.Detail.Contains("statisch") ? " @ " + r.Rva : "")}");
+            L.Add($"[{(r.Ok ? "OK  " : "FAIL")}] {r.CheatId}/{r.Site}: {r.Detail}{(r.Ok && r.Rva != null && !r.Detail.Contains("statisch") ? " @ " + r.Rva : "")}");
         foreach (var c in g.Cheats.Where(c => c.Impl.Type == "pointer" && c.Impl.Base is JsonElement b && b.ValueKind == JsonValueKind.String))
-            L.Add($"[INFO] {c.Id}: pointer via {c.Impl.Base!.Value.GetString()} (alleen live te controleren)");
+            L.Add($"[INFO] {c.Id}: pointer via {c.Impl.Base!.Value.GetString()} (can only be checked live)");
         L.Add("");
-        L.Add($"RESULTAAT: {v.Ok}/{v.Results.Count} sites uniek gevonden, {v.Failed} fout ({sw.Elapsed.TotalSeconds:0.0} s)");
+        L.Add($"RESULT: {v.Ok}/{v.Results.Count} sites found uniquely, {v.Failed} failed ({sw.Elapsed.TotalSeconds:0.0} s)");
         if (v.Results.Count > 0 && v.Ok == 0)
-            L.Add("Alle patronen 0 treffers: de code is mogelijk versleuteld op schijf, of het is een andere build. Probeer: --verify " + g.Id + " --live (game in het hoofdmenu).");
+            L.Add("All patterns 0 hits: the code may be encrypted on disk, or this is a different build. Try: --verify " + g.Id + " --live (game in the main menu).");
         return (L, v.Failed == 0);
     }
 }

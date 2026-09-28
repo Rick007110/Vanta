@@ -260,7 +260,8 @@
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "description": "English; translations in i18n.<lang>.notes"
     },
     "art": {
       "type": "object"
@@ -269,6 +270,31 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/cheat"
+      }
+    },
+    "i18n": {
+      "type": "object",
+      "description": "Translations of UI texts (plain fields are English), e.g. { \"nl\": { \"notes\": [...], \"scope\": \"...\", \"version\": \"...\" } }",
+      "propertyNames": {
+        "pattern": "^[a-z]{2}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scope": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
       }
     }
   },
@@ -664,6 +690,34 @@
         },
         "impl": {
           "$ref": "#/$defs/impl"
+        },
+        "i18n": {
+          "type": "object",
+          "description": "Translations of UI texts (plain fields are English)",
+          "propertyNames": {
+            "pattern": "^[a-z]{2}$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "hint": {
+                "type": "string"
+              },
+              "sub": {
+                "type": "string"
+              },
+              "buttonLabel": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     }

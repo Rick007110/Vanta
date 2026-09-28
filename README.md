@@ -1,73 +1,72 @@
 # Vanta
 
-**Trainer voor singleplayer-games op Windows.** Losstaand programma, geen Cheat Engine nodig. Games met online anti-cheat
-worden bewust geweigerd: Vanta is alleen bedoeld voor solo/offline spelen.
+**Trainer for single-player games on Windows.** Standalone program, no Cheat Engine required. Games with online anti-cheat
+are refused on purpose: Vanta is only meant for solo/offline play.
 
 ![Far Cry 6 in Vanta](docs/screenshots/far-cry-6.png)
 
-## Downloaden
+## Download
 
-Download de nieuwste `Vanta-v*.zip` bij [Releases](https://github.com/Rick007110/Vanta/releases/latest), pak hem uit naar
-een eigen map (bijv. `C:\Games\Vanta`) en start `Vanta.exe`. Lees daarna `LEESMIJ.txt`.
+Download the latest `Vanta-v*.zip` from [Releases](https://github.com/Rick007110/Vanta/releases/latest), extract it to
+its own folder (e.g. `C:\Games\Vanta`) and start `Vanta.exe`. Then read `README.txt` (Dutch: `LEESMIJ.txt`).
+Version history: [CHANGELOG.md](CHANGELOG.md).
 
-* Windows 10/11 64-bit, Microsoft Edge WebView2 Runtime (standaard op Windows 11).
-* Er hoeft niets geïnstalleerd te worden (.NET zit in de exe).
-* De exe is niet digitaal ondertekend: SmartScreen kan waarschuwen ("Meer informatie" → "Toch uitvoeren").
-* Controleer de download eventueel met het `.sha256`-bestand naast de zip.
+* Windows 10/11 64-bit, Microsoft Edge WebView2 Runtime (included with Windows 11).
+* Nothing needs to be installed (.NET is inside the exe).
+* The exe is not digitally signed: SmartScreen may warn ("More info" → "Run anyway").
+* Optionally verify the download with the `.sha256` file next to the zip.
+* English by default; Dutch is available under Settings → Language.
 
 ## Games
 
 | Game | Cheats | Status |
 |---|---|---|
-| The Last Caretaker (EA 0.8.5) | 16 | 1 bevestigd, rest ongetest |
-| Far Cry 6 (1.8.0, Ubisoft Connect/Steam) | 20 | ongetest: controleer met `--verify` |
-| Far Cry 5 (Steam-build 18766066) | 16 | ongetest: controleer met `--verify` |
+| The Last Caretaker (EA 0.8.5) | 16 | 1 confirmed, rest untested |
+| Far Cry 6 (1.8.0, Ubisoft Connect/Steam) | 20 | untested: check with `--verify` |
+| Far Cry 5 (Steam build 18766066) | 16 | untested: check with `--verify` |
 
-Far Cry 5/6: alleen voor de solo-campagne, niet in co-op of online. Far Cry 6 heeft geen anti-cheat; bij Far Cry 5 is
-EasyAntiCheat in de laatste patch (2019) verwijderd. Vindt Vanta toch anti-cheat-bestanden, dan weigert het.
+Far Cry 5/6: solo campaign only, not in co-op or online. Far Cry 6 has no anti-cheat; Far Cry 5 had EasyAntiCheat removed
+in its last patch (2019). If Vanta still finds anti-cheat files, it refuses.
 
-## Wat Vanta doet
+## What Vanta does
 
-* **Winkel-herkenning**: vindt de installatie via Steam, Ubisoft Connect, Epic, GOG, EA app of Xbox en start de game via
-  de juiste launcher ("Start via Ubisoft Connect").
-* **Veilig patchen**: elke cheat zoekt zijn code via een AOB-patroon dat precies één keer moet voorkomen. Anders wordt er
-  niets geschreven. Uitzetten, ontkoppelen of Vanta sluiten zet alle bytes exact terug.
-* **`Vanta.exe --verify <game>`**: controleert zonder de game te starten of alle cheats bij jouw game-versie passen.
-* **Automatische updates** via GitHub Releases, met SHA-256-controle, een backup en automatisch terugzetten als de nieuwe
-  versie niet start.
-* Sneltoetsen (ook als de game op de voorgrond staat), Nederlands/Engels.
+* **Store detection**: finds the install via Steam, Ubisoft Connect, Epic, GOG, EA app or Xbox and starts the game via
+  the right launcher ("Start via Ubisoft Connect").
+* **Safe patching**: every cheat locates its code via an AOB pattern that must occur exactly once. Otherwise nothing is
+  written. Disabling, detaching or closing Vanta restores every byte exactly.
+* **`Vanta.exe --verify <game>`**: checks without starting the game whether all cheats match your game version.
+* **Automatic updates** via GitHub Releases, with SHA-256 check, a backup and automatic rollback if the new version does
+  not start.
+* Hotkeys (also while the game is in the foreground), English/Dutch.
 
-## Zelf een game toevoegen
+## Add a game yourself
 
-Een game is één JSON-bestand: `games/<id>/game.json` (schema: [`schema/game.schema.json`](schema/game.schema.json)).
+A game is one JSON file: `games/<id>/game.json` (schema: [`schema/game.schema.json`](schema/game.schema.json)). Texts are
+English; Dutch translations go under `"i18n": { "nl": { ... } }` at game and cheat level.
 
-1. Zet een Cheat Engine-tabel om: `Vanta.exe import "Game.CT" -o games\<id> --id <id> --name "Naam" --process Game.exe`
-2. Los de gemarkeerde regels in `import-report.txt` met de hand op en vul `antiCheat`/`onlineOnly` eerlijk in.
-3. `Vanta.exe validate games` en `Vanta.exe index games`
-4. `Vanta.exe --verify <id> "pad\naar\module.dll"`: elke cheat moet precies 1 treffer hebben.
+1. Convert a Cheat Engine table: `Vanta.exe import "Game.CT" -o games\<id> --id <id> --name "Name" --process Game.exe`
+2. Resolve the flagged lines in `import-report.txt` by hand and fill in `antiCheat`/`onlineOnly` honestly.
+3. `Vanta.exe validate games` and `Vanta.exe index games`
+4. `Vanta.exe --verify <id> "path\to\module.dll"`: every cheat must have exactly 1 hit.
 
 Details: [README-DEV.md](README-DEV.md).
 
-## Community-meldingen (optioneel)
+## Community reports (optional)
 
-Met een Discord-account kun je melden of een cheat werkt of niet; Vanta toont dan per cheat wat andere spelers melden.
-Inloggen is nooit verplicht: zonder account werkt alles zoals altijd. De backend is een Supabase-project (database +
-inloggen, [`supabase/`](supabase/)); de Discord-bot ([`bot/`](bot/)) is los te hosten. Installatie: [docs/SETUP.md](docs/SETUP.md). Privacy: <https://rick007110.github.io/vanta-site/privacy/> (bron: [docs/privacy.md](docs/privacy.md)).
+With a Discord account you can report whether a cheat works; Vanta then shows per cheat what other players report.
+Signing in is never required: without an account everything works as always. The backend is a Supabase project (database +
+sign-in, [`supabase/`](supabase/)); the Discord bot ([`bot/`](bot/)) can be hosted separately. Setup: [docs/SETUP.md](docs/SETUP.md). Privacy: <https://rick007110.github.io/vanta-site/privacy/> (source: [docs/privacy.md](docs/privacy.md)).
 
-## Bouwen
+## Building
 
-`./build.sh` (dotnet 8 SDK; mingw voor het selftest-programma). Tests: `dotnet test tests/Vanta.Tests`,
+`./build.sh` (dotnet 8 SDK; mingw for the selftest program). Tests: `dotnet test tests/Vanta.Tests`,
 UI: `node tests/ui/ui.e2e.js` (puppeteer-core + Chrome).
 
-## English
+## Nederlands
 
-Vanta is a standalone trainer for **single-player/offline** Windows games (no Cheat Engine required). Games with online
-anti-cheat are refused. It detects installs from Steam, Ubisoft Connect, Epic, GOG, EA app and Xbox, patches code only when an
-AOB pattern matches exactly once, restores every byte on disable/exit, can verify a game build offline
-(`Vanta.exe --verify <game>`), and updates itself from GitHub Releases (SHA-256 verified, with rollback). Download the zip from
-[Releases](https://github.com/Rick007110/Vanta/releases/latest). Far Cry 5/6 cheats are for the solo campaign only.
-
-Optional community reports: sign in with Discord to report whether a cheat works; see [docs/SETUP.md](docs/SETUP.md) (Dutch)
-and the [privacy page](https://rick007110.github.io/vanta-site/privacy/) ([docs/privacy.md](docs/privacy.md)). Signing in is never required.
+Vanta is een losstaande trainer voor **singleplayer/offline** Windows-games (geen Cheat Engine nodig). Games met online
+anti-cheat worden geweigerd. Download de zip bij [Releases](https://github.com/Rick007110/Vanta/releases/latest) en lees
+`LEESMIJ.txt`. Vanta start in het Engels; kies Nederlands via Settings → Language → Nederlands. Far Cry 5/6-cheats zijn
+alleen voor de solo-campagne.
 
 MIT License.

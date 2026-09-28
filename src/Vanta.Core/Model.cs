@@ -32,6 +32,8 @@ public sealed class GameDef
     public string? Author { get; set; }
     public string? Source { get; set; }
     public List<string>? Notes { get; set; }
+    /// <summary>Translations of the texts shown in the UI; the plain fields are English. { "nl": { "notes": [...], "scope": "...", "version": "..." } }</summary>
+    public Dictionary<string, GameText>? I18n { get; set; }
     public ArtDef? Art { get; set; }
     public List<CheatDef> Cheats { get; set; } = new();
 
@@ -110,7 +112,26 @@ public sealed class CheatDef
     public string? Format { get; set; }
     public double? ResetValue { get; set; }                     // written by "Alles uit" for value cheats
     public string? ButtonLabel { get; set; }
+    /// <summary>Translations of the texts shown in the UI (the plain fields are English); names also via <see cref="Names"/>.</summary>
+    public Dictionary<string, CheatText>? I18n { get; set; }
     public ImplDef Impl { get; set; } = new();
+}
+
+public sealed class GameText
+{
+    public List<string>? Notes { get; set; }
+    public string? Scope { get; set; }
+    /// <summary>Translated label of supportedVersions[0].</summary>
+    public string? Version { get; set; }
+}
+
+public sealed class CheatText
+{
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public string? Hint { get; set; }
+    public string? Sub { get; set; }
+    public string? ButtonLabel { get; set; }
 }
 
 public sealed class ImplDef

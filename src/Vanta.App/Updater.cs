@@ -46,7 +46,7 @@ internal sealed class AppUpdater : IDisposable
     public void Dismiss(string? version)
     {
         version ??= _last?.Release?.Version.ToString();
-        if (version != null) { Policy.Dismiss(version); Log.Info("update " + version + ": uitgesteld voor deze sessie"); }
+        if (version != null) { Policy.Dismiss(version); Log.Info("update " + version + ": postponed for this session"); }
     }
 
     private async Task<HttpResult> GetAsync(string url, CancellationToken ct)
@@ -79,7 +79,7 @@ internal sealed class AppUpdater : IDisposable
                 if (Policy.ShouldShowPending(v, manual)) _post(new { type = "updateStatus", state = "pending", version = v });
                 return;
             }
-            if (!Policy.ShouldOffer(v, manual)) { Log.Info($"update {v}: al aangeboden deze sessie"); return; }
+            if (!Policy.ShouldOffer(v, manual)) { Log.Info($"update {v}: already offered this session"); return; }
             _post(new { type = "update", manual, current = Current.ToString(), release = c.ToUi() });
         }
         else if (manual) _post(new { type = "updateStatus", state = c.ToUi() });
@@ -194,17 +194,17 @@ internal static class UpdateHelper
         var pidText = Arg(args, "--pid");
         bool elevated = args.Contains("--elevated", StringComparer.OrdinalIgnoreCase);
         L($"helper start: app={appDir} pid={pidText} elevated={elevated} admin={Elevation.IsAdmin}");
-        if (appDir == null || !Directory.Exists(appDir)) { L("geen geldige app-map"); return 3; }
+        if (appDir == null || !Directory.Exists(appDir)) { L("no valid app folder"); return 3; }
         if (int.TryParse(pidText, out var pid))
-            try { using var p = Process.GetProcessById(pid); if (!p.WaitForExit(30000)) { L("oude Vanta sluit niet; stoppen"); return 4; } } catch (ArgumentException) { }
+            try { using var p = Process.GetProcessById(pid); if (!p.WaitForExit(30000)) { L("old Vanta does not exit; stopping"); return 4; } } catch (ArgumentException) { }
 
         var pending = store.LoadPending();
-        if (pending == null || !File.Exists(pending.Zip)) { L("geen pending update"); StartApp(appDir, null, elevated); return 5; }
+        if (pending == null || !File.Exists(pending.Zip)) { L("no pending update"); StartApp(appDir, null, elevated); return 5; }
 
         if (!UpdateApplier.CanWrite(appDir))
         {
-            if (Elevation.IsAdmin || elevated) { L("app-map niet schrijfbaar, ook niet als admin"); return Fail(store, pending, appDir, null, elevated, "geen schrijfrechten"); }
-            L("app-map niet schrijfbaar: opnieuw starten met beheerdersrechten (UAC)");
+            if (Elevation.IsAdmin || elevated) { L("app folder not writable, not even as admin"); return Fail(store, pending, appDir, null, elevated, "no write access"); }
+            L("app folder not writable: restarting with administrator rights (UAC)");
             try
             {
                 var psi = new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = true, Verb = "runas", WorkingDirectory = store.HelperDir };
@@ -217,7 +217,7 @@ internal static class UpdateHelper
 
         string content;
         try { content = UpdateApplier.Apply(pending.Zip, pending.Sha256, appDir, store, L); }
-        catch (Exception e) { L("installeren mislukt: " + e.Message); return Fail(store, pending, appDir, null, elevated, e.Message); }
+        catch (Exception e) { L("install failed: " + e.Message); return Fail(store, pending, appDir, null, elevated, e.Message); }
 
         var marker = store.StartedMarker(pending.Version);
         try { File.Delete(marker); } catch { }
@@ -228,7 +228,7 @@ internal static class UpdateHelper
         {
             if (File.Exists(marker))
             {
-                L("nieuwe versie draait: klaar");
+                L("new version is running: done");
                 store.ClearPending();
                 try { Directory.Delete(store.StagingDir, true); } catch { }
                 try { File.Delete(pending.Zip); } catch { }
@@ -239,18 +239,18 @@ internal static class UpdateHelper
         }
         try { if (proc != null && !proc.HasExited) proc.Kill(true); } catch { }
         KillAppProcesses(appDir);
-        return Fail(store, pending, appDir, content, elevated, "nieuwe versie startte niet");
+        return Fail(store, pending, appDir, content, elevated, "new version did not start");
     }
 
     private static int Fail(UpdateStore store, PendingUpdate pending, string appDir, string? content, bool elevated, string why)
     {
         if (content != null)
-            try { UpdateApplier.Rollback(store.BackupDir, appDir, content); L("teruggezet naar de vorige versie"); }
-            catch (Exception e) { L("terugzetten mislukt: " + e.Message + " - backup staat in " + store.BackupDir); }
+            try { UpdateApplier.Rollback(store.BackupDir, appDir, content); L("rolled back to the previous version"); }
+            catch (Exception e) { L("rollback failed: " + e.Message + " - backup is in " + store.BackupDir); }
         store.MarkFailed(pending.Version);
         store.ClearPending();
         StartApp(appDir, new[] { "--update-failed", pending.Version }, elevated)?.Dispose();
-        L("update " + pending.Version + " mislukt: " + why);
+        L("update " + pending.Version + " failed: " + why);
         return 2;
     }
 
@@ -269,7 +269,7 @@ internal static class UpdateHelper
             if (args != null) foreach (var a in args) psi.ArgumentList.Add(a);
             return Process.Start(psi);
         }
-        catch (Exception e) { L("starten mislukt: " + e.Message); return null; }
+        catch (Exception e) { L("start failed: " + e.Message); return null; }
     }
 
     private static void KillAppProcesses(string appDir)
@@ -280,15 +280,15 @@ internal static class UpdateHelper
     }
 }
 
-/// <summary>Small borderless "Vanta wordt bijgewerkt…" window shown while a pending update is handed to the helper.</summary>
+/// <summary>Small borderless "Updating Vanta…" window shown while a pending update is handed to the helper.</summary>
 internal sealed class UpdateSplash : Form
 {
     public UpdateSplash(string version)
     {
         FormBorderStyle = FormBorderStyle.None; StartPosition = FormStartPosition.CenterScreen; ShowInTaskbar = true;
         Size = new Size(420, 150); BackColor = Color.FromArgb(0x0B, 0x0D, 0x14); Text = Branding.Name;
-        var title = new Label { Text = "Vanta wordt bijgewerkt…", ForeColor = Color.FromArgb(0xEE, 0xF0, 0xF8), Font = new Font("Segoe UI Semibold", 14f), AutoSize = true, Location = new Point(28, 34) };
-        var sub = new Label { Text = $"Versie {version} wordt geïnstalleerd. Vanta start daarna vanzelf opnieuw.", ForeColor = Color.FromArgb(0x9A, 0xA0, 0xB8), Font = new Font("Segoe UI", 9.5f), AutoSize = true, Location = new Point(30, 74) };
+        var title = new Label { Text = Strings.Get("update.splash.title"), ForeColor = Color.FromArgb(0xEE, 0xF0, 0xF8), Font = new Font("Segoe UI Semibold", 14f), AutoSize = true, Location = new Point(28, 34) };
+        var sub = new Label { Text = Strings.Get("update.splash.sub", version), ForeColor = Color.FromArgb(0x9A, 0xA0, 0xB8), Font = new Font("Segoe UI", 9.5f), AutoSize = true, Location = new Point(30, 74) };
         var bar = new Panel { BackColor = Color.FromArgb(0x74, 0x66, 0xFF), Location = new Point(30, 110), Size = new Size(360, 3) };
         Controls.AddRange(new Control[] { title, sub, bar });
     }

@@ -33,9 +33,9 @@ public sealed class PeFileMemory : IProcessMemory
         var img = new Image { Map = map, View = view, FileLen = fi.Length };
         try
         {
-            if (view.ReadUInt16(0) != 0x5A4D) throw new InvalidDataException("geen PE-bestand (MZ ontbreekt)");
+            if (view.ReadUInt16(0) != 0x5A4D) throw new InvalidDataException("not a PE file (MZ missing)");
             int pe = view.ReadInt32(0x3C);
-            if (view.ReadUInt32(pe) != 0x4550) throw new InvalidDataException("geen PE-bestand (PE ontbreekt)");
+            if (view.ReadUInt32(pe) != 0x4550) throw new InvalidDataException("not a PE file (PE missing)");
             int nSec = view.ReadUInt16(pe + 6);
             int optSize = view.ReadUInt16(pe + 20);
             int opt = pe + 24;

@@ -21,10 +21,10 @@
       ]
     }
   },
-  "scope": "Alleen voor de solo-campagne. Niet gebruiken in co-op of online.",
+  "scope": "Solo campaign only. Do not use in co-op or online.",
   "supportedVersions": [
     {
-      "label": "Steam-build 11359732 (28-09-2026)",
+      "label": "Steam build 11359732 (2026-09-28)",
       "fileVersion": "1, 0, 0, 0",
       "fileSize": 521313320,
       "headSha256": "8ef6454a09d4adf5f59de0bfe17b86f4d4c75e54630cca3711f7cafbc5bdf868",
@@ -41,11 +41,23 @@
   ],
   "badge": "1.8.0",
   "notes": [
-    "Far Cry 6 heeft geen anti-cheat (alleen Denuvo/VMProtect-DRM). Gebruik de cheats alleen solo: co-op-sessies zijn online en daar hoort niemand last van jou te hebben.",
-    "Alle AOB's zijn gecontroleerd op Steam-build 11359732 (28-09-2026); nog niet allemaal in-game getest. Controleer eerst met: Vanta.exe --verify far-cry-6",
-    "Zet de hash-vingerafdruk uit het --verify-rapport in supportedVersions zodra de build bevestigd is.",
-    "Maak een backup van je save: Ubisoft Connect\\savegames\\<account>\\5266 (Steam-versie: map 920)."
+    "Far Cry 6 has no anti-cheat (only Denuvo/VMProtect DRM). Only use the cheats solo: co-op sessions are online and nobody there should be affected by you.",
+    "All AOBs were checked on Steam build 11359732 (2026-09-28); not all of them have been tested in-game yet. Check first with: Vanta.exe --verify far-cry-6",
+    "Put the hash fingerprint from the --verify report into supportedVersions once the build is confirmed.",
+    "Back up your save: Ubisoft Connect\\savegames\\<account>\\5266 (Steam version: folder 920)."
   ],
+  "i18n": {
+    "nl": {
+      "notes": [
+        "Far Cry 6 heeft geen anti-cheat (alleen Denuvo/VMProtect-DRM). Gebruik de cheats alleen solo: co-op-sessies zijn online en daar hoort niemand last van jou te hebben.",
+        "Alle AOB's zijn gecontroleerd op Steam-build 11359732 (28-09-2026); nog niet allemaal in-game getest. Controleer eerst met: Vanta.exe --verify far-cry-6",
+        "Zet de hash-vingerafdruk uit het --verify-rapport in supportedVersions zodra de build bevestigd is.",
+        "Maak een backup van je save: Ubisoft Connect\\savegames\\<account>\\5266 (Steam-versie: map 920)."
+      ],
+      "scope": "Alleen voor de solo-campagne. Niet gebruiken in co-op of online.",
+      "version": "Steam-build 11359732 (28-09-2026)"
+    }
+  },
   "art": {
     "sky": [
       "#1A0F0A",
@@ -59,15 +71,18 @@
   "cheats": [
     {
       "id": "godmode",
-      "name": "Godmode",
-      "names": {
-        "en": "God Mode"
-      },
+      "name": "God Mode",
       "section": "speler",
       "type": "toggle",
       "icon": "shield",
       "hotkey": "Numpad1",
-      "description": "Je neemt geen schade: de aanroep die schade op de speler toepast wordt overgeslagen.",
+      "description": "You take no damage: the call that applies damage to the player is skipped.",
+      "i18n": {
+        "nl": {
+          "name": "Godmode",
+          "description": "Je neemt geen schade: de aanroep die schade op de speler toepast wordt overgeslagen."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -102,15 +117,18 @@
     },
     {
       "id": "inf_stamina",
-      "name": "Oneindig uithoudingsvermogen",
-      "names": {
-        "en": "Infinite Stamina"
-      },
+      "name": "Infinite Stamina",
       "section": "speler",
       "type": "toggle",
       "icon": "bolt",
       "hotkey": "Numpad2",
-      "description": "Sprinten en klimmen kosten geen uithoudingsvermogen.",
+      "description": "Sprinting and climbing cost no stamina.",
+      "i18n": {
+        "nl": {
+          "name": "Oneindig uithoudingsvermogen",
+          "description": "Sprinten en klimmen kosten geen uithoudingsvermogen."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021), AOB opnieuw gezocht voor Steam-build 11359732 (28-09-2026): vtable-offset 528 is 530 geworden, patch ongewijzigd. Precies 1 treffer in FC_m64d3d12.dll van die build. Nog niet in-game getest. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -135,15 +153,18 @@
     },
     {
       "id": "inf_oxygen",
-      "name": "Oneindig zuurstof",
-      "names": {
-        "en": "Infinite Oxygen"
-      },
+      "name": "Infinite Oxygen",
       "section": "speler",
       "type": "toggle",
       "icon": "heart",
       "hotkey": "Numpad3",
-      "description": "Zuurstof onder water raakt niet op.",
+      "description": "Oxygen under water never runs out.",
+      "i18n": {
+        "nl": {
+          "name": "Oneindig zuurstof",
+          "description": "Zuurstof onder water raakt niet op."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021), AOB opnieuw gezocht voor Steam-build 11359732 (28-09-2026): de ucomiss na de call is verdwenen, nu gevolgd door movss [rbx+4C8]; call-doel aangepast (site-2A73331, zelfde functie als bij uithoudingsvermogen). Offsets +18/+1C in het zuurstofobject niet te controleren zonder in-game test. Precies 1 treffer in FC_m64d3d12.dll van die build. Nog niet in-game getest. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -181,15 +202,18 @@
     },
     {
       "id": "inf_ammo",
-      "name": "Oneindig munitie",
-      "names": {
-        "en": "Infinite Ammo"
-      },
+      "name": "Infinite Ammo",
       "section": "wapens",
       "type": "toggle",
       "icon": "ammo",
       "hotkey": "Numpad4",
-      "description": "Het magazijn van je wapen blijft gevuld (zet de huidige clip op 99).",
+      "description": "Your weapon's magazine stays full (sets the current clip to 99).",
+      "i18n": {
+        "nl": {
+          "name": "Oneindig munitie",
+          "description": "Het magazijn van je wapen blijft gevuld (zet de huidige clip op 99)."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer met originele bytes); de melding \"0 treffers\" kwam door een achtergebleven hook van een eerdere sessie. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -224,15 +248,18 @@
     },
     {
       "id": "no_reload",
-      "name": "Niet herladen",
-      "names": {
-        "en": "No Reload"
-      },
+      "name": "No Reload",
       "section": "wapens",
       "type": "toggle",
       "icon": "ammo",
       "hotkey": "Ctrl+Numpad4",
-      "description": "Het magazijn wordt niet leeg, dus je hoeft niet te herladen.",
+      "description": "The magazine never empties, so you never have to reload.",
+      "i18n": {
+        "nl": {
+          "name": "Niet herladen",
+          "description": "Het magazijn wordt niet leeg, dus je hoeft niet te herladen."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021), AOB opnieuw gezocht voor Steam-build 11359732 (28-09-2026): registers veranderd (cmovb edi,eax / mov [rbx+17C],edi), patch nu mov edi,eax. Precies 1 treffer in FC_m64d3d12.dll van die build. Nog niet in-game getest. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -257,15 +284,18 @@
     },
     {
       "id": "inf_throwables",
-      "name": "Oneindig werpwapens & handelswaar",
-      "names": {
-        "en": "Infinite Throwables & Trade Items"
-      },
+      "name": "Infinite Throwables & Trade Items",
       "section": "inventaris",
       "type": "toggle",
       "icon": "grenade",
       "hotkey": "Numpad5",
-      "description": "Werpwapens (granaten, molotovs) en handelsgoederen worden niet afgetrokken. Volgens de auteur kun je zo ook handelswaar blijven verkopen voor Yaran-peso's.",
+      "description": "Throwables (grenades, molotovs) and trade goods are not subtracted. According to the table author you can also keep selling trade goods for Yaran pesos.",
+      "i18n": {
+        "nl": {
+          "name": "Oneindig werpwapens & handelswaar",
+          "description": "Werpwapens (granaten, molotovs) en handelsgoederen worden niet afgetrokken. Volgens de auteur kun je zo ook handelswaar blijven verkopen voor Yaran-peso's."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -299,15 +329,18 @@
     },
     {
       "id": "no_recoil",
-      "name": "Geen terugslag",
-      "names": {
-        "en": "No Recoil"
-      },
+      "name": "No Recoil",
       "section": "wapens",
       "type": "toggle",
       "icon": "crosshair",
       "hotkey": "Numpad6",
-      "description": "Wapens hebben geen terugslag.",
+      "description": "Weapons have no recoil.",
+      "i18n": {
+        "nl": {
+          "name": "Geen terugslag",
+          "description": "Wapens hebben geen terugslag."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -341,15 +374,18 @@
     },
     {
       "id": "super_accuracy",
-      "name": "Superprecisie",
-      "names": {
-        "en": "Super Accuracy"
-      },
+      "name": "Super Accuracy",
       "section": "wapens",
       "type": "toggle",
       "icon": "target",
       "hotkey": "Ctrl+Numpad6",
-      "description": "Kogelspreiding wordt vastgezet op een lage waarde.",
+      "description": "Bullet spread is locked to a low value.",
+      "i18n": {
+        "nl": {
+          "name": "Superprecisie",
+          "description": "Kogelspreiding wordt vastgezet op een lage waarde."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -391,15 +427,18 @@
     },
     {
       "id": "no_overheat",
-      "name": "Geluiddemper raakt nooit oververhit",
-      "names": {
-        "en": "Suppressors Never Overheat"
-      },
+      "name": "Suppressors Never Overheat",
       "section": "wapens",
       "type": "toggle",
       "icon": "snow",
       "hotkey": "Numpad7",
-      "description": "Geluiddempers (en wapenhitte op dezelfde waarde) blijven op 0.",
+      "description": "Suppressors (and weapon heat stored in the same value) stay at 0.",
+      "i18n": {
+        "nl": {
+          "name": "Geluiddemper raakt nooit oververhit",
+          "description": "Geluiddempers (en wapenhitte op dezelfde waarde) blijven op 0."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer met originele bytes); de melding \"0 treffers\" kwam door een achtergebleven hook van een eerdere sessie. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -435,15 +474,18 @@
     },
     {
       "id": "inf_supremo",
-      "name": "Oneindig Supremo",
-      "names": {
-        "en": "Infinite Supremo"
-      },
+      "name": "Infinite Supremo",
       "section": "wapens",
       "type": "toggle",
       "icon": "bolt",
       "hotkey": "Numpad8",
-      "description": "De Supremo-rugzak laadt niet leeg; je kunt de speciale aanval steeds gebruiken.",
+      "description": "The Supremo backpack never drains; you can use the special attack all the time.",
+      "i18n": {
+        "nl": {
+          "name": "Oneindig Supremo",
+          "description": "De Supremo-rugzak laadt niet leeg; je kunt de speciale aanval steeds gebruiken."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer met originele bytes); de melding \"0 treffers\" kwam door een achtergebleven hook van een eerdere sessie. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -478,15 +520,18 @@
     },
     {
       "id": "vehicle_godmode",
-      "name": "Onverwoestbare voertuigen",
-      "names": {
-        "en": "Infinite Vehicle Health"
-      },
+      "name": "Infinite Vehicle Health",
       "section": "voertuig",
       "type": "toggle",
       "icon": "car",
       "hotkey": "Numpad9",
-      "description": "Voertuigen nemen geen schade. Let op: dit kan ook voor voertuigen van vijanden gelden.",
+      "description": "Vehicles take no damage. Note: this can also apply to enemy vehicles.",
+      "i18n": {
+        "nl": {
+          "name": "Onverwoestbare voertuigen",
+          "description": "Voertuigen nemen geen schade. Let op: dit kan ook voor voertuigen van vijanden gelden."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -520,15 +565,18 @@
     },
     {
       "id": "free_craft",
-      "name": "Gratis craften",
-      "names": {
-        "en": "Free Craft"
-      },
+      "name": "Free Craft",
       "section": "inventaris",
       "type": "toggle",
       "icon": "hammer",
       "hotkey": "Ctrl+Numpad1",
-      "description": "Upgrades en uitrusting maken kost geen materialen.",
+      "description": "Upgrades and crafting gear cost no materials.",
+      "i18n": {
+        "nl": {
+          "name": "Gratis craften",
+          "description": "Upgrades en uitrusting maken kost geen materialen."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021, game-versie 1.1). Tabel is ouder dan de huidige build; de kans dat de AOB nog klopt is kleiner. AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -564,15 +612,18 @@
     },
     {
       "id": "resource_mult",
-      "name": "Grondstoffen- en geldvermenigvuldiger",
-      "names": {
-        "en": "Resource & Money Multiplier"
-      },
+      "name": "Resource & Money Multiplier",
       "section": "punten",
       "type": "toggle",
       "icon": "multiply",
       "hotkey": "Ctrl+Numpad2",
-      "description": "Opgepakte grondstoffen en geld worden vermenigvuldigd (standaard x2; stel hieronder in).",
+      "description": "Picked-up resources and money are multiplied (default x2; set it below).",
+      "i18n": {
+        "nl": {
+          "name": "Grondstoffen- en geldvermenigvuldiger",
+          "description": "Opgepakte grondstoffen en geld worden vermenigvuldigd (standaard x2; stel hieronder in)."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021), AOB opnieuw gezocht voor Steam-build 11359732 (28-09-2026): registers veranderd (r14 -> rsi, r15 -> r13). Offset +30 (type-id voor alleen-geld) niet te controleren zonder in-game test; standaard staat alleen-geld uit. Precies 1 treffer in FC_m64d3d12.dll van die build. Nog niet in-game getest. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -624,14 +675,17 @@
     },
     {
       "id": "resource_mult_value",
-      "name": "Vermenigvuldiger",
-      "names": {
-        "en": "Multiplier"
-      },
+      "name": "Multiplier",
       "section": "punten",
       "type": "number",
       "icon": "multiply",
-      "description": "Factor voor opgepakte grondstoffen/geld.",
+      "description": "Factor for picked-up resources/money.",
+      "i18n": {
+        "nl": {
+          "name": "Vermenigvuldiger",
+          "description": "Factor voor opgepakte grondstoffen/geld."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021, game-versie 1.1). Tabel is ouder dan de huidige build; de kans dat de AOB nog klopt is kleiner. Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "requires": [
@@ -648,15 +702,18 @@
     },
     {
       "id": "xp_mult",
-      "name": "XP-bonus",
-      "names": {
-        "en": "XP Bonus"
-      },
+      "name": "XP Bonus",
       "section": "punten",
       "type": "toggle",
       "icon": "star",
       "hotkey": "Ctrl+Numpad3",
-      "description": "Telt extra XP op bij elke XP-winst (standaard +100). Volgens de auteur werkt het vooral bij het vernietigen van voertuigen.",
+      "description": "Adds extra XP to every XP gain (default +100). According to the table author it works best when destroying vehicles.",
+      "i18n": {
+        "nl": {
+          "name": "XP-bonus",
+          "description": "Telt extra XP op bij elke XP-winst (standaard +100). Volgens de auteur werkt het vooral bij het vernietigen van voertuigen."
+        }
+      },
       "confidence": "experimental",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Experimenteel: de tabel roept een vaste adres-offset aan; Vanta rekent die om naar een adres relatief aan de AOB. AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -718,14 +775,17 @@
     },
     {
       "id": "xp_mult_value",
-      "name": "XP-bonus per keer",
-      "names": {
-        "en": "XP Bonus Amount"
-      },
+      "name": "XP Bonus Amount",
       "section": "punten",
       "type": "number",
       "icon": "star",
-      "description": "Hoeveel XP er per keer extra bij komt.",
+      "description": "How much extra XP is added each time.",
+      "i18n": {
+        "nl": {
+          "name": "XP-bonus per keer",
+          "description": "Hoeveel XP er per keer extra bij komt."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "requires": [
@@ -742,15 +802,18 @@
     },
     {
       "id": "speed",
-      "name": "Snelheid",
-      "names": {
-        "en": "Speed"
-      },
+      "name": "Speed",
       "section": "extra",
       "type": "toggle",
       "icon": "speed",
       "hotkey": "Ctrl+Numpad7",
-      "description": "Past je bewegingssnelheid aan (waarde hieronder).",
+      "description": "Changes your movement speed (value below).",
+      "i18n": {
+        "nl": {
+          "name": "Snelheid",
+          "description": "Past je bewegingssnelheid aan (waarde hieronder)."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -792,14 +855,17 @@
     },
     {
       "id": "speed_value",
-      "name": "Snelheidswaarde",
-      "names": {
-        "en": "Speed Value"
-      },
+      "name": "Speed Value",
       "section": "extra",
       "type": "number",
       "icon": "speed",
-      "description": "Snelheidswaarde van de speler (tabel-standaard 0,01).",
+      "description": "Player speed value (table default 0.01).",
+      "i18n": {
+        "nl": {
+          "name": "Snelheidswaarde",
+          "description": "Snelheidswaarde van de speler (tabel-standaard 0,01)."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "requires": [
@@ -816,15 +882,18 @@
     },
     {
       "id": "super_jump",
-      "name": "Superhoge sprong",
-      "names": {
-        "en": "Super Jump"
-      },
+      "name": "Super Jump",
       "section": "extra",
       "type": "toggle",
       "icon": "jump",
       "hotkey": "Ctrl+Numpad8",
-      "description": "Je springt hoger.",
+      "description": "You jump higher.",
+      "i18n": {
+        "nl": {
+          "name": "Superhoge sprong",
+          "description": "Je springt hoger."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
@@ -864,15 +933,18 @@
     },
     {
       "id": "stealth",
-      "name": "Onopgemerkt (stealth)",
-      "names": {
-        "en": "Undetected (Stealth)"
-      },
+      "name": "Undetected (Stealth)",
       "section": "extra",
       "type": "toggle",
       "icon": "eye",
       "hotkey": "Ctrl+Numpad9",
-      "description": "Vijanden merken je niet op.",
+      "description": "Enemies do not notice you.",
+      "i18n": {
+        "nl": {
+          "name": "Onopgemerkt (stealth)",
+          "description": "Vijanden merken je niet op."
+        }
+      },
       "confidence": "experimental",
       "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Experimenteel: het script springt naar een vaste adres-offset in de module; als de build afwijkt kan de game crashen. Sla eerst op. AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {

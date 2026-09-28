@@ -1,68 +1,68 @@
-# Supabase: database voor community-meldingen
+# Supabase: database for community reports
 
-Installatie voor beheerders: [docs/SETUP.md](../docs/SETUP.md) (stap 2). Hier de technische details.
+Setup for admins: [docs/SETUP.md](../docs/SETUP.md) (step 2; Dutch: [docs/SETUP.nl.md](../docs/SETUP.nl.md)). Technical details below.
 
-## Bestanden
+## Files
 
-| Bestand | Inhoud |
+| File | Contents |
 |---|---|
-| `migrations/20260927120000_community_schema.sql` | schema `vanta`, tabellen, RLS-policies, profiel-trigger op `auth.users` |
-| `migrations/20260927120100_community_functions.sql` | validatie, rate-limits, score, RPC's voor de app |
-| `migrations/20260927120200_bot_api.sql` | RPC's voor de bot (alleen `service_role`) |
-| `migrations/20260928120000_game_requests_admin.sql` | game-aanvragen met stemmen, beheerderstabel, RPC's voor het beheerdashboard op de website |
-| `supabase-setup.sql` | alle migraties in één bestand voor de SQL Editor; maken met `sh build-setup-sql.sh` |
+| `migrations/20260927120000_community_schema.sql` | schema `vanta`, tables, RLS policies, profile trigger on `auth.users` |
+| `migrations/20260927120100_community_functions.sql` | validation, rate limits, score, RPCs for the app |
+| `migrations/20260927120200_bot_api.sql` | RPCs for the bot (`service_role` only) |
+| `migrations/20260928120000_game_requests_admin.sql` | game requests with votes, admin table, RPCs for the admin dashboard on the website |
+| `supabase-setup.sql` | all migrations in one file for the SQL Editor; generate with `sh build-setup-sql.sh` |
 
-Alles is idempotent en veilig in een bestaand project: alleen het schema `vanta`, functies `public.vanta_*` en de
-trigger `vanta_profile_sync` op `auth.users` (reageert alleen op Discord-gebruikers en blokkeert nooit een login).
-Het schema `vanta` wordt niet via de Data API ontsloten; `anon` heeft er geen rechten.
+Everything is idempotent and safe in an existing project: only the schema `vanta`, functions `public.vanta_*` and the
+trigger `vanta_profile_sync` on `auth.users` (only reacts to Discord users and never blocks a sign-in).
+The `vanta` schema is not exposed through the Data API; `anon` has no rights on it.
 
-## Toegang
+## Access
 
-- **App** (publishable key + gebruikers-JWT van Supabase Auth): `vanta_submit_report`, `vanta_withdraw_report`,
-  `vanta_delete_my_account` (ingelogd), `vanta_community`, `vanta_count_usage` (ook anoniem). Melden en intrekken
-  draaien als `security invoker`, dus onder RLS: een gebruiker kan alleen zijn eigen meldingen zien en wijzigen, en
-  geblokkeerde gebruikers niets.
+- **App** (publishable key + user JWT from Supabase Auth): `vanta_submit_report`, `vanta_withdraw_report`,
+  `vanta_delete_my_account` (signed in), `vanta_community`, `vanta_count_usage` (also anonymous). Reporting and
+  withdrawing run as `security invoker`, so under RLS: a user can only see and change their own reports, and
+  banned users nothing.
 - **Bot** (secret key = `service_role`): `vanta_bot_events`, `_state`, `_set_message`, `_set_status`, `_ban`, `_top`,
-  `_cheat`, `_game`, `_stats`, `_digest`, `_cleanup`. Elke functie controleert zelf nog eens de rol.
-- **Game-aanvragen**: `vanta_game_requests` (lijst, ook anoniem), `vanta_request_game` (aanvragen/stemmen) en
-  `vanta_unvote_game` (ingelogd). Eén stem per gebruiker per game (Steam-appid); geblokkeerde gebruikers kunnen niet
-  stemmen en hun stemmen tellen niet mee. Limieten: 30 stemacties per uur, 10 nieuwe aanvragen per dag per gebruiker.
-- **Beheer** (website `admin/`): `vanta_is_admin` en `vanta_admin_*` (meldingen, status, ban/unban, aanvragen,
-  statistieken). Beheerder = Supabase-gebruiker met een Discord-identiteit (`auth.identities.provider_id`) die in
-  `vanta.admins` staat; die tabel is niet leesbaar via de API. Beheerder toevoegen (SQL Editor):
+  `_cheat`, `_game`, `_stats`, `_digest`, `_cleanup`. Every function checks the role again itself.
+- **Game requests**: `vanta_game_requests` (list, also anonymous), `vanta_request_game` (request/vote) and
+  `vanta_unvote_game` (signed in). One vote per user per game (Steam appid); banned users cannot vote and their votes
+  do not count. Limits: 30 vote actions per hour, 10 new requests per day per user.
+- **Admin** (website `admin/`): `vanta_is_admin` and `vanta_admin_*` (reports, status, ban/unban, requests,
+  statistics). Admin = Supabase user with a Discord identity (`auth.identities.provider_id`) listed in
+  `vanta.admins`; that table is not readable through the API. Add an admin (SQL Editor):
   `insert into vanta.admins (discord_id) values ('<discord-id>');`
-- Fouten komen terug als HTTP-status met de foutcode als `message` (bijv. 429 `rate_limited`, detail
+- Errors come back as an HTTP status with the error code as `message` (e.g. 429 `rate_limited`, detail
   `retry_after=N`; 403 `banned`; 400 `invalid_status`).
 
-## Prioriteitsscore
+## Priority score
 
-Per game, cheat en gameversie (vingerafdruk):
+Per game, cheat and game version (fingerprint):
 
 ```
-decay(r) = 0.5 ^ (leeftijd_dagen / 14)
-basis    = max(0, Σ decay(werkt niet) − 0.5 · Σ decay(werkt))
-score    = basis · nieuwste · piek · vraag
-  nieuwste = 1.5 als dit de nieuwste bekende gameversie is, anders 1
-  piek     = 1 + min(1, vroege / 5) zolang de versie hooguit 7 dagen oud is; vroege = "werkt niet"-meldingen
-             binnen 72 uur na de eerste keer dat de versie gezien is
-  vraag    = 1 + 0.1 · log10(1 + keren aangezet in de laatste 7 dagen)
+decay(r) = 0.5 ^ (age_days / 14)
+base     = max(0, Σ decay(broken) − 0.5 · Σ decay(works))
+score    = base · newest · spike · demand
+  newest = 1.5 if this is the newest known game version, else 1
+  spike  = 1 + min(1, early / 5) while the version is at most 7 days old; early = "broken" reports
+           within 72 hours after the version was first seen
+  demand = 1 + 0.1 · log10(1 + times enabled in the last 7 days)
 ```
 
-Alleen meldingen van niet-geblokkeerde gebruikers tellen. Na *gefixt* / *niet reproduceerbaar* / *dubbel* tellen
-alleen nieuwere meldingen (bij *gefixt in versie X* alleen van Vanta X of nieuwer); gesloten meldingen hebben score 0.
-Een nieuwe "werkt niet"-melding met Vanta ≥ de fix-versie heropent de melding automatisch.
+Only reports from non-banned users count. After *fixed* / *can't reproduce* / *duplicate* only newer reports count
+(for *fixed in version X* only from Vanta X or newer); closed reports have score 0.
+A new "broken" report with Vanta ≥ the fix version reopens the report automatically.
 
-## Testen (zonder Docker)
+## Testing (without Docker)
 
-Nodig: PostgreSQL 15+ met pgTAP en `pg_prove`, [PostgREST](https://postgrest.org) en Python 3 met `aiohttp` en
+Required: PostgreSQL 15+ with pgTAP and `pg_prove`, [PostgREST](https://postgrest.org) and Python 3 with `aiohttp` and
 `asyncpg`.
 
 ```
-sh supabase/tests/idempotency.sh          # setup 2x over bestaande tabellen + pgTAP (tests/database/)
-sh supabase/tests/local-stack.sh up       # Postgres + PostgREST + nep-Supabase-Auth op http://127.0.0.1:54321
+sh supabase/tests/idempotency.sh          # setup twice over existing tables + pgTAP (tests/database/)
+sh supabase/tests/local-stack.sh up       # Postgres + PostgREST + fake Supabase Auth on http://127.0.0.1:54321
 ```
 
-Met de stack draaiend:
+With the stack running:
 
 ```
 VANTA_IT_SUPABASE_URL=http://127.0.0.1:54321 dotnet test tests/Vanta.Tests
@@ -70,6 +70,6 @@ VANTA_TEST_SUPABASE_URL=http://127.0.0.1:54321 python -m pytest bot/tests
 Vanta.exe --account-selftest http://127.0.0.1:54321 sb_publishable_localtest
 ```
 
-De stack gebruikt de keys `sb_publishable_localtest` en `sb_secret_localtest`; de nep-Auth logt direct in als
-Discord-gebruiker (parameters `mock_discord_id`, `mock_deny`). `tests/supabase_stub.sql` bootst de rollen en het
-`auth`-schema van Supabase na. Tijdelijke bestanden staan in `supabase/.tmp/`.
+The stack uses the keys `sb_publishable_localtest` and `sb_secret_localtest`; the fake Auth signs in directly as a
+Discord user (parameters `mock_discord_id`, `mock_deny`). `tests/supabase_stub.sql` mimics Supabase's roles and the
+`auth` schema. Temporary files live in `supabase/.tmp/`.

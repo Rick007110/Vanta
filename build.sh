@@ -2,7 +2,7 @@
 # Full build + package (Linux box or Git Bash). Requires dotnet 8 SDK; mingw for the dummy.
 set -e
 cd "$(dirname "$0")"
-V=0.3.3
+V=0.3.4
 dotnet test tests/Vanta.Tests
 [ -f tools/dummy/vanta_dummy.exe ] || sh tools/dummy/build.sh
 dotnet run --project src/Vanta.Cli -c Release -- validate games
@@ -12,7 +12,7 @@ dotnet publish src/Vanta.App -c Release -o dist/pub
 cp dist/pub/Vanta.exe dist/Vanta/
 cp -r games schema dist/Vanta/
 cp tools/dummy/vanta_dummy.exe tools/dummy/selftest.game.json dist/Vanta/selftest/
-cp LEESMIJ.txt LICENSE dist/Vanta/
+cp README.txt CHANGELOG.md LEESMIJ.txt LICENSE dist/Vanta/
 cp README-DEV.md docs/BRANDING.md docs/privacy.md dist/Vanta/docs/
 cd dist && rm -f Vanta-v$V.zip
 if command -v zip >/dev/null; then zip -r -9 Vanta-v$V.zip Vanta

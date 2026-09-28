@@ -15,18 +15,18 @@ def test_report_embed_contents():
     e = report_embed(summary(notes=[{"note": "crash @here on load", "vanta_version": "0.3.0", "updated": 1}]))
     assert e.title == "God mode — The Game" and e.color.value == 0xE5484D
     fields = {f.name: f.value for f in e.fields}
-    assert fields["Meldingen"] == "🔴 2 werkt niet · 🟢 1 werkt"
-    assert fields["Prioriteit"] == "3.50"
-    assert fields["Gameversie"] == "0.8.5 (nieuwste)"
-    assert "@here" not in fields["Opmerkingen"].replace("@\u200bhere", "")
+    assert fields["Reports"] == "🔴 2 broken · 🟢 1 works"
+    assert fields["Priority"] == "3.50"
+    assert fields["Game version"] == "0.8.5 (newest)"
+    assert "@here" not in fields["Notes"].replace("@\u200bhere", "")
     assert e.footer.text == "tlc / godmode · #1"
     assert len(e) <= 6000
 
 
 def test_reporters_only_when_requested():
     s = summary(reporters=[{"discord_id": "123456789012345678", "username": "a_b", "status": "broken", "updated": 1, "note": None}])
-    assert not any("Melders" in f.name for f in report_embed(s).fields)
-    f = [f for f in report_embed(s, reporters=True).fields if "Melders" in f.name][0]
+    assert not any("Reporters" in f.name for f in report_embed(s).fields)
+    f = [f for f in report_embed(s, reporters=True).fields if "Reporters" in f.name][0]
     assert "<@123456789012345678>" in f.value and "a\\_b" in f.value
 
 
@@ -37,16 +37,16 @@ def test_huge_input_stays_within_discord_limits():
 
 
 def test_top_and_digest():
-    assert "Geen open meldingen" in top_embed([]).description
+    assert "No open reports" in top_embed([]).description
     assert "**1.** God mode — The Game" in top_embed([summary()]).description
     d = digest_embed({"reports_period": 1, "broken_period": 1, "new_users": 0, "top": [], "fixed": [{"cheat_id": "a", "game_id": "g", "fixed_in_version": "0.3"}]}, "2026-W40")
-    assert "1 melding deze week" in d.description and "0 nieuwe gebruikers" in d.description
+    assert "1 report this week" in d.description and "0 new users" in d.description
     assert "✅ a — g (0.3)" in d.fields[1].value
 
 
 def test_digest_lists_top_requests():
     d = digest_embed({"reports_period": 0, "broken_period": 0, "new_users": 0, "top": [], "fixed": [],
                       "requests": [{"name": "Subnautica", "votes": 12, "votes_7d": 3, "status": "planned"}, {"name": "Terraria", "votes": 1, "status": "open"}, {"votes": 9}]}, "2026-W40")
-    f = next(x for x in d.fields if x.name == "Meest gevraagde games")
-    assert f.value.splitlines() == ["1. Subnautica — 12 stemmen (+3 deze week) · gepland", "2. Terraria — 1 stem"]
-    assert all(x.name != "Meest gevraagde games" for x in digest_embed({"top": [], "fixed": []}, "w").fields)
+    f = next(x for x in d.fields if x.name == "Most requested games")
+    assert f.value.splitlines() == ["1. Subnautica — 12 votes (+3 this week) · planned", "2. Terraria — 1 vote"]
+    assert all(x.name != "Most requested games" for x in digest_embed({"top": [], "fixed": []}, "w").fields)

@@ -21,7 +21,7 @@ public sealed class SelfTest
     private void Check(string name, bool ok, string? detail = null)
     {
         if (ok) _pass++; else _fail++;
-        _out.WriteLine($"[{(ok ? "OK  " : "FOUT")}] {name}{(detail != null ? "  - " + detail : "")}");
+        _out.WriteLine($"[{(ok ? "OK  " : "FAIL")}] {name}{(detail != null ? "  - " + detail : "")}");
     }
 
     private void Info(string s) => _out.WriteLine("       " + s);
@@ -31,9 +31,9 @@ public sealed class SelfTest
     private Dummy StartDummy(string exe)
     {
         var psi = new ProcessStartInfo(exe, "--seconds 120") { UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true };
-        var p = Process.Start(psi) ?? throw new Exception("dummy start mislukt");
+        var p = Process.Start(psi) ?? throw new Exception("dummy start failed");
         _started.Add(p);
-        var line = p.StandardOutput.ReadLine() ?? throw new Exception("dummy gaf geen uitvoer");
+        var line = p.StandardOutput.ReadLine() ?? throw new Exception("dummy gave no output");
         var m = Regex.Match(line, @"battery=([0-9A-Fa-f]+) xp=([0-9A-Fa-f]+) health=([0-9A-Fa-f]+)");
         if (!m.Success) throw new Exception("onverwachte dummy-uitvoer: " + line);
         // keep draining stdout so the dummy never blocks
@@ -58,13 +58,13 @@ public sealed class SelfTest
         _out.WriteLine($"OS: {Environment.OSVersion}, 64-bit proces: {Environment.Is64BitProcess}, admin: {IsAdmin()}");
         _out.WriteLine($"Dummy: {dummyExe}");
         try { RunInner(dummyExe, gameJson); }
-        catch (Exception e) { Check("onverwachte fout", false, e.ToString()); }
+        catch (Exception e) { Check("unexpected error", false, e.ToString()); }
         finally
         {
             foreach (var p in _started) { try { if (!p.HasExited) p.Kill(); } catch { } }
         }
         _out.WriteLine();
-        _out.WriteLine(_fail == 0 ? $"RESULTAAT: GESLAAGD ({_pass} controles)" : $"RESULTAAT: MISLUKT ({_fail} van {_pass + _fail} controles faalden)");
+        _out.WriteLine(_fail == 0 ? $"RESULT: PASSED ({_pass} checks)" : $"RESULT: FAILED ({_fail} of {_pass + _fail} checks failed)");
         return _fail == 0 ? 0 : 1;
     }
 
@@ -81,24 +81,24 @@ public sealed class SelfTest
 
     private void RunInner(string dummyExe, string gameJson)
     {
-        if (!File.Exists(dummyExe)) { Check("dummy gevonden", false, dummyExe); return; }
+        if (!File.Exists(dummyExe)) { Check("dummy found", false, dummyExe); return; }
         var errors = GameValidator.ValidateJson(gameJson).Where(f => f.Level == "error").ToList();
-        Check("selftest-definitie valide", errors.Count == 0, string.Join("; ", errors));
+        Check("selftest definition valid", errors.Count == 0, string.Join("; ", errors));
         var g = System.Text.Json.JsonSerializer.Deserialize<GameDef>(gameJson, Json.Options)!;
         Json.Normalize(g);
-        Check("confidence 'broken' geladen", g.Cheats.FirstOrDefault(c => c.Id == "broken_god")?.Confidence == "broken");
+        Check("confidence 'broken' loaded", g.Cheats.FirstOrDefault(c => c.Id == "broken_god")?.Confidence == "broken");
 
         var d = StartDummy(dummyExe);
         Info($"dummy pid {d.P.Id}, battery @ {d.Battery:X}, xp @ {d.Xp:X}, health @ {d.Health:X}");
         var prov = new WinProcessProvider();
         var mem = prov.Open(d.P.Id);
-        Check("proces geopend (OpenProcess)", mem.IsAlive);
+        Check("process opened (OpenProcess)", mem.IsAlive);
         ModuleInfo? mod = null;
         WaitFor(() => (mod = mem.FindModule(g.MainModule)) != null, 5000);
-        Check("module gevonden (Toolhelp)", mod != null, mod != null ? $"{mod.Name} @ {mod.Base:X}, {mod.Size} bytes" : null);
+        Check("module found (Toolhelp)", mod != null, mod != null ? $"{mod.Name} @ {mod.Base:X}, {mod.Size} bytes" : null);
         if (mod == null) return;
         var textBefore = mem.ReadBytes(mod.Base, (int)mod.Size);
-        Check("module leesbaar", textBefore != null);
+        Check("module readable", textBefore != null);
 
         var session = new TrainerSession(g, mem, (l, t) => Info($"{l}: {t}"));
         session.Runtime.FreeDelay = TimeSpan.FromMilliseconds(200);
@@ -106,40 +106,40 @@ public sealed class SelfTest
         // 1. AOB patch
         var sw = Stopwatch.StartNew();
         session.Enable("battery");
-        Check("AOB-patch toegepast (Infinite Battery)", session.IsActive("battery"), $"{sw.ElapsedMilliseconds} ms incl. scan");
+        Check("AOB patch applied (Infinite Battery)", session.IsActive("battery"), $"{sw.ElapsedMilliseconds} ms incl. scan");
         Thread.Sleep(200);
         var b1 = ReadD(mem, d.Battery); Thread.Sleep(400); var b2 = ReadD(mem, d.Battery);
-        Check("batterij daalt niet meer", b1 == b2 && !double.IsNaN(b1), $"{b1} -> {b2}");
+        Check("battery no longer drops", b1 == b2 && !double.IsNaN(b1), $"{b1} -> {b2}");
         session.Disable("battery");
         b1 = ReadD(mem, d.Battery); Thread.Sleep(400); b2 = ReadD(mem, d.Battery);
-        Check("na uitzetten daalt batterij weer", b2 < b1, $"{b1} -> {b2}");
+        Check("battery drops again after turning off", b2 < b1, $"{b1} -> {b2}");
 
         // 2. code cave + exported symbol + pointer value
         session.Enable("xp_hook");
-        Check("code-cave hook geplaatst (XP)", session.IsActive("xp_hook"), $"xp_data @ {session.Runtime.Symbols.GetValueOrDefault("xp_data"):X}");
+        Check("code cave hook placed (XP)", session.IsActive("xp_hook"), $"xp_data @ {session.Runtime.Symbols.GetValueOrDefault("xp_data"):X}");
         var cave = session.Runtime.Symbols.GetValueOrDefault("xp_data");
-        Check("cave binnen ±2GB van module", cave != 0 && Math.Abs((long)cave - (long)mod.Base) < int.MaxValue, $"afstand {(long)cave - (long)mod.Base:X}");
+        Check("cave within ±2GB of the module", cave != 0 && Math.Abs((long)cave - (long)mod.Base) < int.MaxValue, $"distance {(long)cave - (long)mod.Base:X}");
         ulong? xpAddr = null;
         WaitFor(() => (xpAddr = session.Runtime.ResolveAddress(session.Cheat("xp_value"))) != null, 3000);
-        Check("pointer via geëxporteerd symbool wijst naar dummy-XP", xpAddr == d.Xp, $"{xpAddr:X} vs {d.Xp:X}");
+        Check("pointer via exported symbol points to dummy XP", xpAddr == d.Xp, $"{xpAddr:X} vs {d.Xp:X}");
         session.SetValue("xp_value", 5000);
         Thread.Sleep(150);
-        Check("XP waarde gezet", ReadI(mem, d.Xp) >= 5000, $"xp={ReadI(mem, d.Xp)}");
+        Check("XP value set", ReadI(mem, d.Xp) >= 5000, $"xp={ReadI(mem, d.Xp)}");
         session.SetValue("xp_mult", 3);
         int x1 = ReadI(mem, d.Xp); Thread.Sleep(500); int x2 = ReadI(mem, d.Xp);
-        Check("XP-multiplier x3 actief", x2 > x1 && (x2 - x1) % 30 == 0, $"delta {x2 - x1} (veelvoud van 30)");
+        Check("XP multiplier x3 active", x2 > x1 && (x2 - x1) % 30 == 0, $"delta {x2 - x1} (multiple of 30)");
 
         // 3. AOB/RIP static pointer + freeze
         var hp = session.Runtime.ResolveAddress(session.Cheat("health"));
-        Check("statische pointer via AOB+RIP", hp == d.Health, $"{hp:X} vs {d.Health:X}");
+        Check("static pointer via AOB+RIP", hp == d.Health, $"{hp:X} vs {d.Health:X}");
         session.SetValue("health", 5000);
-        Check("health gezet", ReadI(mem, d.Health) > 4000, $"health={ReadI(mem, d.Health)}");
+        Check("health set", ReadI(mem, d.Health) > 4000, $"health={ReadI(mem, d.Health)}");
         session.Enable("god");
         // the dummy deals 1 damage every 50 ms; without freeze health would drop ~20 in a second
         int minHp = int.MaxValue;
         for (int i = 0; i < 10; i++) { Thread.Sleep(100); minHp = Math.Min(minHp, ReadI(mem, d.Health)); session.Tick(); }
         session.Tick();
-        Check("freeze houdt health op 999", ReadI(mem, d.Health) == 999 && minHp >= 995, $"na tick {ReadI(mem, d.Health)}, laagste {minHp}");
+        Check("freeze keeps health at 999", ReadI(mem, d.Health) == 999 && minHp >= 995, $"na tick {ReadI(mem, d.Health)}, laagste {minHp}");
 
         // 4. restore everything, byte-exact
         session.Enable("battery");
@@ -149,8 +149,8 @@ public sealed class SelfTest
         int diff = textBefore == null || textAfter == null ? -1 : Enumerable.Range(0, textBefore.Length).Count(i => textBefore[i] != textAfter[i]);
         // the module's own .data changes while it runs (battery/xp): compare only executable regions
         int codeDiff = CodeDiff(mem, mod, textBefore!, textAfter!);
-        Check("alles hersteld: code byte-identiek", codeDiff == 0, $"{codeDiff} gewijzigde code-bytes ({diff} totaal incl. data)");
-        Check("cave vrijgegeven", !mem.Regions(cave, cave + 1).Any(r => r.Start <= cave && cave < r.Start + r.Size && r.Readable), $"{cave:X}");
+        Check("everything restored: code byte-identical", codeDiff == 0, $"{codeDiff} gewijzigde code-bytes ({diff} totaal incl. data)");
+        Check("cave freed", !mem.Regions(cave, cave + 1).Any(r => r.Start <= cave && cave < r.Start + r.Size && r.Readable), $"{cave:X}");
         mem.Dispose();
 
         // 5. controller: detection, auto-attach, game restart -> re-apply, anti-cheat refusal
@@ -161,27 +161,27 @@ public sealed class SelfTest
         try { File.Delete(statusFile); } catch { }
         var ctl = new TrainerController(cat, prov, new Settings { AttachDelaySec = 0.3, Language = "nl" }, o => sent.Add(System.Text.Json.JsonSerializer.Serialize(o)),
             status: new StatusStore(statusFile));
-        Check("anti-cheat game geweigerd", ctl.StatusOf("blocked") == "blocked");
+        Check("anti-cheat game refused", ctl.StatusOf("blocked") == "blocked");
         WaitFor(() => { ctl.Poll(); return ctl.StatusOf(g.Id) == "attached"; }, 8000);
-        Check("auto-koppelen aan draaiend proces", ctl.StatusOf(g.Id) == "attached");
-        Check("anti-cheat game niet gekoppeld ondanks draaiend proces", ctl.SessionOf("blocked") == null && ctl.StatusOf("blocked") == "blocked");
+        Check("auto-attach to running process", ctl.StatusOf(g.Id) == "attached");
+        Check("anti-cheat game not attached despite running process", ctl.SessionOf("blocked") == null && ctl.StatusOf("blocked") == "blocked");
         ctl.HandleUi(System.Text.Json.JsonDocument.Parse($"{{\"type\":\"toggle\",\"gameId\":\"{g.Id}\",\"id\":\"battery\",\"enabled\":true}}").RootElement);
-        Check("cheat aan via controller", ctl.SessionOf(g.Id)?.IsActive("battery") == true);
+        Check("cheat enabled via controller", ctl.SessionOf(g.Id)?.IsActive("battery") == true);
         SelfTestStatus(ctl, g, statusFile);
         d.P.Kill(); d.P.WaitForExit(5000);
         WaitFor(() => { ctl.Tick(); ctl.Poll(); return ctl.StatusOf(g.Id) == "notfound"; }, 5000);
-        Check("game-exit gedetecteerd", ctl.StatusOf(g.Id) == "notfound");
+        Check("game exit detected", ctl.StatusOf(g.Id) == "notfound");
         var d2 = StartDummy(dummyExe);
         WaitFor(() => { ctl.Poll(); return ctl.StatusOf(g.Id) == "attached"; }, 8000);
-        Check("na herstart opnieuw gekoppeld", ctl.StatusOf(g.Id) == "attached", $"pid {d2.P.Id}");
-        Check("actieve cheat opnieuw toegepast na herstart", ctl.SessionOf(g.Id)?.IsActive("battery") == true);
+        Check("re-attached after restart", ctl.StatusOf(g.Id) == "attached", $"pid {d2.P.Id}");
+        Check("active cheat re-applied after restart", ctl.SessionOf(g.Id)?.IsActive("battery") == true);
         using (var m2 = prov.Open(d2.P.Id))
         {
             b1 = ReadD(m2, d2.Battery); Thread.Sleep(400); b2 = ReadD(m2, d2.Battery);
-            Check("batterij bevroren in nieuw proces", b1 == b2, $"{b1} -> {b2}");
+            Check("battery frozen in new process", b1 == b2, $"{b1} -> {b2}");
             ctl.Shutdown();
             b1 = ReadD(m2, d2.Battery); Thread.Sleep(400); b2 = ReadD(m2, d2.Battery);
-            Check("afsluiten van Vanta herstelt de game", b2 < b1, $"{b1} -> {b2}");
+            Check("closing Vanta restores the game", b2 < b1, $"{b1} -> {b2}");
         }
     }
 
@@ -197,45 +197,45 @@ public sealed class SelfTest
         var bg = g.Cheats.First(c => c.Id == "broken_god");
 
         var ack = ctl.HandleUi(Msg(T("broken_god", true)));
-        Check("'broken' cheat geweigerd", !AckOk(ack) && !s.IsActive("broken_god"));
+        Check("'broken' cheat refused", !AckOk(ack) && !s.IsActive("broken_god"));
         ctl.OnHotkey(new HotkeyBinding("F7", g.Id, "broken_god", ""));
-        Check("'broken' cheat geweigerd via sneltoets", !s.IsActive("broken_god"));
+        Check("'broken' cheat refused via hotkey", !s.IsActive("broken_god"));
         ack = ctl.HandleUi(Msg(T("broken_god", true, force: true)));
-        Check("'broken' cheat via 'toch proberen' (force) aan", AckOk(ack) && s.IsActive("broken_god"));
+        Check("'broken' cheat on via 'try anyway' (force)", AckOk(ack) && s.IsActive("broken_god"));
         ctl.HandleUi(Msg(T("broken_god", false)));
-        Check("'broken' cheat weer uit", !s.IsActive("broken_god"));
+        Check("'broken' cheat off again", !s.IsActive("broken_god"));
 
         // local status: "Werkt" overrides game.json 'broken'
         ack = ctl.HandleUi(Msg(S("broken_god", "works")));
-        Check("teststatus 'werkt' opgeslagen", AckOk(ack) && File.Exists(statusFile));
+        Check("test status 'works' saved", AckOk(ack) && File.Exists(statusFile));
         var reloaded = new StatusStore(statusFile);
         var key = ctl.StatusKey(g);
-        Check("teststatus bewaard per game + versie-vingerafdruk", reloaded.Get(g.Id, key, "broken_god") == "works" && key.StartsWith("fileVersion="), key);
-        Check("lokale 'werkt' telt als bevestigd", ctl.EffectiveConfidence(g, bg) == "confirmed");
+        Check("test status stored per game + version fingerprint", reloaded.Get(g.Id, key, "broken_god") == "works" && key.StartsWith("fileVersion="), key);
+        Check("local 'works' counts as confirmed", ctl.EffectiveConfidence(g, bg) == "confirmed");
         ack = ctl.HandleUi(Msg(T("broken_god", true)));
-        Check("cheat met lokale status 'werkt' zonder force aan", AckOk(ack) && s.IsActive("broken_god"));
+        Check("cheat with local status 'works' enabled without force", AckOk(ack) && s.IsActive("broken_god"));
         ctl.HandleUi(Msg(T("broken_god", false)));
 
         // local "Werkt niet" on a confirmed cheat
         ctl.HandleUi(Msg(S("battery", "broken")));
         ctl.HandleUi(Msg(T("battery", false)));
         ack = ctl.HandleUi(Msg(T("battery", true)));
-        Check("lokale 'werkt niet' blokkeert een bevestigde cheat", !AckOk(ack) && !s.IsActive("battery"));
+        Check("local 'broken' blocks a confirmed cheat", !AckOk(ack) && !s.IsActive("battery"));
 
         // reset to game.json
         ctl.HandleUi(Msg(S("battery", null)));
         ctl.HandleUi(Msg(S("broken_god", null)));
         reloaded = new StatusStore(statusFile);
-        Check("'Standaard (uit game.json)' wist de lokale status", reloaded.Get(g.Id, key, "battery") == null && reloaded.Get(g.Id, key, "broken_god") == null
+        Check("'Default (from game.json)' clears the local status", reloaded.Get(g.Id, key, "battery") == null && reloaded.Get(g.Id, key, "broken_god") == null
             && ctl.EffectiveConfidence(g, bg) == "broken");
         ack = ctl.HandleUi(Msg(T("battery", true)));
-        Check("bevestigde cheat na reset weer aan", AckOk(ack) && s.IsActive("battery"));
+        Check("confirmed cheat on again after reset", AckOk(ack) && s.IsActive("battery"));
 
         ctl.HandleUi(Msg(S("broken_god", "untested")));
         ack = ctl.HandleUi(Msg("{\"type\":\"exportStatus\"}"));
         var export = Directory.GetFiles(Path.GetDirectoryName(statusFile)!, "teststatus-export-*.json").Select(f => new FileInfo(f)).OrderByDescending(f => f.LastWriteTimeUtc).FirstOrDefault();
         var exportText = export != null ? File.ReadAllText(export.FullName) : "";
-        Check("teststatus geëxporteerd als JSON", AckOk(ack) && exportText.Contains("\"broken_god\"") && exportText.Contains("\"untested\"") && exportText.Contains("\"gameJson\": \"broken\""), export?.Name);
+        Check("test status exported as JSON", AckOk(ack) && exportText.Contains("\"broken_god\"") && exportText.Contains("\"untested\"") && exportText.Contains("\"gameJson\": \"broken\""), export?.Name);
         ctl.HandleUi(Msg(S("broken_god", null)));
         try { File.Delete(statusFile); if (export != null) File.Delete(export.FullName); } catch { }
     }

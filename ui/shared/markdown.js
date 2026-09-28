@@ -85,5 +85,16 @@
     return out.join('\n');
   }
 
-  root.VantaMd = { render, inline, safeUrl };
+  // Release notes are English first with the Dutch text in <details><summary>Nederlands</summary>…</details>.
+  // pick() returns the part for the UI language (English = everything outside that block; Dutch = the block plus the footer).
+  const NL_BLOCK = /<details>\s*<summary>\s*(?:Nederlands|Dutch)[^<]*<\/summary>([\s\S]*?)<\/details>/i;
+  function pick(md, lang) {
+    const src = String(md ?? '');
+    const m = NL_BLOCK.exec(src);
+    const strip = (x) => x.replace(/<\/?details>|<summary>[\s\S]*?<\/summary>/gi, '').replace(/\n{3,}/g, '\n\n').trim();
+    if (!m) return strip(src);
+    if (lang === 'nl' && m[1].trim()) return strip(m[1] + '\n\n' + src.slice(m.index + m[0].length));
+    return strip(src.slice(0, m.index) + '\n\n' + src.slice(m.index + m[0].length));
+  }
+  root.VantaMd = { render, inline, safeUrl, pick };
 })(window);

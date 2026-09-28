@@ -105,9 +105,8 @@ public class RuntimeTests
         extra.CopyTo(img, 0xF0000); extra.CopyTo(img, 0xF8000);
         var p2 = new FakeProcess(); p2.AddModule(g.MainModule, TestUtil.ModBase, img);
         var rt = new CheatRuntime(p2, g);
-        Strings.Lang = "nl";
         var e = Assert.Throws<CheatException>(() => rt.Apply(gren));
-        Assert.Equal("Infinite Grenades: geen unieke AOB gevonden (patroon 1: 0 treffer(s), patroon 2: 3 treffer(s), patroon 3: 3 treffer(s)). Niets gepatcht.", e.Message);
+        Assert.Equal("Infinite Grenades: no unique AOB found (pattern 1: 0 hit(s), pattern 2: 3 hit(s), pattern 3: 3 hit(s)). Nothing patched.", e.Message);
         Assert.Equal(0, p2.WriteCount);
     }
 
@@ -120,7 +119,7 @@ public class RuntimeTests
         new CheatRuntime(proc, g) { FreeDelay = TimeSpan.Zero }.Apply(c);   // earlier session, never restored
         var hooked = Image(proc);
         var e = Assert.Throws<CheatException>(() => new CheatRuntime(proc, g).Apply(c));
-        Assert.Contains("staat al aan in het spel", e.Message);
+        Assert.Contains("is already active in the game", e.Message);
         Assert.Equal(hooked, Image(proc));
     }
 
@@ -134,7 +133,7 @@ public class RuntimeTests
         proc.Write(sa + 1, new byte[] { 0x9C });
         var rt = new CheatRuntime(proc, g);
         var e = Assert.Throws<CheatException>(() => rt.Apply(g.Cheats.First(c => c.Id == "inf_ammo")));
-        Assert.Contains("patroon 1: 0 treffer(s)", e.Message);
+        Assert.Contains("pattern 1: 0 hit(s)", e.Message);
     }
 
     [Fact]

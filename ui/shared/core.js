@@ -469,7 +469,7 @@
       const u = state.update;
       if (!u) { state.modal = null; slot.innerHTML = ''; slot.hidden = true; return; }
       const body = $('[data-role=notes]', slot), top = body ? body.scrollTop : 0;
-      slot.innerHTML = T.whatsNew(u, root.VantaMd ? root.VantaMd.render(u.notes || '') : esc(u.notes || ''));
+      slot.innerHTML = T.whatsNew(u, root.VantaMd ? root.VantaMd.render(root.VantaMd.pick(u.notes || '', root.I18N.lang)) : esc(u.notes || ''));
       const nb = $('[data-role=notes]', slot);
       if (body) nb.scrollTop = top; else { nb.focus({ preventScroll: true }); }
       return;

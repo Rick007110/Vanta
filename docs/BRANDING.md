@@ -10,6 +10,6 @@ To rename the product, change these places (nothing else hard-codes the name):
 | App icon | `tools/brand/make_icon.py` -> `src/Vanta.App/app.ico` (same geometry as the SVG) |
 | Manifest description | `src/Vanta.App/app.manifest` |
 | Accent colours | `ui/styles.css` `:root` (`--accent*`) |
-| User texts that mention the name | `ui/shared/i18n.js`, `LEESMIJ.txt`, `src/Vanta.Core/Strings.cs` |
+| User texts that mention the name | `ui/shared/i18n.js`, `README.txt`, `LEESMIJ.txt`, `CHANGELOG.md`, `src/Vanta.Core/Strings.cs` |
 
 The C# namespaces (`Vanta.*`) are internal and can stay as they are.

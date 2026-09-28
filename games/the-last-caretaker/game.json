@@ -26,11 +26,21 @@
   ],
   "badge": "EA 0.8.5",
   "notes": [
-    "Alleen Infinite Battery is bevestigd werkend in 0.8.5.651238; alle andere cheats zijn ongetest en falen veilig (niets gepatcht) als hun AOB niet uniek is.",
-    "XP waarde en Enhancer-bonus gebruiken een hook die automatisch wordt geplaatst bij het koppelen. XP verschijnt nadat je eenmaal XP verdient.",
-    "Maak een backup van je save: %LOCALAPPDATA%\\Voyage\\Saved\\SaveGames",
-    "Vul supportedVersions (fileVersion/peTimestamp/moduleSize) aan met de vingerafdruk uit het log zodra de versie is bevestigd."
+    "Only Infinite Battery is confirmed working in 0.8.5.651238; all other cheats are untested and fail safely (nothing patched) when their AOB is not unique.",
+    "XP value and Enhancer bonus use a hook that is placed automatically when attaching. XP appears after you earn XP once.",
+    "Back up your save: %LOCALAPPDATA%\\Voyage\\Saved\\SaveGames",
+    "Add the fingerprint from the log to supportedVersions (fileVersion/peTimestamp/moduleSize) once the version is confirmed."
   ],
+  "i18n": {
+    "nl": {
+      "notes": [
+        "Alleen Infinite Battery is bevestigd werkend in 0.8.5.651238; alle andere cheats zijn ongetest en falen veilig (niets gepatcht) als hun AOB niet uniek is.",
+        "XP waarde en Enhancer-bonus gebruiken een hook die automatisch wordt geplaatst bij het koppelen. XP verschijnt nadat je eenmaal XP verdient.",
+        "Maak een backup van je save: %LOCALAPPDATA%\\Voyage\\Saved\\SaveGames",
+        "Vul supportedVersions (fileVersion/peTimestamp/moduleSize) aan met de vingerafdruk uit het log zodra de versie is bevestigd."
+      ]
+    }
+  },
   "art": {
     "sky": [
       "#07131F",
@@ -45,14 +55,16 @@
     {
       "id": "inf_battery",
       "name": "Infinite Battery",
-      "names": {
-        "en": "Infinite Battery"
-      },
       "section": "speler",
       "type": "toggle",
       "icon": "battery",
       "hotkey": "F5",
-      "description": "Geen stroomverbruik: skipt de 'subsd' in de gedeelde elektriciteits-drain (speler-battery en elektrisch gereedschap/pak).",
+      "description": "No power drain: skips the 'subsd' in the shared electricity drain (player battery and electric tools/suit).",
+      "i18n": {
+        "nl": {
+          "description": "Geen stroomverbruik: skipt de 'subsd' in de gedeelde elektriciteits-drain (speler-battery en elektrisch gereedschap/pak)."
+        }
+      },
       "confidence": "confirmed",
       "confidenceNote": "Bevestigd werkend in 0.8.5.651238 (in de praktijk getest; NOP van subsd op +4).",
       "impl": {
@@ -86,7 +98,12 @@
       "type": "toggle",
       "icon": "heart",
       "hotkey": "F6",
-      "description": "Speler neemt geen schade. Neem eenmaal schade zodat het HP-adres wordt vastgelegd.",
+      "description": "The player takes no damage. Take damage once so the HP address is captured.",
+      "i18n": {
+        "nl": {
+          "description": "Speler neemt geen schade. Neem eenmaal schade zodat het HP-adres wordt vastgelegd."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
       "impl": {
@@ -171,14 +188,20 @@
     },
     {
       "id": "health_current",
-      "name": "Health huidig",
+      "name": "Health (current)",
       "section": "speler",
       "type": "number",
       "icon": "heart",
       "min": 0,
       "max": 100000,
       "step": 10,
-      "hint": "Zet Infinite Health aan en neem eenmaal schade",
+      "hint": "Turn on Infinite Health and take damage once",
+      "i18n": {
+        "nl": {
+          "name": "Health huidig",
+          "hint": "Zet Infinite Health aan en neem eenmaal schade"
+        }
+      },
       "requires": [
         "inf_health"
       ],
@@ -195,14 +218,20 @@
     },
     {
       "id": "health_max",
-      "name": "Health max",
+      "name": "Health (max)",
       "section": "speler",
       "type": "number",
       "icon": "heart",
       "min": 0,
       "max": 100000,
       "step": 10,
-      "hint": "Zet Infinite Health aan en neem eenmaal schade",
+      "hint": "Turn on Infinite Health and take damage once",
+      "i18n": {
+        "nl": {
+          "name": "Health max",
+          "hint": "Zet Infinite Health aan en neem eenmaal schade"
+        }
+      },
       "requires": [
         "inf_health"
       ],
@@ -219,15 +248,18 @@
     },
     {
       "id": "no_weight",
-      "name": "Geen gewicht",
-      "names": {
-        "en": "No weight"
-      },
+      "name": "No Weight",
       "section": "speler",
       "type": "toggle",
       "icon": "weight",
       "hotkey": "F7",
-      "description": "Draaglimiet genegeerd (pak eenmaal een item op of leg er een neer om te verversen).",
+      "description": "Carry limit ignored (pick up or drop an item once to refresh).",
+      "i18n": {
+        "nl": {
+          "name": "Geen gewicht",
+          "description": "Draaglimiet genegeerd (pak eenmaal een item op of leg er een neer om te verversen)."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
       "impl": {
@@ -271,7 +303,12 @@
       "type": "toggle",
       "icon": "ammo",
       "hotkey": "F8",
-      "description": "Bolt pistool/geweer/sniper: schieten verbruikt geen munitie, herladen werkt.",
+      "description": "Bolt pistol/rifle/sniper: shooting uses no ammo, reloading still works.",
+      "i18n": {
+        "nl": {
+          "description": "Bolt pistool/geweer/sniper: schieten verbruikt geen munitie, herladen werkt."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
       "impl": {
@@ -328,7 +365,12 @@
       "type": "toggle",
       "icon": "grenade",
       "hotkey": "F9",
-      "description": "Granaten dalen niet (kan ook andere verbruiksitems raken).",
+      "description": "Grenades do not decrease (may also affect other consumables).",
+      "i18n": {
+        "nl": {
+          "description": "Granaten dalen niet (kan ook andere verbruiksitems raken)."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. In eerdere tests: patroon 2 gaf meerdere treffers. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
       "impl": {
@@ -425,11 +467,17 @@
     },
     {
       "id": "inf_charge",
-      "name": "Infinite wapenlading (elektrisch)",
+      "name": "Infinite Weapon Charge (electric)",
       "section": "wapens",
       "type": "toggle",
       "icon": "bolt",
-      "description": "Elektrische wapens/vlammenwerper verbruiken geen lading.",
+      "description": "Electric weapons/flamethrower use no charge.",
+      "i18n": {
+        "nl": {
+          "name": "Infinite wapenlading (elektrisch)",
+          "description": "Elektrische wapens/vlammenwerper verbruiken geen lading."
+        }
+      },
       "requires": [
         "fuel_hook"
       ],
@@ -546,10 +594,7 @@
     },
     {
       "id": "xp_value",
-      "name": "XP waarde",
-      "names": {
-        "en": "XP value"
-      },
+      "name": "XP Value",
       "section": "punten",
       "type": "number",
       "icon": "bolt",
@@ -561,8 +606,15 @@
       "requires": [
         "xp_hook"
       ],
-      "hint": "Verdien eenmaal XP in-game (bv. iets looten of recyclen)",
-      "sub": "Meer XP = level-up = skill- en enhancerpunten",
+      "hint": "Earn XP once in-game (e.g. loot or recycle something)",
+      "sub": "More XP = level-up = skill and enhancer points",
+      "i18n": {
+        "nl": {
+          "name": "XP waarde",
+          "sub": "Meer XP = level-up = skill- en enhancerpunten",
+          "hint": "Verdien eenmaal XP in-game (bv. iets looten of recyclen)"
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
       "impl": {
@@ -576,7 +628,7 @@
     },
     {
       "id": "xp_mult",
-      "name": "XP multiplier",
+      "name": "XP Multiplier",
       "section": "punten",
       "type": "slider",
       "icon": "multiply",
@@ -588,7 +640,13 @@
       "requires": [
         "xp_hook"
       ],
-      "hint": "XP-hook niet actief",
+      "hint": "XP hook not active",
+      "i18n": {
+        "nl": {
+          "name": "XP multiplier",
+          "hint": "XP-hook niet actief"
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
       "impl": {
@@ -599,7 +657,7 @@
     },
     {
       "id": "enhancer_pts",
-      "name": "Enhancer-bonus",
+      "name": "Enhancer Bonus",
       "section": "punten",
       "type": "number",
       "icon": "gem",
@@ -612,8 +670,15 @@
       "requires": [
         "enh_hook"
       ],
-      "hint": "Enhancer-hook niet actief",
-      "sub": "Extra punten; zichtbaar na openen enhancer-menu",
+      "hint": "Enhancer hook not active",
+      "sub": "Extra points; visible after opening the enhancer menu",
+      "i18n": {
+        "nl": {
+          "name": "Enhancer-bonus",
+          "sub": "Extra punten; zichtbaar na openen enhancer-menu",
+          "hint": "Enhancer-hook niet actief"
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
       "impl": {
@@ -624,9 +689,11 @@
     },
     {
       "id": "inf_jump",
-      "name": "Onbeperkt springen",
-      "names": {
-        "en": "Unlimited jump"
+      "name": "Unlimited Jump",
+      "i18n": {
+        "nl": {
+          "name": "Onbeperkt springen"
+        }
       },
       "section": "extra",
       "type": "toggle",
@@ -678,9 +745,11 @@
     },
     {
       "id": "instant_build",
-      "name": "Direct bouwen",
-      "names": {
-        "en": "Instant build"
+      "name": "Instant Build",
+      "i18n": {
+        "nl": {
+          "name": "Direct bouwen"
+        }
       },
       "section": "extra",
       "type": "toggle",
@@ -718,7 +787,7 @@
     },
     {
       "id": "inf_petrol",
-      "name": "Infinite petrol",
+      "name": "Infinite Petrol",
       "section": "extra",
       "type": "toggle",
       "icon": "fuel",
@@ -726,7 +795,13 @@
       "requires": [
         "fuel_hook"
       ],
-      "description": "Petrol (voertuigen/generator) daalt niet.",
+      "description": "Petrol (vehicles/generator) does not decrease.",
+      "i18n": {
+        "nl": {
+          "name": "Infinite petrol",
+          "description": "Petrol (voertuigen/generator) daalt niet."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
       "impl": {
@@ -739,15 +814,18 @@
     },
     {
       "id": "free_craft",
-      "name": "Gratis craften",
-      "names": {
-        "en": "Free crafting"
-      },
+      "name": "Free Crafting",
       "section": "extra",
       "type": "toggle",
       "icon": "cube",
       "hotkey": "Ctrl+F9",
-      "description": "Geen materialen nodig of verbruikt.",
+      "description": "No materials needed or used.",
+      "i18n": {
+        "nl": {
+          "name": "Gratis craften",
+          "description": "Geen materialen nodig of verbruikt."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
       "impl": {
@@ -805,15 +883,18 @@
     },
     {
       "id": "dupe_items",
-      "name": "Items dupliceren bij splitsen",
-      "names": {
-        "en": "Duplicate items on split"
-      },
+      "name": "Duplicate Items on Split",
       "section": "extra",
       "type": "toggle",
       "icon": "copy",
       "hotkey": "Ctrl+F10",
-      "description": "De bronstapel daalt niet bij splitsen.",
+      "description": "The source stack does not decrease when splitting.",
+      "i18n": {
+        "nl": {
+          "name": "Items dupliceren bij splitsen",
+          "description": "De bronstapel daalt niet bij splitsen."
+        }
+      },
       "confidence": "untested",
       "confidenceNote": "Gebaseerd op een openbaar Cheat Engine-script. Niet getest in 0.8.5.651238 (met de hand overgezet naar Vanta). Faalt veilig: bij geen unieke AOB wordt niets gepatcht.",
       "impl": {

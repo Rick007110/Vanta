@@ -118,7 +118,7 @@ public sealed class CheatRuntime
             if (impl.Type == "aobInject")
             {
                 var near = impl.Alloc?.Near ?? impl.Hooks?.FirstOrDefault()?.Site ?? sites.Keys.First();
-                if (!sites.TryGetValue(near, out var nearAddr)) throw new CheatException($"alloc.near '{near}' onbekend");
+                if (!sites.TryGetValue(near, out var nearAddr)) throw new CheatException($"alloc.near '{near}' unknown");
                 uint size = (uint)(impl.Alloc?.Size ?? 0x1000);
                 var cave = _mem.Alloc(size, nearAddr);
                 if (cave == 0) throw new CheatException(Strings.Get("alloc.fail"));
@@ -140,8 +140,8 @@ public sealed class CheatRuntime
                 plannedWrites.Add((cave, asm.Code));
                 foreach (var h in impl.Hooks ?? new())
                 {
-                    if (!sites.TryGetValue(h.Site, out var sa)) throw new CheatException($"hook site '{h.Site}' onbekend");
-                    if (!asm.Labels.TryGetValue(h.Label, out var target)) throw new CheatException($"hook label '{h.Label}' onbekend");
+                    if (!sites.TryGetValue(h.Site, out var sa)) throw new CheatException($"hook site '{h.Site}' unknown");
+                    if (!asm.Labels.TryGetValue(h.Label, out var target)) throw new CheatException($"hook label '{h.Label}' unknown");
                     int ow = impl.Sites![h.Site].Overwrite;
                     long dist = (long)target - (long)(sa + 5);
                     byte[] jmp = dist is >= int.MinValue and <= int.MaxValue ? MiniAssembler.JmpRel32(sa, target, ow)
@@ -150,14 +150,14 @@ public sealed class CheatRuntime
                 }
                 foreach (var ex in impl.Exports ?? new())
                 {
-                    if (!asm.Labels.TryGetValue(ex, out var a)) throw new CheatException($"export '{ex}' is geen label");
+                    if (!asm.Labels.TryGetValue(ex, out var a)) throw new CheatException($"export '{ex}' is not a label");
                     applied.Exports.Add(ex);
                     Symbols[ex] = a;
                 }
             }
             foreach (var p in impl.Patches ?? new())
             {
-                if (!sites.TryGetValue(p.Site, out var sa)) throw new CheatException($"patch site '{p.Site}' onbekend");
+                if (!sites.TryGetValue(p.Site, out var sa)) throw new CheatException($"patch site '{p.Site}' unknown");
                 plannedWrites.Add((sa + (ulong)p.Offset, AobScanner.ParseHex(p.Bytes)));
             }
 
@@ -188,7 +188,7 @@ public sealed class CheatRuntime
             var (addr, orig, now) = a.Writes[i];
             var cur = _mem.ReadBytes(addr, now.Length);
             if (cur != null && !cur.AsSpan().SequenceEqual(now)) warn.Add($"bytes op {addr:X} waren gewijzigd");
-            if (!_mem.Write(addr, orig)) warn.Add($"terugzetten op {addr:X} mislukt");
+            if (!_mem.Write(addr, orig)) warn.Add($"restore at {addr:X} failed");
         }
         a.Writes.Clear();
         foreach (var ex in a.Exports) Symbols.Remove(ex);
@@ -213,7 +213,7 @@ public sealed class CheatRuntime
         return lines.Select(line => Ph.Replace(line, m =>
         {
             var kind = m.Groups[1].Value; var site = m.Groups[2].Value;
-            if (!origs.TryGetValue(site, out var o)) throw new CheatException($"placeholder: site '{site}' onbekend");
+            if (!origs.TryGetValue(site, out var o)) throw new CheatException($"placeholder: site '{site}' unknown");
             if (kind == "orig")
             {
                 int start = m.Groups[3].Success ? (int)H(m.Groups[3].Value) : 0;
@@ -276,7 +276,7 @@ public sealed class CheatRuntime
     }
 
     /// <summary>Resolves only the base of a pointer cheat (no dereferencing): used by the verifier.</summary>
-    public ulong ResolveAddressBaseOnly(CheatDef cheat) => ResolveBase(cheat, cheat.Impl.Base ?? throw new CheatException("geen base"));
+    public ulong ResolveAddressBaseOnly(CheatDef cheat) => ResolveBase(cheat, cheat.Impl.Base ?? throw new CheatException("no base"));
 
     public static int SizeOf(string? vt) => vt switch { "byte" => 1, "int16" => 2, "int64" or "double" => 8, _ => 4 };
 

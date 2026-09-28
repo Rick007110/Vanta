@@ -126,7 +126,7 @@ public sealed class TrainerController
         _status.Set(g, key, cheatId, status, label);
         try { _status.Save(); } catch (Exception e) { Log(e.Message, "error"); return e.Message; }
         // a cheat that is now marked broken but is still on stays on; the user can turn it off as usual
-        Log(Strings.Get("status.saved", c.Names != null && c.Names.TryGetValue(_settings.Language, out var ln) ? ln : c.Name,
+        Log(Strings.Get("status.saved", CheatName(c),
             status == null ? Strings.Get("status.default") : Strings.Get("status." + status)));
         _send(UiGame(gameId));
         PushState(gameId);
@@ -147,7 +147,7 @@ public sealed class TrainerController
     /// <summary>Sends (status works|broken) or withdraws (status null) the community report; the result arrives as "reportResult".</summary>
     private string? Report(string gameId, string cheatId, string? status, string? note)
     {
-        if (Account == null) return "account niet beschikbaar";
+        if (Account == null) return Strings.Get("account.unavailable");
         if (status != null && status is not ("works" or "broken")) return "onbekende status " + status;
         var g = Game(gameId);
         var c = g.Cheats.FirstOrDefault(x => x.Id == cheatId) ?? throw new CheatException(Strings.Get("cheat.unknown", cheatId));
@@ -155,7 +155,7 @@ public sealed class TrainerController
         note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
         if (note is { Length: > 300 }) note = note[..300];
         var item = new Vanta.Core.Account.ReportItem(g.Id, c.Id, fp, status ?? "works", status == "broken" ? note : null, Branding.Version, label, g.Name, c.Name);
-        var shown = c.Names != null && c.Names.TryGetValue(_settings.Language, out var ln) ? ln : c.Name;
+        var shown = CheatName(c);
         _ = Task.Run(async () =>
         {
             var r = await Account.ReportAsync(item, withdraw: status == null).ConfigureAwait(false);
@@ -171,7 +171,7 @@ public sealed class TrainerController
 
     private string? Community(string gameId, bool force)
     {
-        if (Account == null) return "account niet beschikbaar";
+        if (Account == null) return Strings.Get("account.unavailable");
         var g = Game(gameId);
         var (fp, _) = ReportVersion(g);
         _ = Task.Run(async () =>
@@ -186,7 +186,7 @@ public sealed class TrainerController
     // ---------------- game requests ----------------
     private string? Requests()
     {
-        if (Account == null) return "account niet beschikbaar";
+        if (Account == null) return Strings.Get("account.unavailable");
         _ = Task.Run(async () =>
         {
             var (items, loggedIn, error) = await Account.GameRequestsAsync().ConfigureAwait(false);
@@ -215,7 +215,7 @@ public sealed class TrainerController
 
     private string? RequestVote(int appId, string? name, string? cover, bool unvote)
     {
-        if (Account == null) return "account niet beschikbaar";
+        if (Account == null) return Strings.Get("account.unavailable");
         _ = Task.Run(async () =>
         {
             var (ok, req, error) = await Account.VoteGameAsync(appId, name, cover, unvote).ConfigureAwait(false);
@@ -237,33 +237,43 @@ public sealed class TrainerController
         return file;
     }
 
+    /// <summary>Cheat name in the UI language: i18n.&lt;lang&gt;.name, then names[lang], then the (English) name.</summary>
+    public string CheatName(CheatDef c)
+    {
+        var lang = _settings.Language;
+        if (c.I18n != null && c.I18n.TryGetValue(lang, out var t) && !string.IsNullOrEmpty(t.Name)) return t.Name;
+        return c.Names != null && c.Names.TryGetValue(lang, out var n) && !string.IsNullOrEmpty(n) ? n : c.Name;
+    }
+
     public object UiGame(string id)
     {
         var g = Game(id);
         var lang = _settings.Language;
         var skey = StatusKey(g);
+        var gt = g.I18n != null && g.I18n.TryGetValue(lang, out var gtl) ? gtl : null;
         return new
         {
             type = "game",
             game = new
             {
-                id = g.Id, name = g.Name, @short = g.Short ?? Abbrev(g.Name), badge = g.Badge ?? "", version = g.SupportedVersions.FirstOrDefault()?.Label ?? "",
+                id = g.Id, name = g.Name, @short = g.Short ?? Abbrev(g.Name), badge = g.Badge ?? "", version = gt?.Version ?? g.SupportedVersions.FirstOrDefault()?.Label ?? "",
                 process = g.ProcessNames.FirstOrDefault() ?? "", steamAppId = g.SteamAppId, categories = g.Categories, antiCheat = g.AntiCheat, onlineOnly = g.OnlineOnly,
-                cheatCount = g.Cheats.Count(c => !c.Hidden), notes = g.Notes ?? new(), scope = g.Scope, install = InstallUi(g), art = g.Art,
+                cheatCount = g.Cheats.Count(c => !c.Hidden), notes = gt?.Notes ?? g.Notes ?? new(), scope = gt?.Scope ?? g.Scope, install = InstallUi(g), art = g.Art,
                 statusVersion = skey,
                 cheats = g.Cheats.Where(c => !c.Hidden).Select(c =>
                 {
                     var local = _status.Get(g.Id, skey, c.Id);
+                    var ct = c.I18n != null && c.I18n.TryGetValue(lang, out var ctl) ? ctl : null;
                     var w = (local, eff: StatusStore.Effective(c.Confidence, local));
                     return (object)new
                 {
                     id = c.Id, section = c.Section, type = c.Type,
-                    name = c.Names != null && c.Names.TryGetValue(lang, out var ln) ? ln : c.Name,
+                    name = CheatName(c),
                     icon = c.Icon ?? "bolt", hotkey = _settings.HotkeyFor(g.Id, c), hotkeyInc = _settings.HotkeyFor(g.Id, c, "inc"), hotkeyDec = _settings.HotkeyFor(g.Id, c, "dec"),
                     defaultHotkey = c.Hotkey, defaultHotkeyInc = c.HotkeyInc, defaultHotkeyDec = c.HotkeyDec,
-                    min = c.Min ?? 0, max = c.Max ?? 999999, step = c.Step ?? 1, format = c.Format ?? "{v}", sub = c.Sub,
-                    hint = c.Type is "number" or "slider" ? (c.Hint ?? Strings.Get("ptr.null")) : null,
-                    note = ConfidenceNote(w.eff), description = c.Description, confidence = w.eff, baseConfidence = c.Confidence, localStatus = w.local, buttonLabel = c.ButtonLabel,
+                    min = c.Min ?? 0, max = c.Max ?? 999999, step = c.Step ?? 1, format = c.Format ?? "{v}", sub = ct?.Sub ?? c.Sub,
+                    hint = c.Type is "number" or "slider" ? (ct?.Hint ?? c.Hint ?? Strings.Get("ptr.null")) : null,
+                    note = ConfidenceNote(w.eff), description = ct?.Description ?? c.Description, confidence = w.eff, baseConfidence = c.Confidence, localStatus = w.local, buttonLabel = ct?.ButtonLabel ?? c.ButtonLabel,
                     enabled = Rt(g.Id).Desired.Contains(c.Id) && Rt(g.Id).Session?.IsActive(c.Id) == true,
                     value = (double?)null,
                 }; }),
@@ -370,15 +380,15 @@ public sealed class TrainerController
                 case "getSettings":
                     _send(SettingsPayload()); if (Account != null) _send(Account.Payload()); return Ack(true);
                 case "accountLogin":
-                    if (Account == null) return Ack(false, "account niet beschikbaar");
+                    if (Account == null) return Ack(false, Strings.Get("account.unavailable"));
                     _ = Account.LoginAsync(); return Ack(true);
                 case "accountCancel":
                     Account?.CancelLogin(); return Ack(true);
                 case "accountLogout":
-                    if (Account == null) return Ack(false, "account niet beschikbaar");
+                    if (Account == null) return Ack(false, Strings.Get("account.unavailable"));
                     _ = Account.LogoutAsync(); return Ack(true);
                 case "accountDelete":
-                    if (Account == null) return Ack(false, "account niet beschikbaar");
+                    if (Account == null) return Ack(false, Strings.Get("account.unavailable"));
                     _ = Account.DeleteAsync(); return Ack(true);
                 case "report":
                 case "withdraw":
@@ -411,7 +421,7 @@ public sealed class TrainerController
                 case "saveSettings":
                     SaveSettings(m.GetProperty("settings")); return Ack(true);
                 default:
-                    return Ack(false, "onbekend bericht " + type);
+                    return Ack(false, "unknown message " + type);
             }
         }
         catch (Exception ex) when (ex is CheatException or KeyNotFoundException or InvalidOperationException or IOException or UnauthorizedAccessException or ArgumentException)
@@ -430,7 +440,7 @@ public sealed class TrainerController
 
     private void SaveSettings(JsonElement s)
     {
-        if (s.TryGetProperty("language", out var l) && l.GetString() is "nl" or "en") { _settings.Language = l.GetString()!; Strings.Lang = _settings.Language; }
+        if (s.TryGetProperty("language", out var l) && l.GetString() is "nl" or "en") { _settings.Language = l.GetString()!; _settings.LanguageChosen = true; Strings.Lang = _settings.Language; }
         if (s.TryGetProperty("catalogDir", out var cd)) _settings.CatalogDir = string.IsNullOrWhiteSpace(cd.GetString()) ? null : cd.GetString();
         if (s.TryGetProperty("catalogUrl", out var cu)) _settings.CatalogUrl = string.IsNullOrWhiteSpace(cu.GetString()) ? null : cu.GetString();
         if (s.TryGetProperty("shareUsage", out var su) && su.ValueKind is JsonValueKind.True or JsonValueKind.False) _settings.ShareUsage = su.GetBoolean();
@@ -461,7 +471,7 @@ public sealed class TrainerController
         var c = g.Cheats.FirstOrDefault(x => x.Id == cheatId) ?? throw new CheatException(Strings.Get("cheat.unknown", cheatId));
         if (enabled && !force && EffectiveConfidence(g, c) == "broken" && r.Session?.IsActive(cheatId) != true)
         {
-            var msg = Strings.Get("cheat.broken", c.Name);
+            var msg = Strings.Get("cheat.broken", CheatName(c));
             _send(new { type = "state", gameId, cheats = new[] { new CheatStateDto { Id = cheatId, Enabled = false, Error = null }.ToUi() } });
             Log(msg, "warn");
             return msg;
@@ -476,7 +486,7 @@ public sealed class TrainerController
         {
             if (enabled) r.Session.Enable(cheatId); else r.Session.Disable(cheatId);
             if (enabled) Account?.CountUsage(gameId, cheatId);   // opt-in anonymous counts; no-op when off
-            Log(Strings.Get(enabled ? "enabled" : "disabled", c.Name));
+            Log(Strings.Get(enabled ? "enabled" : "disabled", CheatName(c)));
             return null;
         }
         catch (CheatException e)
@@ -497,7 +507,7 @@ public sealed class TrainerController
             var c = r.Session.Cheat(cheatId);
             var nv = r.Session.SetValue(cheatId, v);
             if (c.Impl.Freeze) r.DesiredValues[cheatId] = nv;
-            Log(Strings.Get("value.set", c.Name, nv));
+            Log(Strings.Get("value.set", CheatName(c), nv));
             return null;
         }
         catch (CheatException e) { Log(e.Message, "error"); PushState(gameId); return e.Message; }

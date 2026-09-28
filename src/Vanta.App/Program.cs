@@ -49,7 +49,8 @@ internal static class Program
             var pending = store.ApplicablePending(Core.Update.SemVer.Parse(Branding.Version));
             if (pending != null)
             {
-                Log.Info($"update: pending {pending.Version} wordt geïnstalleerd");
+                Log.Info($"update: installing pending {pending.Version}");
+                try { Strings.Lang = Settings.Load().Language; } catch { }
                 UpdateSplash? splash = null;
                 try { splash = new UpdateSplash(pending.Version); splash.Show(); Application.DoEvents(); }
                 catch (Exception e) { Log.Error("update splash: " + e.Message); splash = null; }   // the splash is optional
@@ -94,7 +95,7 @@ internal static class Program
             tee.WriteLine($"Log: {logFile}");
         }
         else rc = Cli.Run(args, stdout);
-        if (own) { Console.WriteLine(); Console.WriteLine("Druk op Enter om te sluiten…"); try { Console.ReadLine(); } catch { } }
+        if (own) { Console.WriteLine(); Console.WriteLine("Press Enter to close…"); try { Console.ReadLine(); } catch { } }
         return rc;
     }
 

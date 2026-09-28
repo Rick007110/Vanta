@@ -100,7 +100,7 @@ public class StoreControllerTests
         c.Poll(); _now = _now.AddSeconds(1); c.Poll();
         Assert.Equal("error", c.StatusOf(g.Id));
         Assert.Null(c.SessionOf(g.Id));
-        Assert.Contains(_sent, s => s.Contains("Anti-cheat actief"));
+        Assert.Contains(_sent, s => s.Contains("Anti-cheat running"));
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class StoreControllerTests
         prov.Start(10, "VoyageSteam-Win64-Shipping.exe");
         c.Poll(); _now = _now.AddSeconds(1); c.Poll();
         Assert.Equal("error", c.StatusOf(g.Id));
-        Assert.Contains(_sent, s => s.Contains("Anti-cheat gevonden"));
+        Assert.Contains(_sent, s => s.Contains("Anti-cheat found"));
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class VerifierTests
         m.Add(Dummy, g.MainModule);
         var (lines, ok) = Verifier.Report(g, m, new Dictionary<string, string> { [g.MainModule] = Dummy }, null);
         Assert.True(ok, string.Join("\n", lines));
-        Assert.Contains(lines, l => l.StartsWith("RESULTAAT: 5/5"));
+        Assert.Contains(lines, l => l.StartsWith("RESULT: 5/5"));
         Assert.Contains(lines, l => l.Contains("headSha256="));
     }
 
@@ -168,9 +168,9 @@ public class VerifierTests
         m.Add(Dummy, g.MainModule);
         var (lines, ok) = Verifier.Report(g, m, null, null);
         Assert.False(ok);
-        var line = lines.First(l => l.StartsWith("[FOUT] " + c.Id));
-        Assert.Contains("patroon 1: 0 treffer(s)", line);
-        Assert.Matches(@"patroon 2: \d+ treffer\(s\)", line);
+        var line = lines.First(l => l.StartsWith("[FAIL] " + c.Id));
+        Assert.Contains("pattern 1: 0 hit(s)", line);
+        Assert.Matches(@"pattern 2: \d+ hit\(s\)", line);
     }
 
     [Fact]

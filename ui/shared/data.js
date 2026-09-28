@@ -24,8 +24,8 @@
       version: '1.0', cheatCount: 3 + (i % 12), categories: [cats[i % cats.length]], cheats: [], lazy: true, process: `Demo${i}.exe` });
   }
 
-  const app = Object.assign({ name: 'Vanta', version: '0.1.0', production: false, lang: 'nl', ackTimeout: 5000 }, lib.app || {});
-  root.I18N.lang = app.lang || 'nl';
+  const app = Object.assign({ name: 'Vanta', version: '0.1.0', production: false, lang: 'en', ackTimeout: 5000 }, lib.app || {});
+  root.I18N.lang = app.lang || 'en';
   root.TrainerData = {
     app, sections, groups, games, hosted: !!host,
     selectedGameId: lib.selected || (games[0] && games[0].id),

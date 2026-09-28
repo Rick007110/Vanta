@@ -59,7 +59,7 @@ public sealed class WinProcessMemory : IProcessMemory
         if (Environment.Is64BitOperatingSystem && Native.IsWow64Process(_h, out var wow) && wow)
         {
             Native.CloseHandle(_h); _h = IntPtr.Zero;
-            throw new InvalidOperationException("32-bit games worden in v0.1 niet ondersteund");
+            throw new InvalidOperationException(Strings.Get("x86.unsupported"));
         }
     }
 

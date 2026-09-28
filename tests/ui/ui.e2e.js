@@ -34,8 +34,10 @@ global.window = {};
 eval(fs.readFileSync(path.join(UI, 'shared', 'devdata.js'), 'utf8'));
 const DEV = global.window.VantaDev;
 
-function hostScript({ many = 0, status = 'attached', blocked = false, account = null, reqDown = false, longReq = false, longCheat = false } = {}) {
-  const lib = JSON.parse(JSON.stringify(DEV.library));
+function hostScript({ many = 0, status = 'attached', blocked = false, account = null, reqDown = false, longReq = false, longCheat = false, lang = 'nl' } = {}) {
+  // English is the app default; most checks below run in Dutch (secondary language) with the Dutch fixture
+  const SRC = lang === 'nl' ? DEV.nl : DEV;
+  const lib = JSON.parse(JSON.stringify(SRC.library));
   for (let i = 0; i < many; i++) lib.games.push({ id: `game-${i}`, name: `Testgame ${String(i + 1).padStart(4, '0')}`, short: 'TG', badge: 'v1.' + (i % 9), version: '', cheatCount: 3 + (i % 20),
     steamAppId: null, categories: [['survival', 'rpg', 'shooter', 'strategy', 'racing', 'sim'][i % 6]], antiCheat: i % 97 === 0, onlineOnly: false, group: 'all', art: null, process: `Game${i}.exe`, cheats: [], lazy: true });
   if (blocked) lib.games.push({ id: 'online-shooter', name: 'Online Shooter X', short: 'OS', badge: '', version: '', cheatCount: 0, steamAppId: null, categories: ['shooter'], antiCheat: true, onlineOnly: true, group: 'all', art: null, process: 'shooter.exe', cheats: [], lazy: true });
@@ -44,10 +46,10 @@ window.__posted = []; window.__csp = [];
 document.addEventListener('securitypolicyviolation', (e) => window.__csp.push(e.violatedDirective + ' ' + e.blockedURI));
 window.vantaHost = { library: ${JSON.stringify(lib)} };
 (function () {
-  const games = ${JSON.stringify(DEV.games)};
+  const games = ${JSON.stringify(SRC.games)};
   // fixture: one cheat marked "broken" in game.json
   const tlc = games['the-last-caretaker'];
-  if (tlc) tlc.cheats.forEach((c) => { c.baseConfidence = c.confidence; if (c.id === 'inf_jump') { c.confidence = c.baseConfidence = 'broken'; c.note = 'Werkt niet in deze versie.'; } });
+  if (tlc) tlc.cheats.forEach((c) => { c.baseConfidence = c.confidence; if (c.id === 'inf_jump') { c.confidence = c.baseConfidence = 'broken'; c.note = ${JSON.stringify(lang === 'nl' ? 'Werkt niet in deze versie.' : 'Does not work in this version.')}; } });
   if (tlc && ${JSON.stringify(!!longCheat)}) tlc.cheats.forEach((c) => { if (c.id === 'inf_health') c.name = 'Infinite Health, Stamina and Oxygen (incl. fall damage, drowning and radiation)'; });
   const CONF = { works: 'confirmed', broken: 'broken', untested: 'untested' };
   const NOTE = { confirmed: null, broken: 'Werkt niet in deze versie.', untested: 'Niet geverifieerd voor deze versie.', experimental: 'Experimenteel: kan de game laten crashen. Sla eerst op.' };
@@ -57,7 +59,7 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
   const acc = ${JSON.stringify(account)};
   const accMsg = () => Object.assign({ type: 'account', busy: false, error: null, pending: 0, shareUsage: false }, acc, { user: acc && acc.loggedIn ? { id: '400000000000000001', username: 'tester', avatarUrl: 'https://cdn.discordapp.com/embed/avatars/1.png' } : null });
   const REQ = { down: ${JSON.stringify(!!reqDown)}, items: [{ appid: 264710, name: 'Subnautica', cover: null, status: 'planned', note: null, votes: 12, votes7d: 3, voted: false },
-    { appid: 105600, name: 'Terraria', cover: null, status: 'open', note: 'Na de volgende update', votes: 4, votes7d: 1, voted: false }] };
+    { appid: 105600, name: 'Terraria', cover: null, status: 'open', note: ${JSON.stringify(lang === 'nl' ? 'Na de volgende update' : 'After the next update')}, votes: 4, votes7d: 1, voted: false }] };
   if (${JSON.stringify(!!longReq)}) REQ.items = ${JSON.stringify(LONG_REQ)};
   const COMM = { inf_health: { works: 3, broken: 12, status: 'open', fixedInVersion: null }, no_weight: { works: 0, broken: 0, status: 'fixed', fixedInVersion: '0.2.3' } };
   window.__hostSend = send;
@@ -77,7 +79,7 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
           { id: 'inf_battery', enabled: true, error: null }, { id: 'no_weight', enabled: true, error: null },
           { id: 'xp_value', value: 12450, hint: null, error: null }, { id: 'xp_mult', value: 3, hint: null, error: null } ] });
         if (m.type === 'ready' && acc) send(accMsg());
-        if (m.type === 'ready') send({ type: 'settings', settings: { language: 'nl', catalogDir: '', catalogUrl: '', attachDelaySec: 4, autoAttach: true }, catalog: { source: 'C:\\\\Games\\\\Vanta\\\\games', games: window.vantaHost.library.games.length }, dataDir: '%LOCALAPPDATA%\\\\Vanta', version: '0.1.0' });
+        if (m.type === 'ready') send({ type: 'settings', settings: { language: ${JSON.stringify(lang)}, catalogDir: '', catalogUrl: '', attachDelaySec: 4, autoAttach: true }, catalog: { source: 'C:\\\\Games\\\\Vanta\\\\games', games: window.vantaHost.library.games.length }, dataDir: '%LOCALAPPDATA%\\\\Vanta', version: '0.1.0' });
         return ack();
       }
       if (m.type === 'toggle') {
@@ -137,7 +139,7 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
       }
       if (m.type === 'checkUpdate') { send({ type: 'updateStatus', state: { state: 'uptodate', version: '0.2.0' } }); return ack(); }
       if (m.type === 'updateNow') { send({ type: 'updateStatus', state: 'downloading', progress: 0.42, version: '0.3.0' }); return ack(); }
-      if (m.type === 'getSettings') { send({ type: 'settings', settings: { language: 'nl', catalogDir: '', catalogUrl: '', autoAttach: true }, catalog: { source: 'games', games: window.vantaHost.library.games.length }, dataDir: '%LOCALAPPDATA%\\\\Vanta', version: '0.1.0' }); return ack(); }
+      if (m.type === 'getSettings') { send({ type: 'settings', settings: { language: ${JSON.stringify(lang)}, catalogDir: '', catalogUrl: '', autoAttach: true }, catalog: { source: 'games', games: window.vantaHost.library.games.length }, dataDir: '%LOCALAPPDATA%\\\\Vanta', version: '0.1.0' }); return ack(); }
       return ack();
     } } };
 })();`;
@@ -187,7 +189,48 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const text = (sel) => page.$eval(sel, (e) => e.textContent.trim());
   const shot = async (name) => { await sleep(350); await page.screenshot({ path: path.join(OUT, name) }); results.push(['SHOT', path.join(OUT, name)]); };
 
-  // 1. main, attached
+  // 0. English is the default language (fresh install / no explicit choice): UI, game texts, dialogs, release notes
+  await load({ lang: 'en', account: { configured: true, loggedIn: false } });
+  const en0 = await page.evaluate(() => ({ html: document.documentElement.lang, st: document.querySelector('[data-bind=status-label]').textContent,
+    tab: document.querySelector('[data-action=tab][data-value=hotkeys]').textContent, ph: document.querySelector('[data-role=search], input[type=search]') && document.querySelector('[data-role=search], input[type=search]').placeholder,
+    req: document.querySelector('[data-action=open-requests]') && document.querySelector('[data-action=open-requests]').textContent.trim(),
+    cheat: document.querySelector('[data-cheat=inf_battery] .cheat-name, [data-cheat=inf_battery] [data-bind=name]') ? document.querySelector('[data-cheat=inf_battery] .cheat-name, [data-cheat=inf_battery] [data-bind=name]').textContent.trim() : null }));
+  check('English default: lang=en, status Attached, Hotkeys tab, English search + Request a game', () => assert.deepStrictEqual({ html: en0.html, st: en0.st, tab: en0.tab, ph: en0.ph, req: en0.req },
+    { html: 'en', st: 'Attached', tab: 'Hotkeys', ph: 'Search games…', req: 'Request a game' }));
+  const dutchWords = /\b(Gekoppeld|Sneltoetsen|Instellingen|Zoek|Notities|Alles uit|aanvragen|Oneindige|Geen|niet|voor|deze)\b/;
+  const enBody = await page.evaluate(() => document.querySelector('#app').innerText);
+  check('English default: no Dutch words in the main window', () => assert.ok(!dutchWords.test(enBody), (enBody.match(dutchWords) || [])[0]));
+  const keys = await page.evaluate(() => { const S = window.I18N.strings; const en = Object.keys(S.en), nl = Object.keys(S.nl); return { en: en.filter((k) => !(k in S.nl)), nl: nl.filter((k) => !(k in S.en)) }; });
+  check('i18n: English and Dutch tables have the same keys', () => assert.deepStrictEqual(keys, { en: [], nl: [] }));
+  await page.click('[data-action=tab][data-value=notes]'); await sleep(150);
+  const enNotes = await page.evaluate(() => document.querySelector('#app').innerText);
+  check('English default: game notes (game.json) in English', () => assert.ok(!dutchWords.test(enNotes) && /Supported version/.test(enNotes), (enNotes.match(dutchWords) || [])[0]));
+  await page.click('[data-action=tab][data-value=cheats]'); await sleep(150);
+  await page.click('[data-action=open-settings]'); await sleep(250);
+  const enSet = await page.evaluate(() => { const s = document.querySelector('[data-set=language]'); return { val: s.value, opts: [...s.options].map((o) => o.value + ':' + o.textContent) }; });
+  check('English default: Settings language = English, Dutch still selectable', () => assert.deepStrictEqual(enSet, { val: 'en', opts: ['en:English', 'nl:Nederlands'] }));
+  await page.keyboard.press('Escape'); await sleep(200);
+  const picked = await page.evaluate(() => ({ en: window.VantaMd.pick(window.VantaMockReleaseNotes, 'en'), nl: window.VantaMd.pick(window.VantaMockReleaseNotes, 'nl'), plain: window.VantaMd.pick('## Nieuw\n- x', 'en') }));
+  check("What's new: English part by default, Dutch <details> part for nl, plain notes unchanged", () => assert.ok(/^## New/.test(picked.en) && !/Nieuw|<details>|Nederlands/.test(picked.en) && /Full Changelog/.test(picked.en)
+    && /^## Nieuw/.test(picked.nl) && !/## New|<details>/.test(picked.nl) && /Full Changelog/.test(picked.nl) && picked.plain === '## Nieuw\n- x', JSON.stringify(picked)));
+  await page.evaluate(() => window.__hostSend({ type: 'update', manual: true, current: '0.3.3', release: { state: 'available', version: '0.3.4', notes: window.VantaMockReleaseNotes, url: 'https://github.com/Rick007110/Vanta/releases/tag/v0.3.4', size: 64000000 } }));
+  await sleep(300);
+  const enToast = await page.evaluate(() => document.querySelector('.toast, [data-role=update], .upd') ? (document.querySelector('.toast, [data-role=update], .upd').innerText) : document.body.innerText);
+  check('English default: update toast in English', () => assert.ok(/Update available: v0\.3\.4/.test(enToast) && /What's new/.test(enToast), enToast.slice(0, 200)));
+  await page.click('[data-action=whats-new]'); await sleep(300);
+  const enWn = await page.evaluate(() => { const b = document.querySelector('[data-role=notes]'); return b ? b.innerText : ''; });
+  check("English default: What's new shows only the English notes", () => assert.ok(/New/.test(enWn) && /Request a game/.test(enWn) && !/Nieuw|Nederlands|details/.test(enWn), enWn.slice(0, 200)));
+  await page.keyboard.press('Escape'); await sleep(200);
+  await load({ lang: 'en', account: { configured: true, loggedIn: false } });
+  await page.mouse.move(0, 0);
+  await shot(`vanta-${VER}-english.png`);
+  if (process.env.SHOT_EN) fs.copyFileSync(path.join(OUT, `vanta-${VER}-english.png`), process.env.SHOT_EN);
+  await page.click('[data-action=open-requests]'); await sleep(250);
+  const enReq = await page.evaluate(() => ({ title: document.querySelector('#req-title').textContent, body: document.querySelector('.modal-requests').innerText }));
+  check('English default: Request a game dialog in English', () => assert.ok(enReq.title === 'Request a game' && !/Stem|aanvragen|Zoek/.test(enReq.body), enReq.body.slice(0, 200)));
+  await page.keyboard.press('Escape'); await sleep(200);
+
+  // 1. main, attached (Dutch, the secondary language)
   await load();
   const title = await page.title();
   check('document.title = Vanta', () => assert.strictEqual(title, 'Vanta'));
@@ -699,6 +742,6 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await browser.close(); server.close();
   results.forEach(([s, n]) => console.log(`${s.padEnd(4)} ${n}`));
   const fail = results.filter((r) => r[0] === 'FAIL').length;
-  console.log(fail ? `UI: ${fail} FOUT(EN)` : `UI: alle ${results.filter((r) => r[0] === 'OK').length} controles geslaagd`);
+  console.log(fail ? `UI: ${fail} FAILED` : `UI: all ${results.filter((r) => r[0] === 'OK').length} checks passed`);
   process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });

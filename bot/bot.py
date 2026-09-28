@@ -11,7 +11,7 @@ from __future__ import annotations
 import sys
 
 if sys.version_info < (3, 10):
-    sys.exit("Python 3.10 of nieuwer is nodig (dit is %d.%d). Kies een nieuwere Docker-image in het paneel." % sys.version_info[:2])
+    sys.exit("Python 3.10 or newer is required (this is %d.%d). Pick a newer Docker image in the panel." % sys.version_info[:2])
 
 import asyncio
 import logging
@@ -40,11 +40,11 @@ def setup_logging(level: str) -> None:
 
 
 HINTS = {
-    "function_missing": "de Vanta-functies bestaan niet: voer supabase-setup.sql uit in de SQL Editor van Supabase",
-    "permission_denied": "geen rechten: gebruik de secret/service_role key, niet de publishable/anon key",
-    "bad_key": "SUPABASE_SERVICE_ROLE_KEY wordt geweigerd: kopieer de secret key opnieuw",
-    "forbidden": "de key is geen service_role/secret key",
-    "unreachable": "SUPABASE_URL is niet bereikbaar (typefout, of het project is gepauzeerd?)",
+    "function_missing": "the Vanta functions do not exist: run supabase-setup.sql in the Supabase SQL Editor",
+    "permission_denied": "no permission: use the secret/service_role key, not the publishable/anon key",
+    "bad_key": "SUPABASE_SERVICE_ROLE_KEY is rejected: copy the secret key again",
+    "forbidden": "the key is not a service_role/secret key",
+    "unreachable": "SUPABASE_URL is unreachable (typo, or is the project paused?)",
 }
 
 
@@ -54,9 +54,9 @@ async def check(cfg: Config) -> int:
             st = await api.stats()
         except ApiError as e:
             hint = HINTS.get(e.code, "")
-            log.error("Supabase-check mislukt: %s %s", e, f"({hint})" if hint else "")
+            log.error("Supabase check failed: %s %s", e, f"({hint})" if hint else "")
             return 1
-    log.info("Supabase OK: %s gebruikers, %s meldingen", st.get("users"), st.get("reports"))
+    log.info("Supabase OK: %s users, %s reports", st.get("users"), st.get("reports"))
     return 0
 
 
@@ -67,7 +67,7 @@ async def main(argv: list) -> int:
         setup_logging("INFO")
         for p in e.problems:
             log.error("config: %s", p)
-        log.error("Vul de variabelen in (paneel -> Startup, of een .env naast bot.py). Zie .env.example.")
+        log.error("Fill in the variables (panel -> Startup, or a .env next to bot.py). See .env.example.")
         return 2
     setup_logging(cfg.log_level)
     log.info("Vanta bot %s, Python %s, discord.py %s", __version__, sys.version.split()[0], discord.__version__)
@@ -88,10 +88,10 @@ async def main(argv: list) -> int:
         async with bot:
             await bot.start(cfg.token, reconnect=True)
     except discord.LoginFailure:
-        log.error("Discord weigert de token: controleer DISCORD_BOT_TOKEN (Developer Portal -> Bot -> Reset Token).")
+        log.error("Discord rejects the token: check DISCORD_BOT_TOKEN (Developer Portal -> Bot -> Reset Token).")
         return 3
     except discord.PrivilegedIntentsRequired:
-        log.error("Deze bot heeft geen privileged intents nodig; controleer de code.")
+        log.error("This bot does not need privileged intents; check the code.")
         return 3
     return 0
 
@@ -100,4 +100,4 @@ if __name__ == "__main__":
     try:
         sys.exit(asyncio.run(main(sys.argv[1:])))
     except KeyboardInterrupt:
-        log.info("gestopt")
+        log.info("stopped")

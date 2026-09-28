@@ -73,7 +73,7 @@ internal sealed class MainForm : Form
         catch (Exception e)
         {
             Log.Error("init: " + e);
-            MessageBox.Show(this, "Vanta kon niet starten:\n\n" + e.Message + "\n\nLog: " + Log.Dir, Branding.Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, Strings.Get("app.startFail", e.Message, Log.Dir), Branding.Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
             Close();
         }
     }
@@ -89,7 +89,7 @@ internal sealed class MainForm : Form
             _hotkeys?.UnregisterAll();
             _host.Shutdown();                                   // restore every patched game first
             if (UpdateHelper.Launch(_updater.Store)) Close();
-            else Post(JsonSerializer.Serialize(new { type = "updateStatus", state = "error", message = "De update-helper kon niet starten." }, Vanta.Core.Json.Compact));
+            else Post(JsonSerializer.Serialize(new { type = "updateStatus", state = "error", message = Strings.Get("app.helperFail") }, Vanta.Core.Json.Compact));
         });
     }
 
@@ -97,10 +97,8 @@ internal sealed class MainForm : Form
     {
         Log.Error("WebView2 runtime not found");
         var r = MessageBox.Show(this,
-            "Vanta heeft de Microsoft Edge WebView2 Runtime nodig om de interface te tonen.\n\n" +
-            "Op Windows 11 is die normaal al geïnstalleerd. Op jouw pc ontbreekt hij (of is hij beschadigd).\n\n" +
-            "Klik op OK om de gratis download van Microsoft te openen:\n" + WebView2Download + "\n\nInstalleer hem en start Vanta daarna opnieuw.",
-            Branding.Name + ": WebView2 ontbreekt", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+            Strings.Get("webview2.missing", WebView2Download),
+            Strings.Get("webview2.missing.title", Branding.Name), MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
         if (r == DialogResult.OK) OpenExternal(WebView2Download);
         Close();
     }
@@ -284,10 +282,10 @@ internal sealed class HotkeyWindow : NativeWindow
         int id = 1;
         foreach (var b in _wanted)
         {
-            if (!HotkeyParser.TryParse(b.Combo, out var mods, out var vk)) { _log($"hotkey '{b.Combo}' ongeldig"); continue; }
+            if (!HotkeyParser.TryParse(b.Combo, out var mods, out var vk)) { _log($"hotkey '{b.Combo}' invalid"); continue; }
             if (b.Kind == "") mods |= HotkeyParser.MOD_NOREPEAT;      // toggles: no auto-repeat; +/- may repeat while held
             if (RegisterHotKey(Handle, id, mods, vk)) _map[id++] = b;
-            else _log($"hotkey {b.Combo} ({b.CheatId}) kon niet worden geregistreerd (in gebruik door een ander programma?)");
+            else _log($"hotkey {b.Combo} ({b.CheatId}) could not be registered (in use by another program?)");
         }
     }
 

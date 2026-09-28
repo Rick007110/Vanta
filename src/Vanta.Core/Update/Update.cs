@@ -19,7 +19,7 @@ public readonly record struct SemVer(int Major, int Minor, int Patch, string? Pr
         v = new SemVer(P(1), P(2), P(3), m.Groups[4].Success ? m.Groups[4].Value : null);
         return true;
     }
-    public static SemVer Parse(string s) => TryParse(s, out var v) ? v : throw new FormatException("geen geldige versie: " + s);
+    public static SemVer Parse(string s) => TryParse(s, out var v) ? v : throw new FormatException("not a valid version: " + s);
 
     public int CompareTo(SemVer o)
     {
@@ -200,9 +200,9 @@ public sealed class UpdateStore
     public async Task<PendingUpdate> DownloadAsync(ReleaseInfo r, Func<string, CancellationToken, Task<string>> getText,
         Func<string, string, IProgress<double>?, CancellationToken, Task> downloadFile, IProgress<double>? progress = null, CancellationToken ct = default)
     {
-        if (r.ShaUrl == null) throw new InvalidOperationException("De release heeft geen .sha256-bestand; update geweigerd.");
+        if (r.ShaUrl == null) throw new InvalidOperationException(Strings.Get("update.noSha"));
         var expected = Sha256Util.FromSumFile(await getText(r.ShaUrl, ct).ConfigureAwait(false), r.ZipName)
-            ?? throw new InvalidOperationException("Het .sha256-bestand bevat geen hash voor " + r.ZipName + ".");
+            ?? throw new InvalidOperationException(Strings.Get("update.noHash", r.ZipName));
         var path = DownloadPath(r);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         if (!(File.Exists(path) && Sha256Util.OfFile(path) == expected))
@@ -210,7 +210,7 @@ public sealed class UpdateStore
             var tmp = path + ".part";
             await downloadFile(r.ZipUrl, tmp, progress, ct).ConfigureAwait(false);
             var got = Sha256Util.OfFile(tmp);
-            if (got != expected) { try { File.Delete(tmp); } catch { } throw new InvalidOperationException($"SHA-256 klopt niet (verwacht {expected[..12]}…, gekregen {got[..12]}…); download verwijderd."); }
+            if (got != expected) { try { File.Delete(tmp); } catch { } throw new InvalidOperationException(Strings.Get("update.shaMismatch", expected[..12], got[..12])); }
             File.Move(tmp, path, true);
         }
         var p = new PendingUpdate(r.Version.ToString(), path, expected, r.Notes, DateTime.UtcNow);
@@ -237,7 +237,7 @@ public static class UpdateApplier
             foreach (var e in z.Entries)
             {
                 var dest = Path.GetFullPath(Path.Combine(staging, e.FullName.Replace('\\', '/')));
-                if (!dest.StartsWith(root, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("ongeldig pad in zip: " + e.FullName);
+                if (!dest.StartsWith(root, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("invalid path in zip: " + e.FullName);
                 if (e.FullName.EndsWith('/') || e.FullName.EndsWith('\\')) { Directory.CreateDirectory(dest); continue; }
                 Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
                 e.ExtractToFile(dest, true);
@@ -251,7 +251,7 @@ public static class UpdateApplier
         if (File.Exists(Path.Combine(staging, ExeName))) return staging;
         var dirs = Directory.GetDirectories(staging);
         if (dirs.Length == 1 && File.Exists(Path.Combine(dirs[0], ExeName))) return dirs[0];
-        throw new InvalidOperationException("Vanta.exe niet gevonden in het updatepakket.");
+        throw new InvalidOperationException(Strings.Get("update.noExe"));
     }
 
     public static void Backup(string appDir, string backupDir)
@@ -265,7 +265,7 @@ public static class UpdateApplier
     /// <summary>Restores every backed-up file; files that only exist in the new version are removed where they were not there before.</summary>
     public static void Rollback(string backupDir, string appDir, string? contentRoot = null)
     {
-        if (!Directory.Exists(backupDir)) throw new InvalidOperationException("geen backup om naar terug te zetten");
+        if (!Directory.Exists(backupDir)) throw new InvalidOperationException("no backup to roll back to");
         if (contentRoot != null && Directory.Exists(contentRoot))
             foreach (var f in Directory.GetFiles(contentRoot, "*", SearchOption.AllDirectories))
             {
@@ -287,13 +287,13 @@ public static class UpdateApplier
     {
         log ??= _ => { };
         var got = Sha256Util.OfFile(zip);
-        if (!got.Equals(sha256, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("SHA-256 van het updatepakket klopt niet; niets gewijzigd.");
-        log("uitpakken naar " + store.StagingDir);
+        if (!got.Equals(sha256, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException(Strings.Get("update.pkgMismatch"));
+        log("extracting to " + store.StagingDir);
         var content = Extract(zip, store.StagingDir);
-        log("backup van " + appDir);
+        log("backing up " + appDir);
         Backup(appDir, store.BackupDir);
         try { log("installeren"); Install(content, appDir); }
-        catch (Exception e) { log("installeren mislukt: " + e.Message + " - terugzetten"); Rollback(store.BackupDir, appDir, content); throw; }
+        catch (Exception e) { log("install failed: " + e.Message + " - rolling back"); Rollback(store.BackupDir, appDir, content); throw; }
         return content;
     }
 

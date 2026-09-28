@@ -4,7 +4,11 @@ namespace Vanta.Core;
 
 public sealed class Settings
 {
-    public string Language { get; set; } = "nl";
+    /// <summary>UI language: "en" (default) or "nl".</summary>
+    public string Language { get; set; } = "en";
+    /// <summary>True once the user picked a language in Settings. Until then Vanta uses English (the default since 0.3.4),
+    /// also for older settings files that still say "nl" only because that used to be the default.</summary>
+    public bool LanguageChosen { get; set; }
     public string? CatalogDir { get; set; }
     public string? CatalogUrl { get; set; }
     public Dictionary<string, Dictionary<string, string>> Hotkeys { get; set; } = new();   // gameId -> cheatId(/inc|/dec) -> combo ("" = none)
@@ -23,9 +27,16 @@ public sealed class Settings
     public static Settings Load(string? file = null)
     {
         file ??= DefaultFile;
-        try { if (File.Exists(file)) return JsonSerializer.Deserialize<Settings>(File.ReadAllText(file), Json.Options) ?? new Settings(); }
+        try { if (File.Exists(file)) return (JsonSerializer.Deserialize<Settings>(File.ReadAllText(file), Json.Options) ?? new Settings()).Normalized(); }
         catch { /* corrupt: defaults */ }
         return new Settings();
+    }
+
+    /// <summary>English unless the user explicitly chose another supported language.</summary>
+    public Settings Normalized()
+    {
+        if (!LanguageChosen || Language is not ("en" or "nl")) Language = "en";
+        return this;
     }
 
     public void Save(string? file = null)

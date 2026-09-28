@@ -75,7 +75,7 @@ async def test_new_broken_report_posts_then_repeat_edits(tmp_path):
     api.pages = [{"cursor": 11, "more": False, "items": [{"has_broken": True, "types": ["report"], "state": summary(broken=3, message_id=str(mid))}]}]
     await bot.poll_once(ch)
     assert len(ch.sent) == 1 and ch.edits == [mid]
-    assert "3 werkt niet" in ch.messages[mid].embed.fields[0].value
+    assert "3 broken" in ch.messages[mid].embed.fields[0].value
 
 
 async def test_works_only_reports_do_not_post(tmp_path):
@@ -109,11 +109,11 @@ async def test_fixed_status_edits_and_replies(tmp_path):
     api.pages = [{"cursor": 8, "more": False, "items": [{"has_broken": False, "types": ["status"], "state": summary(status="fixed", fixed_in_version="0.3.1", message_id=str(first.id))}]}]
     await bot.poll_once(ch)
     assert ch.edits == [first.id]
-    assert ch.messages[first.id].embed.description == "✅ Gefixt in Vanta 0.3.1"
+    assert ch.messages[first.id].embed.description == "✅ Fixed in Vanta 0.3.1"
     reply = ch.sent[-1]
-    assert reply.content == "✅ **God mode** (The Game) is gefixt in Vanta 0.3.1." and reply.reference.message_id == first.id
+    assert reply.content == "✅ **God mode** (The Game) is fixed in Vanta 0.3.1." and reply.reference.message_id == first.id
     labels = [c.item.label for c in ch.messages[first.id].view.children]
-    assert labels == ["Heropenen"]
+    assert labels == ["Reopen"]
 
 
 async def test_pagination(tmp_path):
@@ -143,7 +143,7 @@ async def test_post_digest(tmp_path):
     bot, _ = make_bot(tmp_path)
     ch = FakeChannel()
     await bot.post_digest("2026-W40", ch)
-    assert ch.sent[0].embed.title == "Weekoverzicht 2026-W40" and bot.local.last_digest == "2026-W40"
+    assert ch.sent[0].embed.title == "Weekly digest 2026-W40" and bot.local.last_digest == "2026-W40"
 
 
 def test_buttons_are_persistent_dynamic_items():

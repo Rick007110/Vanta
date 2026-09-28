@@ -1,6 +1,8 @@
 VANTA DISCORD-BOT OP FEROX (PTERODACTYL) MET SUPABASE
 =====================================================
 
+(English version: README-bot.txt. De bot zelf praat Engels in Discord en in de console.)
+
 Inhoud van deze map:
   bot.py               het startbestand
   vanta_bot/           de code van de bot (hoort naast bot.py)
@@ -60,18 +62,19 @@ Nodig: Python 3.10 of nieuwer (3.11+ aangeraden), een Supabase-project en een Di
        "logged in as Vanta#1234 ..."
    - De bot bewaart state.json en .commands-hash in zijn map; niet verwijderen (dan post hij niets dubbel).
    - Updaten: nieuwe bestanden uploaden (niet je .env/state.json overschrijven), supabase-setup.sql opnieuw
-     uitvoeren, Restart.
+     uitvoeren, Restart. Na deze update heten de opties van de slash commands in het Engels (count, version,
+     user, unban); de bot registreert ze bij het starten vanzelf opnieuw.
 
 VEELVOORKOMENDE MELDINGEN IN DE CONSOLE
-   config: ... ontbreekt                 -> variabele niet ingevuld (stap 5).
-   ... is de publishable key / anon key  -> je hebt de verkeerde Supabase-key geplakt; gebruik de secret key.
-   Discord weigert de token              -> token opnieuw maken (stap 3) en invullen.
+   config: ... is missing                -> variabele niet ingevuld (stap 5).
+   ... is the publishable key / anon key -> je hebt de verkeerde Supabase-key geplakt; gebruik de secret key.
+   Discord rejects the token             -> token opnieuw maken (stap 3) en invullen.
    function_missing / "Could not find the function"
                                          -> supabase-setup.sql is nog niet uitgevoerd (stap 1).
    permission_denied                     -> verkeerde key (publishable/anon in plaats van secret).
    unreachable                           -> SUPABASE_URL klopt niet of het Supabase-project is gepauzeerd.
    no permission in channel              -> geef de bot in dat kanaal: View Channel, Send Messages, Embed Links.
-   Python 3.10 of nieuwer is nodig       -> kies een nieuwere Docker Image in het tabblad Startup.
+   Python 3.10 or newer is required      -> kies een nieuwere Docker Image in het tabblad Startup.
 
 LATER: INLOGGEN VANUIT VANTA (nodig zodat er meldingen binnenkomen)
    - Supabase -> Authentication -> Sign In / Providers -> Discord: aanzetten, Client ID en Client Secret uit het

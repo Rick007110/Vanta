@@ -83,7 +83,7 @@ public class ControllerTests
     }
 
     [Fact]
-    public void Failed_cheat_reports_dutch_error_with_hit_counts()
+    public void Failed_cheat_reports_error_with_hit_counts()
     {
         var (c, prov, g) = Make();
         prov.Factory = pid => { var p = new FakeProcess { ProcessId = pid }; p.AddModule(g.MainModule, TestUtil.ModBase, new byte[0x10000]); return p; };
@@ -91,8 +91,8 @@ public class ControllerTests
         Assert.Equal("attached", c.StatusOf(g.Id));
         var ack = JsonSerializer.Serialize(c.HandleUi(Msg($"{{\"type\":\"toggle\",\"gameId\":\"{g.Id}\",\"id\":\"inf_battery\",\"enabled\":true}}")), VJson.Compact);
         Assert.Contains("\"ok\":false", ack);
-        Assert.Contains("geen unieke AOB gevonden (patroon 1: 0 treffer(s), patroon 2: 0 treffer(s))", ack);
-        Assert.Contains(_sent, s => s.Contains("\"type\":\"state\"") && s.Contains("geen unieke AOB"));
+        Assert.Contains("no unique AOB found (pattern 1: 0 hit(s), pattern 2: 0 hit(s))", ack);
+        Assert.Contains(_sent, s => s.Contains("\"type\":\"state\"") && s.Contains("no unique AOB"));
     }
 
     [Fact]

@@ -113,7 +113,7 @@ public static class AobScanner
     public static byte[] ParseHex(string hex)
     {
         var p = new AobPattern(hex);
-        if (p.Mask.Any(m => m != 0xFF)) throw new FormatException("wildcards niet toegestaan in bytes");
+        if (p.Mask.Any(m => m != 0xFF)) throw new FormatException("wildcards not allowed in bytes");
         return p.Bytes;
     }
     public static string ToHex(ReadOnlySpan<byte> b) => string.Join(' ', b.ToArray().Select(x => x.ToString("X2")));

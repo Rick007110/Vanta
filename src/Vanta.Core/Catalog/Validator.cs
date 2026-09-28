@@ -36,7 +36,7 @@ public static class GameValidator
         try
         {
             var g = JsonSerializer.Deserialize<GameDef>(text, Json.Options)!;
-            if (folder != null && folder != g.Id && folder != "games") list.Add(new Finding("warn", "id", $"mapnaam '{folder}' is niet gelijk aan id '{g.Id}'"));
+            if (folder != null && folder != g.Id && folder != "games") list.Add(new Finding("warn", "id", $"folder name '{folder}' differs from id '{g.Id}'"));
         }
         catch { }
         return list;
@@ -47,7 +47,7 @@ public static class GameValidator
         var list = new List<Finding>();
         JsonNode? node;
         try { node = JsonNode.Parse(text, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }); }
-        catch (JsonException e) { list.Add(new Finding("error", "$", "geen geldige JSON: " + e.Message)); return list; }
+        catch (JsonException e) { list.Add(new Finding("error", "$", "not valid JSON: " + e.Message)); return list; }
         var res = Schema.Value.Evaluate(node, new EvaluationOptions { OutputFormat = OutputFormat.List });
         if (!res.IsValid)
             foreach (var d in res.Details.Where(d => d.HasErrors && !IsBranchNoise(d.EvaluationPath.ToString())))
@@ -55,7 +55,7 @@ public static class GameValidator
                     list.Add(new Finding("error", d.InstanceLocation.ToString() is { Length: > 0 } p ? p : "$", $"schema ({k}): {v}"));
         GameDef g;
         try { g = JsonSerializer.Deserialize<GameDef>(text, Json.Options)!; }
-        catch (Exception e) { list.Add(new Finding("error", "$", "kan niet laden: " + e.Message)); return list; }
+        catch (Exception e) { list.Add(new Finding("error", "$", "cannot load: " + e.Message)); return list; }
         list.AddRange(Semantic(g));
         // de-duplicate (schema output can repeat)
         return list.Distinct().ToList();
@@ -69,37 +69,37 @@ public static class GameValidator
         var f = new List<Finding>();
         void E(string p, string m) => f.Add(new Finding("error", p, m));
         void W(string p, string m) => f.Add(new Finding("warn", p, m));
-        if (g.Blocked) f.Add(new Finding("info", "antiCheat", "online/anti-cheat: Vanta weigert te koppelen (alleen ter informatie in de catalogus)"));
-        if (g.SupportedVersions.Count == 0) W("supportedVersions", "geen ondersteunde versie opgegeven");
+        if (g.Blocked) f.Add(new Finding("info", "antiCheat", "online/anti-cheat: Vanta refuses to attach (listed in the catalog for information only)"));
+        if (g.SupportedVersions.Count == 0) W("supportedVersions", "no supported version given");
         else if (!g.SupportedVersions.Any(v => v.FileVersion != null || v.PeTimestamp != null || v.ModuleSize != null || v.ProductVersion != null || v.FileSize != null || v.HeadSha256 != null))
-            f.Add(new Finding("info", "supportedVersions", "geen vingerafdruk (fileVersion/peTimestamp/moduleSize/fileSize): versie wordt niet gecontroleerd"));
+            f.Add(new Finding("info", "supportedVersions", "no fingerprint (fileVersion/peTimestamp/moduleSize/fileSize): the version is not checked"));
         var ids = new HashSet<string>();
         var hotkeys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < g.Cheats.Count; i++)
         {
             var c = g.Cheats[i];
             var p = $"cheats[{i}]({c.Id})";
-            if (!ids.Add(c.Id)) E(p, "dubbel id");
+            if (!ids.Add(c.Id)) E(p, "duplicate id");
             foreach (var hk in new[] { c.Hotkey, c.HotkeyInc, c.HotkeyDec }.Where(h => h != null))
             {
-                if (c.Hidden) W(p, "verborgen cheat met sneltoets");
-                if (hotkeys.TryGetValue(hk!, out var other)) W(p, $"sneltoets {hk} ook gebruikt door {other}");
+                if (c.Hidden) W(p, "hidden cheat with a hotkey");
+                if (hotkeys.TryGetValue(hk!, out var other)) W(p, $"hotkey {hk} also used by {other}");
                 else hotkeys[hk!] = c.Id;
             }
-            if (c.Icon != null && !KnownIcons.Contains(c.Icon)) W(p, $"onbekend icoon '{c.Icon}'");
-            if (c.Confidence == "broken" && c.AutoEnable) W(p, "cheat met confidence 'broken' kan niet autoEnable zijn (wordt genegeerd)");
+            if (c.Icon != null && !KnownIcons.Contains(c.Icon)) W(p, $"unknown icon '{c.Icon}'");
+            if (c.Confidence == "broken" && c.AutoEnable) W(p, "a cheat with confidence 'broken' cannot be autoEnable (ignored)");
             if (c.Confidence == "broken" && g.Cheats.Any(x => x.Requires?.Contains(c.Id) == true && x.Confidence != "broken"))
-                W(p, "andere cheats vereisen deze 'broken' cheat");
+                W(p, "other cheats require this 'broken' cheat");
             var impl = c.Impl;
             switch (c.Type)
             {
                 case "number" or "slider":
-                    if (impl.Type != "pointer") E(p, "number/slider vereist impl.type pointer");
-                    if (c.Min.HasValue && c.Max.HasValue && c.Min >= c.Max) E(p, "min moet kleiner zijn dan max");
-                    if (c.Type == "slider" && (!c.Min.HasValue || !c.Max.HasValue)) E(p, "slider vereist min en max");
+                    if (impl.Type != "pointer") E(p, "number/slider requires impl.type pointer");
+                    if (c.Min.HasValue && c.Max.HasValue && c.Min >= c.Max) E(p, "min must be smaller than max");
+                    if (c.Type == "slider" && (!c.Min.HasValue || !c.Max.HasValue)) E(p, "slider requires min and max");
                     break;
                 case "button":
-                    if (impl.Type != "pointer" || impl.Action == null) E(p, "button vereist pointer + action (set/add)");
+                    if (impl.Type != "pointer" || impl.Action == null) E(p, "button requires pointer + action (set/add)");
                     break;
             }
             try { CheckImpl(c, p, E, W, g.Cheats.SelectMany(x => x.Impl.Exports ?? new()).ToList()); }
@@ -107,14 +107,14 @@ public static class GameValidator
         }
         foreach (var c in g.Cheats)
             foreach (var r in c.Requires ?? new())
-                if (!ids.Contains(r)) E($"cheats({c.Id}).requires", $"'{r}' bestaat niet");
+                if (!ids.Contains(r)) E($"cheats({c.Id}).requires", $"'{r}' does not exist");
                 else if (r == c.Id) E($"cheats({c.Id}).requires", "vereist zichzelf");
         foreach (var c in g.Cheats.Where(c => c.Impl.Type == "pointer" && c.Impl.Base is { ValueKind: JsonValueKind.String } b && b.GetString()!.StartsWith("sym:")))
         {
             var sym = Regex.Match(c.Impl.Base!.Value.GetString()!, @"^sym:(\w+)").Groups[1].Value;
             var exporters = g.Cheats.Where(x => x.Impl.Exports?.Contains(sym) == true).Select(x => x.Id).ToList();
-            if (exporters.Count == 0) E($"cheats({c.Id}).impl.base", $"symbool '{sym}' wordt door geen enkele cheat geëxporteerd");
-            else if (!(c.Requires ?? new()).Intersect(exporters).Any()) W($"cheats({c.Id}).requires", $"gebruikt '{sym}' maar vereist {string.Join("/", exporters)} niet");
+            if (exporters.Count == 0) E($"cheats({c.Id}).impl.base", $"symbol '{sym}' is not exported by any cheat");
+            else if (!(c.Requires ?? new()).Intersect(exporters).Any()) W($"cheats({c.Id}).requires", $"uses '{sym}' but does not require {string.Join("/", exporters)}");
         }
         return f;
     }
@@ -125,13 +125,13 @@ public static class GameValidator
         var sites = impl.Sites ?? new();
         foreach (var (name, s) in sites)
         {
-            if (s.Patterns.Count == 0) E($"{p}.sites.{name}", "geen patronen");
+            if (s.Patterns.Count == 0) E($"{p}.sites.{name}", "no patterns");
             foreach (var pat in s.Patterns)
             {
                 try
                 {
                     var ap = new AobPattern(pat.Aob);
-                    if (ap.Mask.Count(m => m == 0xFF) < 5) W($"{p}.sites.{name}", $"AOB '{pat.Aob}' is erg kort; kans op meerdere treffers");
+                    if (ap.Mask.Count(m => m == 0xFF) < 5) W($"{p}.sites.{name}", $"AOB '{pat.Aob}' is very short; likely to match several times");
                 }
                 catch (FormatException e) { E($"{p}.sites.{name}", e.Message); }
             }
@@ -139,17 +139,17 @@ public static class GameValidator
         }
         foreach (var pt in impl.Patches ?? new())
         {
-            if (!sites.ContainsKey(pt.Site)) E($"{p}.patches", $"site '{pt.Site}' bestaat niet");
+            if (!sites.ContainsKey(pt.Site)) E($"{p}.patches", $"site '{pt.Site}' does not exist");
             try { AobScanner.ParseHex(pt.Bytes); } catch (FormatException e) { E($"{p}.patches", e.Message); }
         }
         if (impl.Type == "aobInject")
         {
             foreach (var h in impl.Hooks ?? new())
             {
-                if (!sites.TryGetValue(h.Site, out var s)) { E($"{p}.hooks", $"site '{h.Site}' bestaat niet"); continue; }
-                if (s.Overwrite < 5) E($"{p}.sites.{h.Site}", "overwrite moet minstens 5 zijn voor een hook (jmp rel32)");
+                if (!sites.TryGetValue(h.Site, out var s)) { E($"{p}.hooks", $"site '{h.Site}' does not exist"); continue; }
+                if (s.Overwrite < 5) E($"{p}.sites.{h.Site}", "overwrite must be at least 5 for a hook (jmp rel32)");
             }
-            if (impl.Alloc?.Near != null && !sites.ContainsKey(impl.Alloc.Near)) E($"{p}.alloc.near", $"site '{impl.Alloc.Near}' bestaat niet");
+            if (impl.Alloc?.Near != null && !sites.ContainsKey(impl.Alloc.Near)) E($"{p}.alloc.near", $"site '{impl.Alloc.Near}' does not exist");
             // assemble against fake addresses to catch syntax/label errors early
             ulong baseAddr = 0x140001000, cave = 0x13FFF0000;
             var addrs = sites.Keys.Select((k, i) => (k, a: baseAddr + (ulong)i * 0x1000)).ToDictionary(x => x.k, x => x.a);
@@ -164,9 +164,9 @@ public static class GameValidator
             {
                 var lines = CheatRuntime.ExpandPlaceholders(impl.Asm ?? new(), addrs, origs, sites);
                 var res = MiniAssembler.Assemble(lines, cave, ext);
-                foreach (var h in impl.Hooks ?? new()) if (!res.Labels.ContainsKey(h.Label)) E($"{p}.hooks", $"label '{h.Label}' niet gedefinieerd in asm");
-                foreach (var x in impl.Exports ?? new()) if (!res.Labels.ContainsKey(x)) E($"{p}.exports", $"label '{x}' niet gedefinieerd in asm");
-                if (res.Code.Length > (impl.Alloc?.Size ?? 0x1000)) E($"{p}.alloc", "code groter dan alloc.size");
+                foreach (var h in impl.Hooks ?? new()) if (!res.Labels.ContainsKey(h.Label)) E($"{p}.hooks", $"label '{h.Label}' not defined in asm");
+                foreach (var x in impl.Exports ?? new()) if (!res.Labels.ContainsKey(x)) E($"{p}.exports", $"label '{x}' not defined in asm");
+                if (res.Code.Length > (impl.Alloc?.Size ?? 0x1000)) E($"{p}.alloc", "code larger than alloc.size");
             }
             catch (Exception e) when (e is AsmException or CheatException) { E($"{p}.asm", e.Message); }
         }

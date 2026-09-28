@@ -19,11 +19,11 @@ class ConfigError(Exception):
 def key_problem(key: str) -> Optional[str]:
     """The bot needs the secret key (sb_secret_...) or the legacy service_role JWT, never the public one."""
     if not key:
-        return "SUPABASE_SERVICE_ROLE_KEY ontbreekt (Supabase -> Project Settings -> API Keys -> secret key)"
+        return "SUPABASE_SERVICE_ROLE_KEY is missing (Supabase -> Project Settings -> API Keys -> secret key)"
     if key.startswith("sb_secret_"):
         return None
     if key.startswith("sb_publishable_"):
-        return "SUPABASE_SERVICE_ROLE_KEY is de publishable key; de bot heeft de secret key (sb_secret_...) nodig"
+        return "SUPABASE_SERVICE_ROLE_KEY is the publishable key; the bot needs the secret key (sb_secret_...)"
     if key.startswith("eyJ") and key.count(".") == 2:
         try:
             part = key.split(".")[1]
@@ -33,8 +33,8 @@ def key_problem(key: str) -> Optional[str]:
         if role == "service_role":
             return None
         if role == "anon":
-            return "SUPABASE_SERVICE_ROLE_KEY is de anon key; de bot heeft de service_role/secret key nodig"
-    return "SUPABASE_SERVICE_ROLE_KEY lijkt geen Supabase secret/service_role key"
+            return "SUPABASE_SERVICE_ROLE_KEY is the anon key; the bot needs the service_role/secret key"
+    return "SUPABASE_SERVICE_ROLE_KEY does not look like a Supabase secret/service_role key"
 
 
 def _snowflake(v: str) -> Optional[int]:
@@ -63,29 +63,29 @@ class Config:
         problems: List[str] = []
         token = g("DISCORD_BOT_TOKEN")
         if require_discord and not token:
-            problems.append("DISCORD_BOT_TOKEN ontbreekt")
+            problems.append("DISCORD_BOT_TOKEN is missing")
         channel = _snowflake(g("DISCORD_CHANNEL_ID"))
         if require_discord and channel is None:
-            problems.append("DISCORD_CHANNEL_ID ontbreekt of is geen id")
+            problems.append("DISCORD_CHANNEL_ID is missing or not an id")
         admins = set()
         for part in g("ADMIN_IDS").replace(";", ",").split(","):
             if part.strip():
                 sid = _snowflake(part)
                 if sid is None:
-                    problems.append(f"ADMIN_IDS bevat een ongeldig id: {part.strip()!r}")
+                    problems.append(f"ADMIN_IDS contains an invalid id: {part.strip()!r}")
                 else:
                     admins.add(sid)
         if require_discord and not admins:
-            problems.append("ADMIN_IDS ontbreekt (je eigen Discord user id)")
+            problems.append("ADMIN_IDS is missing (your own Discord user id)")
         guild_raw = g("DISCORD_GUILD_ID")
         guild = _snowflake(guild_raw) if guild_raw else None
         if guild_raw and guild is None:
-            problems.append("DISCORD_GUILD_ID is geen geldig id")
+            problems.append("DISCORD_GUILD_ID is not a valid id")
         url = g("SUPABASE_URL").rstrip("/")
         if url.endswith("/rest/v1"):
             url = url[: -len("/rest/v1")]
         if not url.startswith(("https://", "http://127.0.0.1", "http://localhost")):
-            problems.append("SUPABASE_URL ontbreekt of is geen https-adres (bijv. https://abcd1234.supabase.co)")
+            problems.append("SUPABASE_URL is missing or not an https address (e.g. https://abcd1234.supabase.co)")
         key = g("SUPABASE_SERVICE_ROLE_KEY") or g("SUPABASE_SECRET_KEY")
         kp = key_problem(key)
         if kp:
@@ -96,7 +96,7 @@ class Config:
             try:
                 n = int(raw)
             except ValueError:
-                problems.append(f"{k} is geen getal")
+                problems.append(f"{k} is not a number")
                 return d
             if not lo <= n <= hi:
                 problems.append(f"{k} moet tussen {lo} en {hi} liggen")
@@ -112,7 +112,7 @@ class Config:
 
             ZoneInfo(tz)
         except Exception:
-            problems.append(f"TIMEZONE {tz!r} is onbekend")
+            problems.append(f"TIMEZONE {tz!r} is unknown")
         state = g("STATE_FILE")
         if problems:
             raise ConfigError(problems)

@@ -1,4 +1,4 @@
-# Vanta v0.3.3 (developer notes)
+# Vanta v0.3.4 (developer notes)
 
 Standalone Windows trainer for **single-player/offline** games. It has no Cheat Engine dependency.
 Games marked `antiCheat` or `onlineOnly` are listed but refused (never opened, never launched).
@@ -65,7 +65,7 @@ WinForms is not trim-safe, so the exe is untrimmed but compressed (about 67 MB).
 Steam games run as the normal user, and a same-user process can be opened with `PROCESS_VM_*` without admin rights.
 Running Vanta elevated would make `steam://run/<id>` start Steam, and therefore the game, elevated too. That is bad
 practice and causes permission problems. If a game does run elevated, `OpenProcess` fails and the UI says
-"Kan het proces niet openen (...). Start Vanta als administrator." (right-click, then "Als administrator uitvoeren").
+"Cannot open the process (...). Run Vanta as administrator." (right-click, then "Run as administrator").
 
 ## game.json (schema v1)
 Required fields: `schemaVersion, id, name, processNames, antiCheat, cheats`.
@@ -92,9 +92,20 @@ notes, art, stores, launchExe, antiCheatFiles, antiCheatModules, scope`.
   confidence and maps unknown values to `untested`; the validator warns when a broken cheat is `autoEnable` or required.
 * `module` can also be set per impl (`impl.module`); the default is the game `module`, else `processNames[0]`.
 
-Cheat fields: `id, name, names{en}, section, type (toggle|number|slider|button), icon, hotkey/hotkeyInc/hotkeyDec,
+Cheat fields: `id, name, i18n{nl{name, description, hint, sub, buttonLabel}}, section, type (toggle|number|slider|button), icon, hotkey/hotkeyInc/hotkeyDec,
 description, hint, sub, confidence (confirmed|untested|experimental|broken), confidenceNote, requires[], hidden, autoEnable,
 min/max/step/format/resetValue, buttonLabel, impl`.
+
+### Languages
+English is the default everywhere (UI, engine messages, game texts); Dutch is the secondary language.
+`Settings.Language` defaults to `en`; a stored language is only kept when `languageChosen` is true (set when the user
+saves a language in Settings), so installs from before v0.3.4 that never chose explicitly start in English.
+Plain game.json texts (`notes`, `scope`, `version.label`, cheat `name/description/hint/sub/buttonLabel`) are English;
+Dutch goes under `i18n.nl` at game level (`notes, scope, version`) and cheat level. The legacy `names{lang}` map is
+still read. UI strings: `ui/shared/i18n.js` (`en` + `nl`, same keys; a test checks both tables). Engine/host
+messages: `src/Vanta.Core/Strings.cs`. Release notes: English first, Dutch in
+`<details><summary>Nederlands</summary>...</details>`; "What's new" shows the part for the UI language
+(`VantaMd.pick`). `ui/shared/devdata.js` holds the English payload plus a Dutch one under `nl` (`uifixture`).
 
 `impl` types:
 * `aobPatch`: `sites{name:{patterns[{aob, offset}], expect, checks[{u8At|i32At, min, max, not[]}], anyMemory}}`

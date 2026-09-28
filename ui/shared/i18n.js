@@ -1,9 +1,9 @@
-/* UI strings: Dutch (default) and English. t('key', {vars}). Elements: [data-i18n], [data-i18n-ph], [data-i18n-title]. */
+/* UI strings: English (default) and Dutch. t('key', {vars}). Elements: [data-i18n], [data-i18n-ph], [data-i18n-title]. */
 (function (root) {
   'use strict';
   const S = {
     nl: {
-      'search.ph': 'Zoek game…', 'search.aria': 'Zoek game', 'cat.all': 'Alle categorieën',
+      'search.ph': 'Zoek game…', 'search.aria': 'Zoek game', 'cat.aria': 'Categorie', 'cat.all': 'Alle categorieën',
       'group.recent': 'Recent gespeeld', 'group.all': 'Alle games', 'group.results': 'Resultaten',
       'lib.empty.title': 'Geen games gevonden', 'lib.empty.body': 'Niets gevonden voor “{q}”. Controleer de spelling.', 'lib.empty.clear': 'Wis zoekopdracht',
       'lib.cheats': '{n} cheats', 'lib.more': 'Nog {n} games — verfijn je zoekopdracht',
@@ -76,7 +76,7 @@
       'sb.engine': 'Engine gereed', 'sb.dev': 'Dev-modus (mock)', 'sb.games': '{n} games', 'sb.game1': '1 game',
     },
     en: {
-      'search.ph': 'Search games…', 'search.aria': 'Search games', 'cat.all': 'All categories',
+      'search.ph': 'Search games…', 'search.aria': 'Search games', 'cat.aria': 'Category', 'cat.all': 'All categories',
       'group.recent': 'Recently played', 'group.all': 'All games', 'group.results': 'Results',
       'lib.empty.title': 'No games found', 'lib.empty.body': 'Nothing found for “{q}”. Check the spelling.', 'lib.empty.clear': 'Clear search',
       'lib.cheats': '{n} cheats', 'lib.more': '{n} more games — refine your search',
@@ -150,20 +150,21 @@
     },
   };
   const I18N = {
-    lang: 'nl',
+    lang: 'en',
     locale: () => (I18N.lang === 'en' ? 'en-GB' : 'nl-NL'),
     t(key, vars) {
-      let s = (S[I18N.lang] && S[I18N.lang][key]) ?? S.nl[key] ?? key;
+      let s = (S[I18N.lang] && S[I18N.lang][key]) ?? S.en[key] ?? S.nl[key] ?? key;
       if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] ?? m));
       return s;
     },
     apply(rootEl = document) {
       rootEl.querySelectorAll('[data-i18n]').forEach((e) => (e.textContent = I18N.t(e.dataset.i18n)));
       rootEl.querySelectorAll('[data-i18n-ph]').forEach((e) => (e.placeholder = I18N.t(e.dataset.i18nPh)));
+      rootEl.querySelectorAll('[data-i18n-aria]').forEach((e) => e.setAttribute('aria-label', I18N.t(e.dataset.i18nAria)));
       rootEl.querySelectorAll('[data-i18n-title]').forEach((e) => { e.title = I18N.t(e.dataset.i18nTitle); e.setAttribute('aria-label', e.title); });
       document.documentElement.lang = I18N.lang;
     },
-    has: (key) => key in S.nl,
+    has: (key) => key in S.en || key in S.nl,
     strings: S,
   };
   root.I18N = I18N; root.t = I18N.t;

@@ -73,12 +73,12 @@ public class AsmTests
     }
 
     [Theory]
-    [InlineData("mov eax,[nowhere]", "onbekend")]
-    [InlineData("jmp nowhere", "onbekend")]
+    [InlineData("mov eax,[nowhere]", "unknown")]
+    [InlineData("jmp nowhere", "unknown")]
     [InlineData("frobnicate eax", "onbekende instructie")]
-    [InlineData("mov eax,rbx", "geen geldige codering")]
+    [InlineData("mov eax,rbx", "no valid encoding")]
     [InlineData("alloc(x,100)", "onbekende instructie")]
-    [InlineData("x:|x:", "dubbel")]
+    [InlineData("x:|x:", "defined twice")]
     public void Reports_errors(string src, string fragment)
     {
         var e = Assert.Throws<AsmException>(() => MiniAssembler.Assemble(src.Split('|'), 0x1000));

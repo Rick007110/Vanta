@@ -4,7 +4,7 @@
   const name = 'Vanta';
   root.Brand = {
     name,
-    tagline: { nl: 'Trainer voor singleplayer-games', en: 'Trainer for single-player games' },
+    tagline: { en: 'Trainer for single-player games', nl: 'Trainer voor singleplayer-games' },
     // Logo mark: rounded square with a violet->blue gradient and a stylised "V" (same artwork as app.ico)
     mark: (size = 24) => `<svg class="brand-svg" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">
       <defs><linearGradient id="vg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A78BFA"/><stop offset=".55" stop-color="#6D5BFF"/><stop offset="1" stop-color="#3B82F6"/></linearGradient>

@@ -59,7 +59,7 @@ public static class CatalogBuilder
             try
             {
                 var g = Json.LoadGame(f);
-                if (idx.Games.Any(x => x.Id == g.Id)) { problems?.Add($"{f}: dubbel id '{g.Id}'"); continue; }
+                if (idx.Games.Any(x => x.Id == g.Id)) { problems?.Add($"{f}: duplicate id '{g.Id}'"); continue; }
                 idx.Games.Add(ToEntry(g, System.IO.Path.GetFileName(sub), File.GetLastWriteTimeUtc(f).Ticks));
             }
             catch (Exception e) { problems?.Add($"{f}: {e.Message}"); }

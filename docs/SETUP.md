@@ -1,183 +1,184 @@
-# Community-meldingen instellen
+# Setting up community reports
 
-Drie onderdelen:
+*Nederlandse versie: [SETUP.nl.md](SETUP.nl.md).*
 
-1. **Supabase** (gratis plan is genoeg): inloggen met Discord (Supabase Auth), de database met meldingen en de
-   logica (RLS + functies). SQL in de map `supabase/`.
-2. **Discord-bot** (Python, op Ferox/Pterodactyl): plaatst meldingen in een kanaal. Map `bot/`.
-3. **Vanta**: de knoppen in de app. Die worden pas actief als de Supabase-URL en de publishable key in Vanta staan
-   (stap 7).
+Three parts:
 
-Volgorde: Discord-applicatie → Supabase → bot → Vanta.
+1. **Supabase** (the free plan is enough): sign-in with Discord (Supabase Auth), the database with reports and the
+   logic (RLS + functions). SQL in the `supabase/` folder.
+2. **Discord bot** (Python, on Ferox/Pterodactyl): posts reports in a channel. Folder `bot/`.
+3. **Vanta**: the buttons in the app. They only become active once the Supabase URL and the publishable key are in Vanta
+   (step 7).
 
-> **Twee soorten Supabase-keys.** De **publishable key** (`sb_publishable_…`, vroeger "anon") is openbaar en hoort
-> in Vanta. De **secret key** (`sb_secret_…`, vroeger "service_role") omzeilt alle beveiliging en hoort **alleen**
-> bij de bot (paneel of `.env`). Nooit in Vanta, nooit in git, nooit in Discord.
+Order: Discord application → Supabase → bot → Vanta.
+
+> **Two kinds of Supabase keys.** The **publishable key** (`sb_publishable_…`, formerly "anon") is public and belongs
+> in Vanta. The **secret key** (`sb_secret_…`, formerly "service_role") bypasses all security and belongs **only**
+> with the bot (panel or `.env`). Never in Vanta, never in git, never in Discord.
 
 ---
 
-## 1. Discord-applicatie
+## 1. Discord application
 
-1. Ga naar <https://discord.com/developers/applications> → **New Application** → naam `Vanta`.
+1. Go to <https://discord.com/developers/applications> → **New Application** → name `Vanta`.
 2. **OAuth2**:
-   - noteer de **Client ID** en klik bij **Client Secret** op *Reset Secret* → kopiëren. Deel dit nooit; het gaat
-     alleen naar Supabase (stap 2.3).
-   - **Redirects** → *Add Redirect*: `https://<project-ref>.supabase.co/auth/v1/callback` (de precieze URL toont
-     Supabase in stap 2.3 als *Callback URL*).
+   - note the **Client ID** and click *Reset Secret* at **Client Secret** → copy. Never share it; it only goes
+     to Supabase (step 2.3).
+   - **Redirects** → *Add Redirect*: `https://<project-ref>.supabase.co/auth/v1/callback` (Supabase shows the exact
+     URL in step 2.3 as *Callback URL*).
 3. **Bot**:
-   - *Reset Token* → kopiëren (= `DISCORD_BOT_TOKEN`). Deel dit nooit.
-   - Privileged Gateway Intents: **allemaal uit laten** (niet nodig).
-   - *Public Bot*: uit (dan kan alleen jij hem uitnodigen).
-4. Bot uitnodigen: open deze URL (vervang `APP_ID` door de Application ID):
+   - *Reset Token* → copy (= `DISCORD_BOT_TOKEN`). Never share it.
+   - Privileged Gateway Intents: **leave all off** (not needed).
+   - *Public Bot*: off (then only you can invite it).
+4. Invite the bot: open this URL (replace `APP_ID` with the Application ID):
 
    `https://discord.com/oauth2/authorize?client_id=APP_ID&scope=bot+applications.commands&permissions=84992`
 
-   Rechten: View Channel, Send Messages, Embed Links, Read Message History (nodig om op een melding te reageren
-   met "gefixt"). Kies je server en bevestig.
-5. In Discord: **Instellingen → Geavanceerd → Ontwikkelaarsmodus** aan. Daarna:
-   - rechtsklik op het meldingen-kanaal → *Kanaal-ID kopiëren* (= `DISCORD_CHANNEL_ID`);
-   - rechtsklik op je eigen naam → *Gebruikers-ID kopiëren* (= `ADMIN_IDS`);
-   - rechtsklik op de servernaam → *Server-ID kopiëren* (= `DISCORD_GUILD_ID`, optioneel maar aangeraden:
-     slash commands verschijnen dan meteen).
+   Permissions: View Channel, Send Messages, Embed Links, Read Message History (needed to reply to a report
+   with "fixed"). Pick your server and confirm.
+5. In Discord: turn on **Settings → Advanced → Developer Mode**. Then:
+   - right-click the reports channel → *Copy Channel ID* (= `DISCORD_CHANNEL_ID`);
+   - right-click your own name → *Copy User ID* (= `ADMIN_IDS`);
+   - right-click the server name → *Copy Server ID* (= `DISCORD_GUILD_ID`, optional but recommended:
+     slash commands then show up immediately).
 
 ## 2. Supabase
 
-Een bestaand project gebruiken mag: alles komt in een eigen schema `vanta`, functies die met `vanta_` beginnen en
-één trigger `vanta_profile_sync` op `auth.users`. Eigen tabellen worden niet aangeraakt. Nieuw project? Kies een
-EU-regio (bijv. Frankfurt), dat is het netst voor de privacy.
+Using an existing project is fine: everything goes into its own schema `vanta`, functions starting with `vanta_` and
+one trigger `vanta_profile_sync` on `auth.users`. Your own tables are not touched. New project? Pick an EU region
+(e.g. Frankfurt), which is cleanest for privacy.
 
-1. **Database klaarzetten.** Dashboard → jouw project → **SQL Editor** → *New query* → plak de volledige inhoud van
-   [`supabase/supabase-setup.sql`](../supabase/supabase-setup.sql) → **Run**. Verwacht: *Success. No rows returned*.
-   Opnieuw uitvoeren (bijv. na een update) mag altijd. Met de Supabase CLI kan het ook: `supabase link` en daarna
-   `supabase db push` (de migraties staan in `supabase/migrations/`).
-   Het schema `vanta` hoeft **niet** bij *Exposed schemas*: Vanta en de bot praten alleen via de `vanta_*`-functies.
-2. **Gegevens kopiëren** (*Project Settings*):
-   - **Project URL**: *Data API* (of de knop *Connect*), bijv. `https://abcd1234.supabase.co`;
-   - **Publishable key**: *API Keys* → `sb_publishable_…` (voor Vanta; openbaar);
-   - **Secret key**: *API Keys* → *Secret keys* → `sb_secret_…` (voor de bot; **geheim**). Oudere projecten hebben
-     ook nog de "anon"- en "service_role"-keys; die werken ook, maar Supabase stopt er eind 2026 mee.
-3. **Discord als inlogmethode.** *Authentication* → *Sign In / Providers* → **Discord** → aanzetten:
-   - *Client ID* en *Client Secret* uit stap 1.2 plakken;
-   - kopieer de getoonde *Callback URL* naar Discord → OAuth2 → Redirects (stap 1.2);
-   - *Allow users without an email*: aanzetten (aangeraden). Supabase vraagt Discord altijd om het e-mailadres; dit
-     is niet uit te zetten. Met deze optie kunnen ook spelers zonder geverifieerd e-mailadres inloggen.
-   - Opslaan.
-4. **Redirect voor Vanta.** *Authentication* → *URL Configuration* → *Redirect URLs* → *Add URL*:
+1. **Set up the database.** Dashboard → your project → **SQL Editor** → *New query* → paste the full contents of
+   [`supabase/supabase-setup.sql`](../supabase/supabase-setup.sql) → **Run**. Expected: *Success. No rows returned*.
+   Running it again (e.g. after an update) is always fine. The Supabase CLI works too: `supabase link` and then
+   `supabase db push` (the migrations are in `supabase/migrations/`).
+   The `vanta` schema does **not** need to be added to *Exposed schemas*: Vanta and the bot only talk through the
+   `vanta_*` functions.
+2. **Copy the details** (*Project Settings*):
+   - **Project URL**: *Data API* (or the *Connect* button), e.g. `https://abcd1234.supabase.co`;
+   - **Publishable key**: *API Keys* → `sb_publishable_…` (for Vanta; public);
+   - **Secret key**: *API Keys* → *Secret keys* → `sb_secret_…` (for the bot; **secret**). Older projects also
+     have the "anon" and "service_role" keys; those work too, but Supabase retires them at the end of 2026.
+3. **Discord as sign-in method.** *Authentication* → *Sign In / Providers* → **Discord** → enable:
+   - paste the *Client ID* and *Client Secret* from step 1.2;
+   - copy the *Callback URL* shown to Discord → OAuth2 → Redirects (step 1.2);
+   - *Allow users without an email*: enable (recommended). Supabase always asks Discord for the e-mail address; this
+     cannot be turned off. With this option players without a verified e-mail address can sign in too.
+   - Save.
+4. **Redirect for Vanta.** *Authentication* → *URL Configuration* → *Redirect URLs* → *Add URL*:
 
    `http://127.0.0.1:*/callback*`
 
-   Vanta ontvangt de login op een willekeurige vrije poort op de eigen pc (alleen `127.0.0.1`, niet vanaf het
-   netwerk bereikbaar). *Site URL* maakt niet uit.
+   Vanta receives the sign-in on a random free port on the user's own PC (only `127.0.0.1`, not reachable from the
+   network). *Site URL* does not matter.
 
-## 3. Welke waarden waar
+## 3. Which values go where
 
-| Naam | Waar | Waarde |
+| Name | Where | Value |
 |---|---|---|
-| Discord Client ID + Client Secret | **alleen** Supabase (Discord-provider) | Discord → OAuth2 |
-| Project URL | Vanta **en** bot (`SUPABASE_URL`) | `https://<ref>.supabase.co` |
-| Publishable key | **alleen** Vanta | `sb_publishable_…` (openbaar) |
-| Secret key | **alleen** bot (`SUPABASE_SERVICE_ROLE_KEY`) | `sb_secret_…` (geheim) |
-| `DISCORD_BOT_TOKEN` | bot | Bot-token (geheim) |
-| `DISCORD_CHANNEL_ID` | bot | kanaal-ID |
-| `ADMIN_IDS` | bot | jouw gebruikers-ID (meerdere: komma-gescheiden) |
-| `DISCORD_GUILD_ID` | bot (optioneel) | server-ID |
+| Discord Client ID + Client Secret | **only** Supabase (Discord provider) | Discord → OAuth2 |
+| Project URL | Vanta **and** bot (`SUPABASE_URL`) | `https://<ref>.supabase.co` |
+| Publishable key | **only** Vanta | `sb_publishable_…` (public) |
+| Secret key | **only** bot (`SUPABASE_SERVICE_ROLE_KEY`) | `sb_secret_…` (secret) |
+| `DISCORD_BOT_TOKEN` | bot | bot token (secret) |
+| `DISCORD_CHANNEL_ID` | bot | channel id |
+| `ADMIN_IDS` | bot | your user id (several: comma-separated) |
+| `DISCORD_GUILD_ID` | bot (optional) | server id |
 
-Optioneel voor de bot: `POLL_SECONDS` (15), `DIGEST_WEEKDAY` (0 = maandag), `DIGEST_HOUR` (10),
-`TIMEZONE` (Europe/Amsterdam), `LOG_LEVEL` (INFO). `SUPABASE_SECRET_KEY` mag als andere naam voor
+Optional for the bot: `POLL_SECONDS` (15), `DIGEST_WEEKDAY` (0 = Monday), `DIGEST_HOUR` (10),
+`TIMEZONE` (Europe/Amsterdam), `LOG_LEVEL` (INFO). `SUPABASE_SECRET_KEY` is accepted as another name for
 `SUPABASE_SERVICE_ROLE_KEY`.
 
-## 4. Bot lokaal proberen (optioneel)
+## 4. Try the bot locally (optional)
 
-In de map `bot` met Python 3.10+: `pip install -r requirements.txt`, `.env.example` kopiëren naar `.env`, invullen,
-dan `python bot.py --check` (controleert instellingen, key en database) en `python bot.py`.
+In the `bot` folder with Python 3.10+: `pip install -r requirements.txt`, copy `.env.example` to `.env`, fill it in,
+then `python bot.py --check` (checks settings, key and database) and `python bot.py`.
 
-## 5. De bot op Ferox (Pterodactyl)
+## 5. The bot on Ferox (Pterodactyl)
 
-Kort stappenplan staat ook in [`bot/LEESMIJ-bot.txt`](../bot/LEESMIJ-bot.txt).
+A short checklist is also in [`bot/README-bot.txt`](../bot/README-bot.txt) (Dutch: [`bot/LEESMIJ-bot.txt`](../bot/LEESMIJ-bot.txt)).
 
-1. **Server met een Python-egg.** In het paneel bij *Startup*: kies als Docker-image Python 3.11 of 3.12 als dat
-   kan (3.10 werkt ook; ouder niet).
-2. **Bestanden uploaden.** Nodig zijn: `bot.py`, de map `vanta_bot/`, `requirements.txt` en `.env.example`
-   (tests, Dockerfile en README hoeven niet).
-   - *File Manager*: zip uploaden met **Upload**, daarna rechtsklik op de zip → **Unarchive**. Controleer dat
-     `bot.py` direct in `/home/container` staat (niet in een submap).
-   - Of via **SFTP** (gegevens onder *Settings → SFTP Details*; wachtwoord = je paneelwachtwoord), bijvoorbeeld
-     met WinSCP of FileZilla.
-3. **Startinstellingen** (tab *Startup*):
+1. **Server with a Python egg.** In the panel under *Startup*: pick Python 3.11 or 3.12 as Docker image if possible
+   (3.10 works too; older does not).
+2. **Upload the files.** Needed: `bot.py`, the `vanta_bot/` folder, `requirements.txt` and `.env.example`
+   (tests, Dockerfile and README are not needed).
+   - *File Manager*: upload the zip with **Upload**, then right-click the zip → **Unarchive**. Check that
+     `bot.py` is directly in `/home/container` (not in a subfolder).
+   - Or via **SFTP** (details under *Settings → SFTP Details*; password = your panel password), for example
+     with WinSCP or FileZilla.
+3. **Startup settings** (*Startup* tab):
    - *App py file* / *Startup file*: `bot.py`
-   - *Requirements file*: `requirements.txt` (de egg installeert de pakketten bij elke start)
-   - *Git Repo Address* / *Auto Update*: leeg / uit
-   - *Additional Python packages*: leeg
-4. **Instellingen invullen.** Het eenvoudigst: in de *File Manager* **New File** → naam `.env` → de inhoud van
-   `.env.example` plakken en invullen (zie tabel in stap 3) → opslaan. Heeft het paneel eigen velden bij *Startup*
-   voor variabelen, dan mag het ook daar; die gaan voor op `.env`.
-5. **Start** → tab **Console**. Goed gaat het als je ziet:
+   - *Requirements file*: `requirements.txt` (the egg installs the packages at every start)
+   - *Git Repo Address* / *Auto Update*: empty / off
+   - *Additional Python packages*: empty
+4. **Fill in the settings.** Easiest: in the *File Manager* **New File** → name `.env` → paste the contents of
+   `.env.example` and fill it in (see the table in step 3) → save. If the panel has its own fields under *Startup*
+   for variables, you can use those instead; they take precedence over `.env`.
+5. **Start** → **Console** tab. It is working when you see:
    ```
    vanta: Vanta bot 0.1.0, Python 3.x, discord.py 2.7.1
    vanta.bot: synced 7 commands to guild …
    vanta.bot: logged in as Vanta#1234 (…); 1 guild(s)
    ```
-   Typ in Discord `/stats` om te testen.
-6. **Wat de foutmeldingen betekenen**
-   - `config: … ontbreekt` → een waarde in `.env` mist of klopt niet.
-   - `… is de publishable key / anon key` → verkeerde Supabase-key; gebruik de secret key.
-   - `Discord weigert de token` → `DISCORD_BOT_TOKEN` verkeerd (opnieuw kopiëren of resetten).
-   - `function_missing` / *Could not find the function* → `supabase-setup.sql` is nog niet uitgevoerd (stap 2.1).
-   - `permission_denied` → verkeerde key (publishable/anon in plaats van secret).
-   - `unreachable` → `SUPABASE_URL` klopt niet of het Supabase-project is gepauzeerd (gratis projecten pauzeren na
-     een week zonder verkeer; in het dashboard op *Restore* klikken).
-   - `no permission in channel` → geef de bot in dat kanaal: Kanaal bekijken, Berichten versturen, Links insluiten,
-     Berichtgeschiedenis lezen.
-   - `ModuleNotFoundError: discord` → pakketten niet geïnstalleerd: controleer *Requirements file* en herstart.
-   - Slash commands niet zichtbaar → vul `DISCORD_GUILD_ID` in, of wacht tot een uur (globaal); herstart Discord met Ctrl+R.
-7. De bot maakt zelf `state.json` en `.commands-hash` aan in zijn map. Laat die staan; weggooien kan geen kwaad
-   (hij leest dan de meldingen van de laatste 30 dagen opnieuw, zonder dubbele berichten).
+   Type `/stats` in Discord to test.
+6. **What the error messages mean**
+   - `config: … is missing` → a value in `.env` is missing or wrong.
+   - `… is the publishable key / anon key` → wrong Supabase key; use the secret key.
+   - `Discord rejects the token` → `DISCORD_BOT_TOKEN` is wrong (copy it again or reset it).
+   - `function_missing` / *Could not find the function* → `supabase-setup.sql` has not been run yet (step 2.1).
+   - `permission_denied` → wrong key (publishable/anon instead of secret).
+   - `unreachable` → `SUPABASE_URL` is wrong or the Supabase project is paused (free projects pause after a week
+     without traffic; click *Restore* in the dashboard).
+   - `no permission in channel` → give the bot in that channel: View Channel, Send Messages, Embed Links,
+     Read Message History.
+   - `ModuleNotFoundError: discord` → packages not installed: check *Requirements file* and restart.
+   - Slash commands not visible → fill in `DISCORD_GUILD_ID`, or wait up to an hour (global); restart Discord with Ctrl+R.
+7. The bot creates `state.json` and `.commands-hash` in its folder. Leave them; deleting them does no harm
+   (it then re-reads the reports of the last 30 days, without duplicate messages).
 
-**Knoppen en commando's.** Onder elke melding staan knoppen *Gefixt* (vraagt de Vanta-versie), *Niet
-reproduceerbaar*, *Dubbel* en *Heropenen*; alleen gebruikers uit `ADMIN_IDS` kunnen ze gebruiken. `/fixed`, `/ban`
-en `/digest` zijn alleen voor beheerders. `/cheat` toont beheerders ook wie er meldde (alleen voor jou zichtbaar).
-Elke maandag om 10:00 plaatst de bot een weekoverzicht. `/ban` blokkeert meldingen van die Discord-gebruiker en logt
-hem overal uit.
+**Buttons and commands.** Under every report there are buttons *Fixed* (asks for the Vanta version), *Can't
+reproduce*, *Duplicate* and *Reopen*; only users in `ADMIN_IDS` can use them. `/fixed`, `/ban` and `/digest` are for
+admins only. `/cheat` also shows admins who reported (visible only to you). Every Monday at 10:00 the bot posts a
+weekly digest. `/ban` blocks reports from that Discord user and signs them out everywhere. All bot texts are English.
 
-## 6. Updaten
+## 6. Updating
 
-Nieuwe botbestanden uploaden (niet je `.env`/`state.json` overschrijven), `supabase-setup.sql` opnieuw uitvoeren in
-de SQL Editor, *Restart*. De SQL is idempotent: bestaande meldingen blijven staan.
+Upload the new bot files (do not overwrite your `.env`/`state.json`), run `supabase-setup.sql` again in the SQL
+Editor, *Restart*. The SQL is idempotent: existing reports are kept.
 
-## 7. Vanta koppelen
+## 7. Connecting Vanta
 
-Zet de Project URL en de **publishable** key in `src/Vanta.Core/Branding.cs`:
+Put the Project URL and the **publishable** key in `src/Vanta.Core/Branding.cs`:
 
 ```csharp
 public const string SupabaseUrl = "https://abcd1234.supabase.co";
 public const string SupabaseKey = "sb_publishable_…";
 ```
 
-en bouw een nieuwe release. Tot die tijd zijn de accountknoppen verborgen. Vanta weigert een secret/service_role-key
-(dan blijven de knoppen uit en staat er een waarschuwing in het log). Testen zonder nieuwe release kan per pc met
-`"supabaseUrl"` en `"supabaseKey"` in `%LOCALAPPDATA%\Vanta\settings.json`, of met de omgevingsvariabelen
-`VANTA_SUPABASE_URL` en `VANTA_SUPABASE_KEY`.
+and build a new release. Until then the account buttons are hidden. Vanta refuses a secret/service_role key
+(the buttons then stay off and a warning is logged). To test without a new release, per PC use
+`"supabaseUrl"` and `"supabaseKey"` in `%LOCALAPPDATA%\Vanta\settings.json`, or the environment variables
+`VANTA_SUPABASE_URL` and `VANTA_SUPABASE_KEY`.
 
-Controle op een pc: `Vanta.exe --account-selftest` test de versleutelde opslag (DPAPI), de login-listener en een
-gesimuleerde Supabase-login. Met `--account-selftest <url> <key>` doorloopt hij ook inloggen, melden, token vernieuwen
-en account verwijderen, maar alleen tegen de lokale teststack (`sh supabase/tests/local-stack.sh up`, met nep-Discord);
-tegen het echte project test je via de knop in Vanta.
+Check on a PC: `Vanta.exe --account-selftest` tests the encrypted storage (DPAPI), the sign-in listener and a
+simulated Supabase sign-in. With `--account-selftest <url> <key>` it also runs sign-in, reporting, token refresh
+and account deletion, but only against the local test stack (`sh supabase/tests/local-stack.sh up`, with fake Discord);
+against the real project, test via the button in Vanta.
 
-In Vanta: **Instellingen → Account → Inloggen met Discord**. De browser opent de Discord-toestemming (via Supabase);
-daarna kun je het tabblad sluiten. Rechtsklik op een cheat → *Werkt niet* opent een venster voor een korte opmerking;
-*Werkt* wordt direct gedeeld; *Niet getest* / *Standaard* trekt je melding in; *Melden…* opent het venster altijd.
-Onder **Notities** staat per cheat wat de community meldt. *Account verwijderen* wist het Supabase-account met alle
-meldingen.
+In Vanta: **Settings → Account → Sign in with Discord**. The browser opens the Discord consent page (via Supabase);
+you can close the tab afterwards. Right-click a cheat → *Broken* opens a window for a short note;
+*Works* is shared immediately; *Not tested* / *Default* withdraws your report; *Report…* always opens the window.
+Under **Notes** you see per cheat what the community reports. *Delete account* removes the Supabase account with all
+reports.
 
-> **Let op bij een gedeeld project.** Gebruik je hetzelfde Supabase-project ook voor andere apps, dan verwijdert
-> *Account verwijderen* in Vanta het hele Supabase-account van die gebruiker (dus ook voor die andere apps), en kan
-> iedereen met een Discord-account een Supabase-gebruiker aanmaken via de Discord-login. Een apart project voor Vanta
-> is daarom het eenvoudigst.
+> **Careful with a shared project.** If you use the same Supabase project for other apps too, *Delete account* in
+> Vanta removes the user's whole Supabase account (so also for those other apps), and anyone with a Discord account
+> can create a Supabase user via the Discord sign-in. A separate project for Vanta is therefore simplest.
 
-## 8. Kosten en limieten
+## 8. Costs and limits
 
-Het gratis plan van Supabase (500 MB database, 50.000 maandelijks actieve gebruikers) is ruim genoeg. Gratis
-projecten worden gepauzeerd na een week zonder verkeer; de bot vraagt elke 15 seconden nieuwe meldingen op en houdt
-het project daardoor actief. De bot ruimt elk uur verlopen rate-limit-gegevens (met de IP-hashes) en bot-gebeurtenissen ouder dan 30 dagen op
-(`vanta_bot_cleanup`). Limieten in de database: 30 meldingen per uur per account; community-opvragen 240 per
-10 minuten en gebruikstellingen 30 per uur per IP-hash.
+The Supabase free plan (500 MB database, 50,000 monthly active users) is plenty. Free projects are paused after a week
+without traffic; the bot asks for new reports every 15 seconds and so keeps the project active. Every hour the bot
+cleans up expired rate-limit data (with the IP hashes) and bot events older than 30 days (`vanta_bot_cleanup`).
+Limits in the database: 30 reports per hour per account; community lookups 240 per 10 minutes and usage counts
+30 per hour per IP hash.

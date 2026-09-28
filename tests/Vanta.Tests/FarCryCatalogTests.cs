@@ -25,7 +25,8 @@ public class FarCryCatalogTests
         Assert.Equal(exe, g.ProcessNames[0]);
         Assert.Equal(module, g.MainModule);
         Assert.False(g.Blocked);
-        Assert.Contains("solo", g.Scope!);
+        Assert.Contains("Solo campaign", g.Scope!);
+        Assert.Contains("solo-campagne", g.I18n!["nl"].Scope!);
         Assert.StartsWith("bin/", g.LaunchExe);
     }
 
@@ -85,6 +86,6 @@ public class UiPayloadPrivacyTests
         Assert.DoesNotContain("tableVersion", json);
         Assert.DoesNotContain("Iemand", json);
         Assert.DoesNotContain("openbaar Cheat Engine-script", json);          // internal confidenceNote stays out
-        Assert.Contains("Niet geverifieerd voor deze versie.", json);          // neutral user-facing warning
+        Assert.Contains("Not verified for this version.", json);          // neutral user-facing warning
     }
 }
