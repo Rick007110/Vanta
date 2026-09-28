@@ -30,7 +30,7 @@ public sealed class AccountService : IDisposable
     public ReportQueue Queue { get; }
     public Func<DateTimeOffset> Now { get; set; } = () => DateTimeOffset.UtcNow;
     public TimeSpan CommunityTtl { get; set; } = TimeSpan.FromMinutes(5);
-    public const string PrivacyUrl = "https://github.com/" + Vanta.Core.Update.GitHubRelease.Repo + "/blob/main/docs/privacy.md";
+    public const string PrivacyUrl = "https://rick007110.github.io/vanta-site/privacy/";
     public bool Busy { get; private set; }
     public bool Configured => Client != null;
     public AccountSession? Session { get { lock (_gate) return _session; } }

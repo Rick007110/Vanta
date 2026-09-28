@@ -13,11 +13,28 @@ const VER = process.env.VER || 'v0.2';
 const CSP = "default-src 'self'; img-src 'self' https://vanta.example https://cdn.discordapp.com data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'none'";
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.ttf': 'font/ttf', '.png': 'image/png', '.jpg': 'image/jpeg' };
 
+// Long real-world Steam names (from the v0.3.2 bug report: dialog overflowed sideways and cut names off).
+const LONG_SEARCH = [   // base games only (the host drops DLC/soundtracks/packs); long names + one unbreakable token
+  { appid: 2840770, name: 'Avatar: Frontiers of Pandora™', image: null, cover: null },
+  { appid: 2183900, name: 'Warhammer 40,000: Space Marine 2', image: null, cover: null },
+  { appid: 1811260, name: 'The Legend of Heroes: Trails through Daybreak II - Deluxe Edition (Digital Artbook Bundle)', image: null, cover: null },
+  { appid: 489830, name: 'The Elder Scrolls V: Skyrim Special Edition', image: null, cover: null },
+  { appid: 999001, name: 'SUPERLONGSINGLEWORDGAMENAMEWITHOUTANYSPACESDEFINITIVEEDITION2026', image: null, cover: null },
+];
+const LONG_REQ = [
+  { appid: 1086940, name: 'Baldur’s Gate 3 - Digital Deluxe Edition Soundtrack & Artbook Bundle', cover: null, status: 'planned', note: 'Na de volgende grote patch, zodra de offsets stabiel zijn', votes: 48, votes7d: 9, voted: false },
+  { appid: 2840770, name: 'VALLEY OF MO’ARA STARTER PACK - AVATAR: FRONTIERS OF PANDORA™', cover: null, status: 'in_progress', note: null, votes: 31, votes7d: 4, voted: true },
+  { appid: 359550, name: 'Tom Clancy’s Rainbow Six® Siege X - Deluxe Edition (Year 10 Pass)', cover: null, status: 'rejected', note: 'Online anti-cheat', votes: 22, votes7d: 1, voted: false },
+  { appid: 1245620, name: 'ELDEN RING NIGHTREIGN - Deluxe Edition Upgrade', cover: null, status: 'open', note: null, votes: 17, votes7d: 2, voted: false },
+  { appid: 264710, name: 'Subnautica', cover: null, status: 'open', note: null, votes: 12, votes7d: 3, voted: false },
+  { appid: 105600, name: 'Terraria', cover: null, status: 'open', note: null, votes: 4, votes7d: 1, voted: false },
+];
+
 global.window = {};
 eval(fs.readFileSync(path.join(UI, 'shared', 'devdata.js'), 'utf8'));
 const DEV = global.window.VantaDev;
 
-function hostScript({ many = 0, status = 'attached', blocked = false, account = null, reqDown = false } = {}) {
+function hostScript({ many = 0, status = 'attached', blocked = false, account = null, reqDown = false, longReq = false, longCheat = false } = {}) {
   const lib = JSON.parse(JSON.stringify(DEV.library));
   for (let i = 0; i < many; i++) lib.games.push({ id: `game-${i}`, name: `Testgame ${String(i + 1).padStart(4, '0')}`, short: 'TG', badge: 'v1.' + (i % 9), version: '', cheatCount: 3 + (i % 20),
     steamAppId: null, categories: [['survival', 'rpg', 'shooter', 'strategy', 'racing', 'sim'][i % 6]], antiCheat: i % 97 === 0, onlineOnly: false, group: 'all', art: null, process: `Game${i}.exe`, cheats: [], lazy: true });
@@ -31,6 +48,7 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
   // fixture: one cheat marked "broken" in game.json
   const tlc = games['the-last-caretaker'];
   if (tlc) tlc.cheats.forEach((c) => { c.baseConfidence = c.confidence; if (c.id === 'inf_jump') { c.confidence = c.baseConfidence = 'broken'; c.note = 'Werkt niet in deze versie.'; } });
+  if (tlc && ${JSON.stringify(!!longCheat)}) tlc.cheats.forEach((c) => { if (c.id === 'inf_health') c.name = 'Infinite Health, Stamina and Oxygen (incl. fall damage, drowning and radiation)'; });
   const CONF = { works: 'confirmed', broken: 'broken', untested: 'untested' };
   const NOTE = { confirmed: null, broken: 'Werkt niet in deze versie.', untested: 'Niet geverifieerd voor deze versie.', experimental: 'Experimenteel: kan de game laten crashen. Sla eerst op.' };
   const listeners = [];
@@ -40,6 +58,7 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
   const accMsg = () => Object.assign({ type: 'account', busy: false, error: null, pending: 0, shareUsage: false }, acc, { user: acc && acc.loggedIn ? { id: '400000000000000001', username: 'tester', avatarUrl: 'https://cdn.discordapp.com/embed/avatars/1.png' } : null });
   const REQ = { down: ${JSON.stringify(!!reqDown)}, items: [{ appid: 264710, name: 'Subnautica', cover: null, status: 'planned', note: null, votes: 12, votes7d: 3, voted: false },
     { appid: 105600, name: 'Terraria', cover: null, status: 'open', note: 'Na de volgende update', votes: 4, votes7d: 1, voted: false }] };
+  if (${JSON.stringify(!!longReq)}) REQ.items = ${JSON.stringify(LONG_REQ)};
   const COMM = { inf_health: { works: 3, broken: 12, status: 'open', fixedInVersion: null }, no_weight: { works: 0, broken: 0, status: 'fixed', fixedInVersion: '0.2.3' } };
   window.__hostSend = send;
   window.chrome = { webview: {
@@ -106,6 +125,8 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
       }
       if (acc && m.type === 'getCommunity') { send({ type: 'community', gameId: gid, fingerprint: 'fileVersion=0.8.5.651238', available: true, cheats: COMM }); return ack(); }
       if (m.type === 'getRequests') { setTimeout(() => send({ type: 'requests', ok: !REQ.down, error: REQ.down ? 'server_not_ready' : null, loggedIn: !!(acc && acc.loggedIn), items: REQ.down ? null : REQ.items }), 40); return ack(); }
+      if (m.type === 'steamSearch' && m.term === '700') { send({ type: 'steamSearch', term: m.term, ok: false, error: 'not_a_game', items: [] }); return ack(); }
+      if (m.type === 'steamSearch' && ${JSON.stringify(!!longReq)}) { send({ type: 'steamSearch', term: m.term, ok: true, error: null, items: ${JSON.stringify(LONG_SEARCH)} }); return ack(); }
       if (m.type === 'steamSearch') { send({ type: 'steamSearch', term: m.term, ok: true, error: null, items: [{ appid: 264710, name: 'Subnautica', image: null, cover: null }, { appid: 848450, name: 'Subnautica: Below Zero <b>x</b>', image: null, cover: null }] }); return ack(); }
       if (m.type === 'requestVote' || m.type === 'requestUnvote') {
         let r = REQ.items.find((x) => x.appid === m.appid);
@@ -144,20 +165,20 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const browser = await puppeteer.launch({ executablePath: process.env.CHROME || '/usr/bin/google-chrome', headless: true, args: ['--no-sandbox', '--disable-gpu', '--hide-scrollbars', '--lang=nl-NL'] });
   const page = await browser.newPage();
   await page.setViewport({ width: 1320, height: 860, deviceScaleFactor: 1 });
-  await page.setRequestInterception(true);
   const artHits = [], avatarHits = [];
-  page.on('request', (r) => {
-    const m = r.url().match(/^https:\/\/vanta\.example\/art\/(\d+)\/(cover|hero|logo)/);
+  const intercept = async (page) => { await page.setRequestInterception(true); page.on('request', (r) => {
+    const m = r.url().match(/^https:\/\/vanta\.example\/art\/(\d+)\/(cover|hero|logo|header)/);
     if (m) {
       artHits.push(m[2]);
-      const f = path.join(__dirname, 'art', `${m[1]}_${{ cover: 'library_600x900.jpg', hero: 'library_hero.jpg', logo: 'logo.png' }[m[2]]}`);
+      const f = path.join(__dirname, 'art', `${m[1]}_${{ cover: 'library_600x900.jpg', hero: 'library_hero.jpg', logo: 'logo.png', header: 'header.jpg' }[m[2]]}`);
       if (fs.existsSync(f)) return r.respond({ status: 200, contentType: f.endsWith('png') ? 'image/png' : 'image/jpeg', body: fs.readFileSync(f) });
       return r.respond({ status: 404, body: '' });
     }
     if (r.url().startsWith('https://cdn.discordapp.com/')) { avatarHits.push(r.url()); return r.respond({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64') }); }
     if (!r.url().startsWith('http://127.0.0.1')) return r.abort();
     r.continue();
-  });
+  }); };
+  await intercept(page);
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
@@ -400,12 +421,104 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.click('.req-list [data-appid="848450"] [data-action=req-vote]'); await sleep(300);
   const rq4 = await page.evaluate(() => window.__posted.filter((m) => m.type === 'requestUnvote').map((m) => m.appid));
   check('aanvragen: nogmaals klikken trekt stem in', () => assert.deepStrictEqual(rq4, [848450]));
+  await page.$eval('[data-role=req-search]', (e) => { e.value = ''; }); await page.type('[data-role=req-search]', '700'); await sleep(700);
+  const rq5 = await page.evaluate(() => (document.querySelector('[data-bind=req-results] .req-note') || {}).textContent);
+  check('aanvragen: geplakte tool/DLC zonder basisspel -> vriendelijke melding', () => assert.strictEqual(rq5, 'Dit is geen game maar bijvoorbeeld DLC, een soundtrack of een tool. Zoek op de naam van het basisspel.'));
   await page.keyboard.press('Escape'); await sleep(100);
   await load({ reqDown: true });
   await page.click('[data-action=open-requests]'); await sleep(250);
   const rqDown = await page.evaluate(() => (document.querySelector('.req-list') || {}).textContent.trim());
   check('aanvragen: SQL nog niet toegepast -> nette melding', () => assert.strictEqual(rqDown, 'Game aanvragen is nog niet beschikbaar. Probeer het later opnieuw.'));
   await page.keyboard.press('Escape'); await sleep(100);
+
+  // 6c5. Layout of the dialogs at the app's window sizes with long Steam names (v0.3.2 bug: the request dialog overflowed
+  // sideways with a white native scrollbar and cut names off). This browser shows real scrollbars (no --hide-scrollbars).
+  // Per dialog: nothing wider than its box (scrollWidth <= clientWidth for every element), nothing sticking out, no ellipsis,
+  // and scrollbars are the thin dark ::-webkit-scrollbar ones (10px) instead of the native 15px ones.
+  {
+    // Headless Chrome never paints classic scrollbars (they take 0px), so the 10px width is only measured with UI_HEADFUL=1
+    // (e.g. `xvfb-run -a env UI_HEADFUL=1 node tests/ui/ui.e2e.js`); the stylesheet rules are checked in both modes.
+    const headful = process.env.UI_HEADFUL === '1';
+    const vis = await puppeteer.launch({ executablePath: process.env.CHROME || '/usr/bin/google-chrome', headless: !headful, args: ['--no-sandbox', '--disable-gpu', '--lang=nl-NL', '--window-size=1960,1200'] });
+    const vp = await vis.newPage();
+    await intercept(vp);
+    vp.on('pageerror', (e) => errors.push(e.message));
+    const vload = async (opts, w, h) => { hostJs = hostScript(opts); await vp.setViewport({ width: w, height: h, deviceScaleFactor: 1 }); await vp.goto(base, { waitUntil: 'networkidle0' }); await sleep(500); };
+    const layout = (sel) => vp.evaluate((sel) => {
+      const m = document.querySelector(sel); if (!m) return null;
+      const d = (e) => e.tagName.toLowerCase() + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).join('.') : '');
+      const mr = m.getBoundingClientRect(), over = [], outside = [], ellipsis = [];
+      for (const e of [m, ...m.querySelectorAll('*')]) {
+        if (e.closest('svg')) continue;
+        const cs = getComputedStyle(e);
+        if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+        if (e.clientWidth > 0 && e.scrollWidth > e.clientWidth) over.push(`${d(e)} ${e.scrollWidth}>${e.clientWidth}`);
+        const r = e.getBoundingClientRect();
+        if (r.width && (r.right > mr.right + 0.5 || r.left < mr.left - 0.5)) outside.push(d(e));
+        if (cs.textOverflow === 'ellipsis') ellipsis.push(d(e));
+      }
+      const b = m.querySelector('.modal-body'), bs = getComputedStyle(b);
+      const lines = (e) => Math.round(e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight));
+      return { w: Math.round(mr.width), vw: innerWidth, over, outside, ellipsis, page: document.documentElement.scrollWidth <= innerWidth && document.body.scrollWidth <= innerWidth,
+        vscroll: b.scrollHeight > b.clientHeight, sb: b.offsetWidth - b.clientWidth, std: [b, document.querySelector('.scroll'), document.querySelector('.library')].map((e) => getComputedStyle(e).scrollbarWidth + '/' + getComputedStyle(e).scrollbarColor),
+        names: [...m.querySelectorAll('.req-name')].map((e) => ({ t: e.textContent, lines: lines(e), full: e.scrollWidth <= e.clientWidth && e.getBoundingClientRect().right <= b.getBoundingClientRect().right })),
+        intro: (() => { const e = m.querySelector('.req-intro'); return e ? { lines: lines(e), full: e.scrollWidth <= e.clientWidth } : null; })(), bodyOverflowX: bs.overflowX };
+    }, sel);
+    const clean = (L) => L && L.over.length === 0 && L.outside.length === 0 && L.ellipsis.length === 0 && (L.page || L.vw < 1024);   // .app has min-width 1024
+    const sbOk = (L) => (!headful || !L.vscroll || L.sb === 10) && L.std.every((x) => x === 'auto/auto');
+    const SIZES = [[1320, 860], [1040, 680], [1280, 720], [1366, 768], [1600, 900], [1920, 1080], [880, 600]];   // default, minimum, common screens; 880x600 = min window at 125-150% DPI
+    const valley = 'VALLEY OF MO’ARA STARTER PACK - AVATAR: FRONTIERS OF PANDORA™';
+    let anyScroll = false;
+    for (const [w, h] of SIZES) {
+      await vload({ account: { configured: true, loggedIn: false }, longReq: true }, w, h);
+      await vp.click('[data-action=open-requests]'); await sleep(250);
+      await vp.type('[data-role=req-search]', 'avatar'); await sleep(800);
+      await vp.mouse.move(0, 0);
+      const L = await layout('.modal-requests');
+      const tag = `${w}x${h}`;
+      check(`aanvragen ${tag}: geen horizontale overflow (scrollWidth <= clientWidth), niets buiten de dialoog, geen ellipsis`, () => assert.ok(clean(L), JSON.stringify(L && { over: L.over, outside: L.outside, ellipsis: L.ellipsis, page: L.page })));
+      check(`aanvragen ${tag}: breedte = min(860px, 92vw)`, () => assert.ok(Math.abs(L.w - Math.min(860, Math.round(0.92 * w))) <= 1, `${L.w}`));
+      check(`aanvragen ${tag}: alle ${L.names.length} lange namen volledig zichtbaar, ondertitel volledig`, () => assert.ok(L.names.length === 11 && L.names.every((n) => n.full) && L.names.some((n) => n.t === valley) && L.intro.full, JSON.stringify(L.names)));
+      if (w >= 1040) check(`aanvragen ${tag}: "${valley}" op één regel`, () => assert.ok(L.names.filter((n) => n.t === valley).every((n) => n.lines === 1), JSON.stringify(L.names.filter((n) => n.t === valley))));
+      check(`aanvragen ${tag}: donkere dunne scrollbalk (::-webkit-scrollbar${headful ? ' 10px gemeten' : ''}, geen scrollbar-width/color die hem uitschakelt)`, () => assert.ok(sbOk(L), JSON.stringify({ vscroll: L.vscroll, sb: L.sb, std: L.std })));
+      if (w === 1320) {
+        const rules = await vp.evaluate(() => { const r = {}; for (const sh of document.styleSheets) for (const x of sh.cssRules) if (x.selectorText && /::-webkit-(scrollbar|resizer)/.test(x.selectorText)) x.selectorText.split(/,\s*/).forEach((k) => { r[k] = x.style; }); const g = (k, p) => r[k] && r[k].getPropertyValue(p);
+          return { width: g('::-webkit-scrollbar', 'width'), track: g('::-webkit-scrollbar-track', 'background-color') || g('::-webkit-scrollbar-track', 'background'), radius: g('::-webkit-scrollbar-thumb', 'border-radius'), thumb: g('::-webkit-scrollbar-thumb', 'background-color'),
+            hover: g('::-webkit-scrollbar-thumb:hover', 'background-color'), buttons: g('::-webkit-scrollbar-button', 'display'), corner: g('::-webkit-scrollbar-corner', 'background-color') || g('::-webkit-scrollbar-corner', 'background') }; });
+        check('scrollbalken: dun, afgeronde duim in --line-3, lichter bij hover, transparant spoor, geen pijltjes', () => assert.deepStrictEqual(rules, { width: '10px', track: 'transparent', radius: '999px', thumb: 'var(--line-3)', hover: 'rgba(255, 255, 255, 0.28)', buttons: 'none', corner: 'transparent' }));
+      }
+      anyScroll = anyScroll || L.vscroll;
+      if (w === 1320) {
+        await sleep(300);
+        const file = path.join(OUT, `vanta-${VER}-aanvragen-lange-namen.png`);
+        await vp.screenshot({ path: file }); results.push(['SHOT', file]);
+        if (process.env.SHOT_REQ) { fs.mkdirSync(path.dirname(process.env.SHOT_REQ), { recursive: true }); fs.copyFileSync(file, process.env.SHOT_REQ); results.push(['SHOT', process.env.SHOT_REQ]); }
+      }
+      if (w === 1040) { const file = path.join(OUT, `vanta-${VER}-aanvragen-1040.png`); await sleep(300); await vp.screenshot({ path: file }); results.push(['SHOT', file]); }
+      if (w === 880) { const file = path.join(OUT, `vanta-${VER}-aanvragen-smal.png`); await sleep(300); await vp.screenshot({ path: file }); results.push(['SHOT', file]); }
+
+      // "Wat is er nieuw" with a long URL, an unbroken word and a long code line
+      await vp.keyboard.press('Escape'); await sleep(100);
+      await vp.evaluate(() => window.__hostSend({ type: 'update', manual: true, current: '0.3.2', release: { state: 'available', version: '0.3.3', size: 71000000, url: 'https://github.com/Rick007110/Vanta/releases/tag/v0.3.3',
+        notes: '## Nieuw\n- Zie https://github.com/Rick007110/Vanta/releases/tag/v0.3.3/een/heel/lange/link/zonder/spaties/die/niet/mag/uitsteken?query=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n- ' + 'X'.repeat(160) + '\n\n```\n' + 'const lang = ' + '"y"'.repeat(80) + ';\n```\n' + Array.from({ length: 40 }, (_, i) => '- regel ' + i).join('\n') } }));
+      await sleep(200);
+      await vp.click('[data-action=whats-new]'); await sleep(300);
+      const N = await layout('.modal-notes');
+      check(`wat is er nieuw ${tag}: geen horizontale overflow, donkere scrollbalk`, () => assert.ok(clean(N) && N.vscroll && sbOk(N), JSON.stringify(N && { over: N.over, outside: N.outside, ellipsis: N.ellipsis, sb: N.sb, vscroll: N.vscroll })));
+      if (w === 1040) { const file = path.join(OUT, `vanta-${VER}-wat-is-er-nieuw-1040.png`); await sleep(300); await vp.screenshot({ path: file }); results.push(['SHOT', file]); }
+
+      // report dialog with a long cheat name
+      await vload({ account: { configured: true, loggedIn: true }, longCheat: true }, w, h);
+      await vp.click('[data-cheat=inf_health] .row-name', { button: 'right' }); await sleep(150);
+      await vp.click('[data-action=report-open]'); await sleep(250);
+      await vp.click('.rep-opt[data-status=broken]'); await sleep(100);
+      const R = await layout('.modal-report');
+      check(`melden ${tag}: lange cheatnaam past, geen horizontale overflow`, () => assert.ok(clean(R), JSON.stringify(R && { over: R.over, outside: R.outside, ellipsis: R.ellipsis })));
+      if (w === 1040) { const file = path.join(OUT, `vanta-${VER}-melden-1040.png`); await sleep(300); await vp.screenshot({ path: file }); results.push(['SHOT', file]); }
+    }
+    check('aanvragen: verticale scrollbalk minstens één keer getest', () => assert.ok(anyScroll));
+    await vis.close();
+  }
   await load();
   await page.click('[data-action=open-settings]');
   await sleep(200);
@@ -484,7 +597,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 
   // 6b. community reports with a Discord account (fake host)
-  await load({ account: { configured: true, loggedIn: false, privacyUrl: 'https://github.com/Rick007110/Vanta/blob/main/docs/privacy.md' } });
+  await load({ account: { configured: true, loggedIn: false, privacyUrl: 'https://rick007110.github.io/vanta-site/privacy/' } });
   const pickA = async (id, status) => { await page.click(`[data-cheat=${id}] .row-name`, { button: 'right' }); await sleep(150); await page.click(`.ctx-item[data-status=${status}]`); await sleep(300); };
   await page.click('[data-cheat=inf_health] .row-name', { button: 'right' }); await sleep(150);
   const menuA = await page.$$eval('.ctx-menu .ctx-item .ctx-label', (e) => e.map((x) => x.textContent));
@@ -496,8 +609,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.click('[data-action=open-settings]'); await sleep(250);
   const acc0 = await page.evaluate(() => ({ state: document.querySelector('[data-bind=acct-state]').dataset.state, btn: (document.querySelector('[data-action=account-login]') || {}).textContent, usage: !!document.querySelector('[data-set=shareUsage]') }));
   check('instellingen: "Inloggen met Discord" + anoniem-gebruik-schakelaar', () => assert.deepStrictEqual([acc0.state, (acc0.btn || '').trim(), acc0.usage], ['out', 'Inloggen met Discord', true]));
-  const priv = await page.$eval('.acct-privacy', (e) => [e.dataset.action, e.dataset.url.endsWith('/docs/privacy.md'), e.textContent.trim()]).catch(() => null);
-  check('instellingen: privacy-link naar docs/privacy.md', () => assert.deepStrictEqual(priv, ['open-url', true, 'Privacy']));
+  const priv = await page.$eval('.acct-privacy', (e) => [e.dataset.action, e.dataset.url === 'https://rick007110.github.io/vanta-site/privacy/', e.textContent.trim()]).catch(() => null);
+  check('instellingen: privacy-link naar de privacypagina op de website', () => assert.deepStrictEqual(priv, ['open-url', true, 'Privacy']));
   await shot(`vanta-${VER}-account-uitgelogd.png`);
   await page.click('[data-action=account-login]'); await sleep(80);
   const busy = await page.$eval('[data-bind=acct-state]', (e) => e.dataset.state);

@@ -52,7 +52,7 @@ Details: [README-DEV.md](README-DEV.md).
 
 Met een Discord-account kun je melden of een cheat werkt of niet; Vanta toont dan per cheat wat andere spelers melden.
 Inloggen is nooit verplicht: zonder account werkt alles zoals altijd. De backend is een Supabase-project (database +
-inloggen, [`supabase/`](supabase/)); de Discord-bot ([`bot/`](bot/)) is los te hosten. Installatie: [docs/SETUP.md](docs/SETUP.md). Privacy: [docs/privacy.md](docs/privacy.md).
+inloggen, [`supabase/`](supabase/)); de Discord-bot ([`bot/`](bot/)) is los te hosten. Installatie: [docs/SETUP.md](docs/SETUP.md). Privacy: <https://rick007110.github.io/vanta-site/privacy/> (bron: [docs/privacy.md](docs/privacy.md)).
 
 ## Bouwen
 
@@ -68,6 +68,6 @@ AOB pattern matches exactly once, restores every byte on disable/exit, can verif
 [Releases](https://github.com/Rick007110/Vanta/releases/latest). Far Cry 5/6 cheats are for the solo campaign only.
 
 Optional community reports: sign in with Discord to report whether a cheat works; see [docs/SETUP.md](docs/SETUP.md) (Dutch)
-and [docs/privacy.md](docs/privacy.md). Signing in is never required.
+and the [privacy page](https://rick007110.github.io/vanta-site/privacy/) ([docs/privacy.md](docs/privacy.md)). Signing in is never required.
 
 MIT License.

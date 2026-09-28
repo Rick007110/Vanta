@@ -1,8 +1,17 @@
-VANTA v0.3.2 - trainer voor singleplayer-games
+VANTA v0.3.3 - trainer voor singleplayer-games
 =============================================
 
 Vanta is een losstaand programma (geen Cheat Engine nodig). Het werkt alleen voor
 singleplayer/offline games. Games met online anti-cheat worden bewust geweigerd.
+
+NIEUW IN v0.3.3
+  - Game aanvragen: het venster is breder, zodat lange gamenamen en de uitleg
+    volledig zichtbaar zijn (geen afgekapte tekst of horizontale schuifbalk meer).
+  - Zoeken op Steam toont alleen nog echte games: DLC, soundtracks, season passes,
+    packs, demo's en tools worden weggelaten. Plak je een link of app-ID van DLC,
+    dan wordt het basisspel gekozen.
+  - Alle schuifbalken in Vanta zijn nu dun en donker, passend bij de rest.
+  - De knop Privacy opent nu de privacypagina op de Vanta-website.
 
 NIEUW IN v0.3.2
   - Game aanvragen: knop "Game aanvragen" linksonder. Zoek een game op Steam (op
@@ -32,7 +41,8 @@ NIEUW IN v0.3.0
     en al je meldingen direct.
   - Anoniem gebruik delen (standaard uit): telt per dag hoe vaak elke cheat wordt
     aangezet, zonder account, naam of IP-adres. Aanzetten in Instellingen > Account.
-  - Privacy: knop "Privacy" bij Account, of docs\privacy.md in deze map.
+  - Privacy: knop "Privacy" bij Account (https://rick007110.github.io/vanta-site/privacy/),
+    of docs\privacy.md in deze map.
 
 NIEUW IN v0.2.2
   - Updates worden ook gevonden terwijl Vanta al open staat: bij het starten, elke

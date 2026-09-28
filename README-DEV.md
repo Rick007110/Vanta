@@ -1,4 +1,4 @@
-# Vanta v0.3.2 (developer notes)
+# Vanta v0.3.3 (developer notes)
 
 Standalone Windows trainer for **single-player/offline** games. It has no Cheat Engine dependency.
 Games marked `antiCheat` or `onlineOnly` are listed but refused (never opened, never launched).
@@ -209,4 +209,5 @@ To activate it, choose `RemoteCatalog` in `Host` when the URL is set, and add si
   restore, cave freed, auto-attach, the game exit/restart re-apply, restore on shutdown, and the anti-cheat refusal.
   It passed under wine 10 on the build box.
 * `node tests/ui/ui.e2e.js`: headless Chrome with a fake WebView2 host and the production CSP (38 checks + screenshots;
-  env `PUPPETEER_CORE`, `CHROME`, `OUT`). Includes the store chip / "Start via …", the scope line and the update toast.
+  env `PUPPETEER_CORE`, `CHROME`, `OUT`, `SHOT_REQ`; `xvfb-run -a env UI_HEADFUL=1 node tests/ui/ui.e2e.js` also measures the 10px dark scrollbars,
+  which headless Chrome never paints). Includes the store chip / "Start via …", the scope line and the update toast.
