@@ -5,6 +5,7 @@ Releases: https://github.com/Rick007110/Vanta/releases
 
 ## v0.3.7 (2026-09-29)
 
+- The sidebar search moves to the centre of the window when focused (click or Ctrl+K), with a dimmed background and a keyboard-navigable result list.
 - Windrose: 5 → 31 cheats. New: Unlock Travel (AOB verified, 1 hit) and value editors for max health, health regeneration, max stamina, stamina regeneration and cost, posture, armor, corruption, damage and damage resistance, critical chance and damage, all 8 attributes (Strength ... Endurance), movement speed modifier, jump hold time, character time speed and revive time. Health, stamina and jump height now use the offsets from the newest public table. All value editors are experimental: pointer offsets cannot be checked on disk.
 - Avatar: Frontiers of Pandora: 5 → 11 cheats. New: position editors X/Y/height (teleport by hand), Night Time switch, Crafting Materials Set to 900 and a Clan Favour editor. Hook AOBs verified (1 hit each); the values they read are experimental.
 - Mafia III: Definitive Edition: 10 → 27 cheats. New: No Reload, Rapid Fire, No Detection, Permanent Intel Vision (ESP), Max Reserve Ammo & Equipment, No Throwable Decrease, Adrenaline Shots Always 10, Free Shop Items, Apathetic NPCs, Freeze All Entities, an alternative No Recoil/Spread, editors for health, magazine ammo, adrenaline shots and "Electronics", plus an alternative max reserve ammo and Colour Vision. Cheats with side effects say so in their description; Colour Vision is marked broken because its author says it crashes the game.
