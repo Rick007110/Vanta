@@ -11,7 +11,9 @@ public class LanguageTests : IDisposable
 {
     private readonly string _dir = Path.Combine(Path.GetTempPath(), "vanta-lang-" + Guid.NewGuid().ToString("N"));
     public LanguageTests() => Directory.CreateDirectory(_dir);
-    public void Dispose() { try { Directory.Delete(_dir, true); } catch { } }
+    // Several tests switch the process-wide Strings.Lang to Dutch (via TrainerController); reset it so later
+    // tests that assert English engine messages do not depend on test order.
+    public void Dispose() { Strings.Lang = "en"; try { Directory.Delete(_dir, true); } catch { } }
 
     private static GameDef Load(string id) => VJson.LoadGame(Path.Combine(TestUtil.RepoRoot, "games", id, "game.json"));
     private static JsonElement Msg(string json) => JsonDocument.Parse(json).RootElement.Clone();
