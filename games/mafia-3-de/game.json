@@ -494,6 +494,860 @@
         ],
         "valueType": "int32"
       }
+    },
+    {
+      "id": "no_reload",
+      "name": "No Reload",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "ammo",
+      "hotkey": "Numpad9",
+      "description": "Your magazine is refilled to 16 rounds every time you shoot, so you never reload. Side effect: the ammo counter on screen can show a wrong number.",
+      "i18n": {
+        "nl": {
+          "name": "Niet herladen",
+          "description": "Je magazijn wordt bij elk schot aangevuld tot 16 kogels, dus je hoeft nooit te herladen. Bijwerking: de munitieteller op het scherm kan een verkeerd getal tonen."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "ammo": {
+            "patterns": [
+              {
+                "aob": "8B 48 18 89 4B 04 48"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "ammo",
+            "offset": 0,
+            "bytes": "C6 40 18 10 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rapid_fire",
+      "name": "Rapid Fire",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "zap",
+      "hotkey": "Numpad0",
+      "description": "Removes the delay between shots for most weapons. Side effect: some weapons may fire faster than their animation.",
+      "i18n": {
+        "nl": {
+          "name": "Snelvuur",
+          "description": "Haalt de pauze tussen schoten weg voor de meeste wapens. Bijwerking: sommige wapens vuren sneller dan hun animatie."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "rf": {
+            "patterns": [
+              {
+                "aob": "F3 41 0F 11 85 FC 00 00 00 80"
+              }
+            ],
+            "overwrite": 9
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "rf"
+        },
+        "asm": [
+          "newmem:",
+          "cmp r8w,8",
+          "jne rf_ret",
+          "movss [r13+000000FC],xmm0",
+          "jmp rf_ret"
+        ],
+        "hooks": [
+          {
+            "site": "rf",
+            "label": "newmem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_detection",
+      "name": "No Detection",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "eye",
+      "hotkey": "Ctrl+Numpad1",
+      "description": "Enemies do not notice you and the detection meter stays empty. Side effect: scripted mission alarms may not trigger; turn it off if a mission does not continue.",
+      "i18n": {
+        "nl": {
+          "name": "Niet gedetecteerd",
+          "description": "Vijanden merken je niet op en de detectiemeter blijft leeg. Bijwerking: gescripte alarmen in missies gaan misschien niet af; zet het uit als een missie niet verdergaat."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "invis": {
+            "patterns": [
+              {
+                "aob": "40 53 55 56 48 83 EC 20 48 83"
+              }
+            ]
+          },
+          "detect": {
+            "patterns": [
+              {
+                "aob": "40 F3 0F 11 71 18",
+                "offset": 1
+              }
+            ],
+            "overwrite": 5
+          }
+        },
+        "patches": [
+          {
+            "site": "invis",
+            "offset": 0,
+            "bytes": "C3 90 90 90 90 90 90 90"
+          }
+        ],
+        "alloc": {
+          "size": 256,
+          "near": "detect"
+        },
+        "asm": [
+          "newmem:",
+          "xorps xmm6,xmm6",
+          "movss [rcx+18],xmm6",
+          "jmp detect_ret"
+        ],
+        "hooks": [
+          {
+            "site": "detect",
+            "label": "newmem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "esp_intel",
+      "name": "Permanent Intel Vision (ESP)",
+      "section": "extra",
+      "type": "toggle",
+      "icon": "eye",
+      "hotkey": "Ctrl+Numpad2",
+      "description": "Enemies, loot and objectives stay highlighted like when you use Intel, without aiming. Press the Intel key once after enabling. The highlight radius is centred on where you activated it.",
+      "i18n": {
+        "nl": {
+          "name": "Permanent intel-zicht (ESP)",
+          "description": "Vijanden, buit en doelen blijven gemarkeerd zoals bij Intel, zonder te richten. Druk na het aanzetten één keer op de Intel-toets. De straal is gecentreerd op de plek waar je het aanzette."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "noaim": {
+            "patterns": [
+              {
+                "aob": "E8 AC 41 00 00 48"
+              }
+            ]
+          },
+          "intel": {
+            "patterns": [
+              {
+                "aob": "45 88 1C 01 48 83 7F 08 00"
+              }
+            ],
+            "overwrite": 9
+          }
+        },
+        "patches": [
+          {
+            "site": "noaim",
+            "offset": 0,
+            "bytes": "90 90 90 90 90"
+          }
+        ],
+        "alloc": {
+          "size": 256,
+          "near": "intel"
+        },
+        "asm": [
+          "newmem:",
+          "mov [intel_flag],rax",
+          "mov r11b,1",
+          "mov [r9+rax],r11b",
+          "cmp qword ptr [rdi+08],0",
+          "jmp intel_ret",
+          "intel_flag:",
+          "dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "intel",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "intel_flag"
+        ]
+      }
+    },
+    {
+      "id": "inf_reserve",
+      "name": "Max Reserve Ammo & Equipment",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "ammo",
+      "hotkey": "Ctrl+Numpad3",
+      "description": "Reserve ammo is set to 255 and equipment (grenades, molotovs, etc.) to 10 whenever the game reads it. Side effects: enemies get refilled too, and equipment can briefly show 255.",
+      "i18n": {
+        "nl": {
+          "name": "Maximale reservemunitie en uitrusting",
+          "description": "Reservemunitie wordt op 255 gezet en uitrusting (granaten, molotovs enz.) op 10 zodra de game ze uitleest. Bijwerkingen: vijanden worden ook aangevuld, en uitrusting kan even 255 tonen."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "tot": {
+            "patterns": [
+              {
+                "aob": "41 8B 40 04 C3 CC CC CC CC CC"
+              }
+            ],
+            "overwrite": 5
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "tot"
+        },
+        "asm": [
+          "newmem:",
+          "cmp r12w,1",
+          "je equip",
+          "mov byte ptr [r8+4],FF",
+          "jmp done",
+          "equip:",
+          "mov byte ptr [r8+4],0A",
+          "done:",
+          "mov eax,[r8+04]",
+          "ret"
+        ],
+        "hooks": [
+          {
+            "site": "tot",
+            "label": "newmem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "max_reserve_alt",
+      "name": "Max Reserve Ammo (alternative)",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "ammo",
+      "description": "Alternative version: writes 255 into the reserve ammo of both weapon slots. The original author marked it as 'needs fixing': the ammo total can be calculated wrong while it is on. Use Max Reserve Ammo & Equipment first.",
+      "i18n": {
+        "nl": {
+          "name": "Maximale reservemunitie (alternatief)",
+          "description": "Alternatieve versie: zet 255 in de reservemunitie van beide wapenslots. De oorspronkelijke maker noemde het 'moet nog gerepareerd worden': het munitietotaal kan verkeerd berekend worden zolang het aanstaat. Probeer eerst Maximale reservemunitie en uitrusting."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (2026-09-28): exactly 1 hit on disk, but the author marked the script as 'needs fixing' (it skips loading a register the game uses next). Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "at": {
+            "patterns": [
+              {
+                "aob": "44 8B 40 04 43 8D 0C 08"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "at",
+            "offset": 0,
+            "bytes": "C6 40 04 FF"
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_throwable_decrease",
+      "name": "No Throwable Decrease",
+      "section": "inventaris",
+      "type": "toggle",
+      "icon": "grenade",
+      "hotkey": "Ctrl+Numpad4",
+      "description": "Throwing a grenade, molotov or other throwable does not lower the count. Alternative to Infinite Throwables; use one of the two.",
+      "i18n": {
+        "nl": {
+          "name": "Werpbare items nemen niet af",
+          "description": "Een granaat, molotov of ander werpbaar item gooien verlaagt het aantal niet. Alternatief voor Oneindig werpbare items; gebruik er één van de twee."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "eq": {
+            "patterns": [
+              {
+                "aob": "38 C3 CC 48 8B C4 57 48 83 EC 40"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "eq",
+            "offset": 3,
+            "bytes": "C3 90 90 90 90 90 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "adrenaline_hook",
+      "name": "Adrenaline hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Captures the adrenaline shot counter. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "adr": {
+            "patterns": [
+              {
+                "aob": "48 8B C8 48 83 C4 28 E9 71 30"
+              }
+            ],
+            "overwrite": 7
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "adr"
+        },
+        "asm": [
+          "newmem:",
+          "mov [adr_ptr],rax",
+          "cmp byte ptr [adr_flag],1",
+          "jne adr_code",
+          "mov dword ptr [rax+18],0A",
+          "adr_code:",
+          "mov rcx,rax",
+          "add rsp,28",
+          "jmp adr_ret",
+          "adr_ptr:",
+          "dq 0",
+          "adr_flag:",
+          "db 0"
+        ],
+        "hooks": [
+          {
+            "site": "adr",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "adr_ptr",
+          "adr_flag"
+        ]
+      }
+    },
+    {
+      "id": "adrenaline_ten",
+      "name": "Adrenaline Shots Always 10",
+      "section": "speler",
+      "type": "toggle",
+      "icon": "heart",
+      "hotkey": "Ctrl+Numpad5",
+      "description": "Keeps your adrenaline shots (health kits) at 10. Use or pick up one shot after enabling.",
+      "i18n": {
+        "nl": {
+          "name": "Adrenalineshots altijd 10",
+          "description": "Houdt je adrenalineshots (medkits) op 10. Gebruik of raap één shot op na het aanzetten."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "adrenaline_hook"
+      ],
+      "impl": {
+        "type": "pointer",
+        "base": "sym:adr_flag",
+        "valueType": "byte",
+        "onValue": 1,
+        "offValue": 0
+      }
+    },
+    {
+      "id": "adrenaline_count",
+      "name": "Adrenaline Shots",
+      "section": "speler",
+      "type": "number",
+      "icon": "heart",
+      "description": "Number of adrenaline shots you carry. Use or pick up one shot so the value can be found.",
+      "i18n": {
+        "nl": {
+          "name": "Adrenalineshots",
+          "description": "Aantal adrenalineshots dat je bij je hebt. Gebruik of raap één shot op zodat de waarde gevonden wordt."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (2026-09-28): exactly 1 hit on disk, but the pointer layout (+0x18) comes from the same table and cannot be checked on disk. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "adrenaline_hook"
+      ],
+      "min": 0,
+      "max": 99,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:adr_ptr",
+        "offsets": [
+          24
+        ],
+        "valueType": "int32"
+      }
+    },
+    {
+      "id": "health_hook",
+      "name": "Health bar hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Captures the health bar object. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "hp": {
+            "patterns": [
+              {
+                "aob": "F3 0F 10 43 10 F3 0F 5C 43 04"
+              }
+            ],
+            "overwrite": 5
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "hp"
+        },
+        "asm": [
+          "newmem:",
+          "mov [health_ptr],rbx",
+          "movss xmm0,[rbx+10]",
+          "jmp hp_ret",
+          "health_ptr:",
+          "dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "hp",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "health_ptr"
+        ]
+      }
+    },
+    {
+      "id": "health_value",
+      "name": "Health",
+      "section": "speler",
+      "type": "number",
+      "icon": "heart",
+      "description": "Your current health (the health bar value). Freeze it to stay at that value. Take a hit or wait for the health bar to update so the value can be found.",
+      "i18n": {
+        "nl": {
+          "name": "Gezondheid",
+          "description": "Je huidige gezondheid (waarde van de gezondheidsbalk). Bevries hem om op die waarde te blijven. Neem een klap of wacht tot de balk bijwerkt zodat de waarde gevonden wordt."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (2026-09-28): exactly 1 hit on disk, but the pointer layout (+0x10) comes from the same table and cannot be checked on disk. The hook may also catch other characters' health bars. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "health_hook"
+      ],
+      "min": 0,
+      "max": 10000,
+      "step": 10,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:health_ptr",
+        "offsets": [
+          16
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "clip_hook",
+      "name": "Magazine hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Captures the current magazine. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "clip": {
+            "patterns": [
+              {
+                "aob": "41 8B 40 18 48 8B 5C 24 30"
+              }
+            ],
+            "overwrite": 9
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "clip"
+        },
+        "asm": [
+          "newmem:",
+          "mov [clip_ptr],r8",
+          "mov eax,[r8+18]",
+          "mov rbx,[rsp+30]",
+          "jmp clip_ret",
+          "clip_ptr:",
+          "dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "clip",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "clip_ptr"
+        ]
+      }
+    },
+    {
+      "id": "clip_value",
+      "name": "Ammo in Magazine",
+      "section": "wapens",
+      "type": "number",
+      "icon": "ammo",
+      "description": "Rounds in your current magazine. Fire one shot so the value can be found.",
+      "i18n": {
+        "nl": {
+          "name": "Munitie in magazijn",
+          "description": "Kogels in je huidige magazijn. Schiet één keer zodat de waarde gevonden wordt."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (2026-09-28): exactly 1 hit on disk, but the pointer layout (+0x18) comes from the same table and cannot be checked on disk. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "clip_hook"
+      ],
+      "min": 0,
+      "max": 999,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:clip_ptr",
+        "offsets": [
+          24
+        ],
+        "valueType": "int32"
+      }
+    },
+    {
+      "id": "elec_hook",
+      "name": "Electronics hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Captures the 'Electronics' value object. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "elec": {
+            "patterns": [
+              {
+                "aob": "F3 0F 10 41 18 C3 CC CC CC CC CC CC CC CC CC CC 48 83"
+              }
+            ],
+            "overwrite": 5
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "elec"
+        },
+        "asm": [
+          "newmem:",
+          "cmp dword ptr [rcx+58],0",
+          "je elec_code",
+          "mov [elec_ptr],rcx",
+          "elec_code:",
+          "movss xmm0,[rcx+18]",
+          "jmp elec_ret",
+          "elec_ptr:",
+          "dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "elec",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "elec_ptr"
+        ]
+      }
+    },
+    {
+      "id": "electronics",
+      "name": "Electronics",
+      "section": "punten",
+      "type": "number",
+      "icon": "zap",
+      "description": "The 'Electronics' value from the original table (a float). Its meaning in the game is not documented; change it carefully.",
+      "i18n": {
+        "nl": {
+          "name": "Elektronica",
+          "description": "De waarde 'Electronics' uit de oorspronkelijke tabel (een float). Wat het in de game betekent is niet gedocumenteerd; pas hem voorzichtig aan."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (2026-09-28): exactly 1 hit on disk, but the table does not explain what this value is, and the layout (+0x18) cannot be checked on disk. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "elec_hook"
+      ],
+      "min": 0,
+      "max": 100000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:elec_ptr",
+        "offsets": [
+          24
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "free_shop",
+      "name": "Free Shop Items",
+      "section": "punten",
+      "type": "toggle",
+      "icon": "coin",
+      "hotkey": "Ctrl+Numpad8",
+      "description": "Items in shops cost nothing: the price check returns right away. Side effect: unknown in other menus that use the same check.",
+      "i18n": {
+        "nl": {
+          "name": "Gratis winkelitems",
+          "description": "Items in winkels kosten niets: de prijscontrole keert meteen terug. Bijwerking: onbekend in andere menu's die dezelfde controle gebruiken."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). The table's short AOB (48 8B C4 41 56) is not unique on Steam build 5121098; Vanta uses a longer pattern taken from the function at the table's address. That longer pattern could not be proven unique in the on-disk check (too many similar functions to list), so it is experimental. Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "shop": {
+            "patterns": [
+              {
+                "aob": "48 8B C4 41 56 48 83 EC 70 48 C7 40 A8 FE FF FF FF 48 89 58 08 48 89 68 10 48 89 70 18 48 89 78 20 49 8B E9 49 8B F8 4C 8B F2 48 8B F1 49 83 78 08 02 0F 85 9B 00 00 00"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "shop",
+            "offset": 0,
+            "bytes": "C3 90 90 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "apathetic_entities",
+      "name": "Apathetic NPCs",
+      "section": "wereld",
+      "type": "toggle",
+      "icon": "skull",
+      "hotkey": "Ctrl+Numpad6",
+      "description": "NPCs stop reacting to you. Side effects: people freeze in place. Do NOT get into a car with an NPC in it: you get stuck (no vehicles, no crosshair) until you kill your character to reset.",
+      "i18n": {
+        "nl": {
+          "name": "Apathische NPC's",
+          "description": "NPC's reageren niet meer op je. Bijwerkingen: mensen bevriezen op hun plek. Stap NIET in een auto met een NPC erin: je loopt dan vast (geen voertuigen, geen vizier) tot je je personage laat doodgaan om te resetten."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "apa": {
+            "patterns": [
+              {
+                "aob": "40 55 56 57 48 83 EC 20 48 8B F9 48"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "apa",
+            "offset": 0,
+            "bytes": "C3 90 90 90 90 90 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "static_entities",
+      "name": "Freeze All Entities",
+      "section": "wereld",
+      "type": "toggle",
+      "icon": "snow",
+      "hotkey": "Ctrl+Numpad7",
+      "description": "Makes all entities static (people, cars, objects stop updating). Side effect: expect strange behaviour; for fun and screenshots, not for playing missions.",
+      "i18n": {
+        "nl": {
+          "name": "Alle entiteiten bevriezen",
+          "description": "Maakt alle entiteiten statisch (mensen, auto's en objecten worden niet meer bijgewerkt). Bijwerking: verwacht vreemd gedrag; voor de lol en screenshots, niet om missies te spelen."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (Mafia3DefinitiveEdition.exe, 2026-09-28): exactly 1 hit on disk. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "st": {
+            "patterns": [
+              {
+                "aob": "40 53 56 57 41 54 41 55 41 56 41 57 48 83 EC 30"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "st",
+            "offset": 0,
+            "bytes": "C3 90 90 90 90 90"
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_spread_alt",
+      "name": "No Recoil/Spread (alternative)",
+      "section": "wapens",
+      "type": "toggle",
+      "icon": "target",
+      "hotkey": "Ctrl+Numpad9",
+      "description": "Alternative from another table: keeps the weapon's aim-kick/spread value at 0. Use it if No Recoil or No Spread do not work for you; using them together is not needed.",
+      "i18n": {
+        "nl": {
+          "name": "Geen terugslag/spreiding (alternatief)",
+          "description": "Alternatief uit een andere tabel: houdt de terugslag-/spreidingswaarde van het wapen op 0. Gebruik dit als Geen terugslag of Geen spreiding bij jou niet werken; samen gebruiken is niet nodig."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a second public Cheat Engine table (ModEngine, 2025, 'No Recoil'). AOB checked on Steam build 5121098 (2026-09-28): exactly 1 hit on disk. Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "sp": {
+            "patterns": [
+              {
+                "aob": "F3 0F 11 93 04 01 00 00 F3"
+              }
+            ],
+            "overwrite": 8
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "sp"
+        },
+        "asm": [
+          "newmem:",
+          "xorps xmm2,xmm2",
+          "movss [rbx+00000104],xmm2",
+          "jmp sp_ret"
+        ],
+        "hooks": [
+          {
+            "site": "sp",
+            "label": "newmem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "vision_color",
+      "name": "Colour Vision (crashes)",
+      "section": "extra",
+      "type": "toggle",
+      "icon": "eye",
+      "description": "WARNING: the original author says this crashes the game. Included for completeness only; save first.",
+      "i18n": {
+        "nl": {
+          "name": "Kleurenzicht (crasht)",
+          "description": "WAARSCHUWING: de oorspronkelijke maker zegt dat dit de game laat crashen. Alleen opgenomen voor de volledigheid; sla eerst op."
+        }
+      },
+      "confidence": "broken",
+      "confidenceNote": "From a public Cheat Engine table (gir489/CODEX, 2020). AOB checked on Steam build 5121098 (2026-09-28): exactly 1 hit on disk, but the original author titled the script 'will crash your game'. Not tested. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "vis": {
+            "patterns": [
+              {
+                "aob": "50 5F 5E 5D C3 CC CC CC CC CC CC CC 48 8B C4 57 41 56"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "vis",
+            "offset": 18,
+            "bytes": "90 90 90 90 90 90"
+          }
+        ]
+      }
     }
   ]
 }

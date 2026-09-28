@@ -38,7 +38,7 @@
   "notes": [
     "Windrose is in Early Access and updates often; every update can break cheats. Vanta refuses a cheat when its AOB is not found exactly once.",
     "No anti-cheat, but co-op sessions (up to 4 players) are shared: only use Vanta in a solo world. The game's EULA does not allow cheating in multiplayer.",
-    "Infinite Jumps was checked on Steam build 24803703 (1 hit). The value editors use pointer offsets from an older table and are experimental.",
+    "Infinite Jumps and Unlock Travel were checked on Steam build 24803703 (1 hit each). The value editors use pointer offsets from public tables and are experimental: they cannot be checked on disk.",
     "Back up your save first: %LOCALAPPDATA%\\R5\\Saved\\SaveProfiles\\<Steam ID>"
   ],
   "i18n": {
@@ -46,7 +46,7 @@
       "notes": [
         "Windrose is Early Access en krijgt vaak updates; elke update kan cheats breken. Vanta weigert een cheat als de AOB niet precies één keer gevonden wordt.",
         "Geen anti-cheat, maar co-op-sessies (tot 4 spelers) zijn gedeeld: gebruik Vanta alleen in een solowereld. De EULA van de game staat valsspelen in multiplayer niet toe.",
-        "Oneindig springen is gecontroleerd op Steam-build 24803703 (1 treffer). De waarde-editors gebruiken pointer-offsets uit een oudere tabel en zijn experimenteel.",
+        "Oneindig springen en Reizen ontgrendelen zijn gecontroleerd op Steam-build 24803703 (elk 1 treffer). De waarde-editors gebruiken pointer-offsets uit openbare tabellen en zijn experimenteel: ze kunnen niet op schijf gecontroleerd worden.",
         "Maak eerst een backup van je save: %LOCALAPPDATA%\\R5\\Saved\\SaveProfiles\\<Steam ID>"
       ],
       "scope": "Alleen solowerelden. Niet gebruiken in co-op of op een server.",
@@ -96,6 +96,42 @@
             "site": "jump",
             "offset": 1,
             "bytes": "8B"
+          }
+        ]
+      }
+    },
+    {
+      "id": "unlock_travel",
+      "name": "Unlock Travel",
+      "section": "wereld",
+      "type": "toggle",
+      "icon": "map",
+      "hotkey": "Numpad2",
+      "description": "Removes a game check that blocks travelling (the source table calls it 'Unlock travel'). Side effects: what exactly it unblocks is not documented and it may allow travel the story does not expect yet. Solo worlds only; save first.",
+      "i18n": {
+        "nl": {
+          "name": "Reizen ontgrendelen",
+          "description": "Haalt een controle weg die reizen blokkeert (de brontabel noemt het 'Unlock travel'). Bijwerkingen: wat het precies vrijgeeft is niet gedocumenteerd en het kan reizen toestaan dat het verhaal nog niet verwacht. Alleen solowerelden; sla eerst op."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (2026, client and server versions). AOB checked on Steam build 24803703 (Windrose-Win64-Shipping.exe, 2026-09-28): exactly 1 hit on disk. It NOPs 'mov r8d,[rdx+rcx+10]'. Not tested in-game yet. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobPatch",
+        "sites": {
+          "travel": {
+            "patterns": [
+              {
+                "aob": "44 8B 44 0A 10 45"
+              }
+            ]
+          }
+        },
+        "patches": [
+          {
+            "site": "travel",
+            "offset": 0,
+            "bytes": "90 90 90 90 90"
           }
         ]
       }
@@ -159,7 +195,7 @@
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from a public Cheat Engine table made for build 22010085 (February 2026, UE 5.6). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk and may have moved in later builds. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game.",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
       "requires": [
         "game_data"
       ],
@@ -183,20 +219,94 @@
       }
     },
     {
+      "id": "max_health",
+      "name": "Max Health",
+      "section": "speler",
+      "type": "number",
+      "icon": "heart",
+      "description": "Your maximum health. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Maximale gezondheid",
+          "description": "Je maximale gezondheid. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 100000,
+      "step": 10,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          92
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "health_regen",
+      "name": "Health Regeneration",
+      "section": "speler",
+      "type": "number",
+      "icon": "heart",
+      "description": "Passive health regeneration. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Gezondheidsherstel",
+          "description": "Passief gezondheidsherstel. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 10000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          108
+        ],
+        "valueType": "float"
+      }
+    },
+    {
       "id": "stamina",
       "name": "Stamina",
       "section": "speler",
       "type": "number",
       "icon": "bolt",
-      "description": "Your current stamina.",
+      "description": "Your current stamina (freeze to stay at this value).",
       "i18n": {
         "nl": {
           "name": "Uithoudingsvermogen",
-          "description": "Je huidige uithoudingsvermogen."
+          "description": "Je huidige uithoudingsvermogen (bevriezen om op deze waarde te blijven)."
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from a public Cheat Engine table made for build 22010085 (February 2026, UE 5.6). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk and may have moved in later builds. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game.",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
       "requires": [
         "game_data"
       ],
@@ -220,6 +330,745 @@
       }
     },
     {
+      "id": "max_stamina",
+      "name": "Max Stamina",
+      "section": "speler",
+      "type": "number",
+      "icon": "bolt",
+      "description": "Your maximum stamina. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Maximaal uithoudingsvermogen",
+          "description": "Je maximale uithoudingsvermogen. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 100000,
+      "step": 10,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          220
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "stamina_regen",
+      "name": "Stamina Regeneration",
+      "section": "speler",
+      "type": "number",
+      "icon": "bolt",
+      "description": "How fast stamina comes back. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Herstel uithoudingsvermogen",
+          "description": "Hoe snel uithoudingsvermogen terugkomt. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 10000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          236
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "stamina_cost",
+      "name": "Stamina Cost Modifier",
+      "section": "speler",
+      "type": "number",
+      "icon": "bolt",
+      "description": "Modifier for how much stamina actions cost; lower means cheaper. Note the current value before changing it. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Kosten uithoudingsvermogen",
+          "description": "Factor voor hoeveel uithoudingsvermogen acties kosten; lager is goedkoper. Noteer de huidige waarde voordat je hem wijzigt. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 100,
+      "step": 0.1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          268
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "posture",
+      "name": "Posture",
+      "section": "speler",
+      "type": "number",
+      "icon": "shield",
+      "description": "Your current posture (the guard/stagger bar).",
+      "i18n": {
+        "nl": {
+          "name": "Houding",
+          "description": "Je huidige houding (de guard-/staggerbalk)."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 100000,
+      "step": 10,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1136,
+          76
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "max_posture",
+      "name": "Max Posture",
+      "section": "speler",
+      "type": "number",
+      "icon": "shield",
+      "description": "Your maximum posture. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Maximale houding",
+          "description": "Je maximale houding. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 100000,
+      "step": 10,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1136,
+          92
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "armor",
+      "name": "Armor",
+      "section": "speler",
+      "type": "number",
+      "icon": "shield",
+      "description": "Your armor value. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Pantser",
+          "description": "Je pantserwaarde. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 100000,
+      "step": 10,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          316
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "corruption",
+      "name": "Corruption",
+      "section": "speler",
+      "type": "number",
+      "icon": "skull",
+      "description": "Your current corruption build-up; set it to 0 to clear it.",
+      "i18n": {
+        "nl": {
+          "name": "Corruptie",
+          "description": "Je huidige corruptie-opbouw; zet hem op 0 om hem te wissen."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 100000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          1836
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "damage_mod",
+      "name": "Global Damage Modifier",
+      "section": "wapens",
+      "type": "number",
+      "icon": "fire",
+      "description": "Modifier for all damage you deal. Note the current value before changing it. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Algemene schadefactor",
+          "description": "Factor voor alle schade die je doet. Noteer de huidige waarde voordat je hem wijzigt. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 0.1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          620
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "damage_resist",
+      "name": "Global Damage Resistance",
+      "section": "wapens",
+      "type": "number",
+      "icon": "shield",
+      "description": "Resistance to all damage you take. Note the current value before changing it; too high values may behave oddly. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Algemene schadeweerstand",
+          "description": "Weerstand tegen alle schade die je krijgt. Noteer de huidige waarde voordat je hem wijzigt; te hoge waarden kunnen vreemd werken. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 0.1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          1068
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "crit_chance",
+      "name": "Critical Chance",
+      "section": "wapens",
+      "type": "number",
+      "icon": "crosshair",
+      "description": "Base chance for critical hits. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Kritieke kans",
+          "description": "Basiskans op kritieke treffers. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          1740
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "crit_damage",
+      "name": "Critical Damage Modifier",
+      "section": "wapens",
+      "type": "number",
+      "icon": "crosshair",
+      "description": "Extra damage of critical hits. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Kritieke schadefactor",
+          "description": "Extra schade van kritieke treffers. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 0.1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          1772
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "strength",
+      "name": "Strength",
+      "section": "punten",
+      "type": "number",
+      "icon": "star",
+      "description": "Your Strength attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Kracht",
+          "description": "Je attribuut Kracht. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          2044
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "agility",
+      "name": "Agility",
+      "section": "punten",
+      "type": "number",
+      "icon": "star",
+      "description": "Your Agility attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Behendigheid",
+          "description": "Je attribuut Behendigheid. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          2060
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "precision",
+      "name": "Precision",
+      "section": "punten",
+      "type": "number",
+      "icon": "star",
+      "description": "Your Precision attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Precisie",
+          "description": "Je attribuut Precisie. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          2076
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "mobility",
+      "name": "Mobility",
+      "section": "punten",
+      "type": "number",
+      "icon": "star",
+      "description": "Your Mobility attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Mobiliteit",
+          "description": "Je attribuut Mobiliteit. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          2092
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "vitality",
+      "name": "Vitality",
+      "section": "punten",
+      "type": "number",
+      "icon": "star",
+      "description": "Your Vitality attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Vitaliteit",
+          "description": "Je attribuut Vitaliteit. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          2108
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "mastery",
+      "name": "Mastery",
+      "section": "punten",
+      "type": "number",
+      "icon": "star",
+      "description": "Your Mastery attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Meesterschap",
+          "description": "Je attribuut Meesterschap. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          2124
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "fortitude",
+      "name": "Fortitude",
+      "section": "punten",
+      "type": "number",
+      "icon": "star",
+      "description": "Your Fortitude attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Standvastigheid",
+          "description": "Je attribuut Standvastigheid. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          2140
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "endurance",
+      "name": "Endurance",
+      "section": "punten",
+      "type": "number",
+      "icon": "star",
+      "description": "Your Endurance attribute. The game can recalculate this value (level-up, equipment, buffs); set it again or freeze it.",
+      "i18n": {
+        "nl": {
+          "name": "Uithouding",
+          "description": "Je attribuut Uithouding. De game kan deze waarde herberekenen (level-up, uitrusting, buffs); stel hem opnieuw in of bevries hem."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 1000,
+      "step": 1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1128,
+          2156
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "move_speed_mod",
+      "name": "Movement Speed Modifier",
+      "section": "extra",
+      "type": "number",
+      "icon": "speed",
+      "description": "Multiplier for your movement speed.",
+      "i18n": {
+        "nl": {
+          "name": "Bewegingssnelheidsfactor",
+          "description": "Vermenigvuldiger voor je bewegingssnelheid."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 20,
+      "step": 0.1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          2200,
+          5288
+        ],
+        "valueType": "float"
+      }
+    },
+    {
       "id": "walk_speed",
       "name": "Max Walk Speed",
       "section": "extra",
@@ -233,7 +1082,7 @@
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from a public Cheat Engine table made for build 22010085 (February 2026, UE 5.6). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk and may have moved in later builds. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game.",
+      "confidenceNote": "Pointer offsets from an older public Cheat Engine table (build 22010085, February 2026); the newer table no longer lists this value. The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Solo worlds only.",
       "requires": [
         "game_data"
       ],
@@ -269,7 +1118,7 @@
         }
       },
       "confidence": "experimental",
-      "confidenceNote": "Pointer offsets from a public Cheat Engine table made for build 22010085 (February 2026, UE 5.6). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk and may have moved in later builds. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game.",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
       "requires": [
         "game_data"
       ],
@@ -284,9 +1133,117 @@
           56,
           0,
           48,
-          744,
+          848,
           816,
           424
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "jump_hold",
+      "name": "Jump Max Hold Time",
+      "section": "extra",
+      "type": "number",
+      "icon": "jump",
+      "description": "How long holding jump keeps pushing you up (seconds).",
+      "i18n": {
+        "nl": {
+          "name": "Maximale springhoudtijd",
+          "description": "Hoe lang springen ingedrukt houden je omhoog blijft duwen (seconden)."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 10,
+      "step": 0.1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          1120
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "time_dilation",
+      "name": "Character Time Speed",
+      "section": "extra",
+      "type": "number",
+      "icon": "clock",
+      "description": "Time speed of your character only (1 = normal). Higher makes you move and act faster; side effect: animations and physics can look odd.",
+      "i18n": {
+        "nl": {
+          "name": "Tijdsnelheid personage",
+          "description": "Tijdsnelheid van alleen jouw personage (1 = normaal). Hoger laat je sneller bewegen en handelen; bijwerking: animaties en physics kunnen vreemd ogen."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0.1,
+      "max": 10,
+      "step": 0.1,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          104
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "revive_time",
+      "name": "Revive Time",
+      "section": "extra",
+      "type": "number",
+      "icon": "clock",
+      "description": "Time needed to revive (seconds); lower is faster.",
+      "i18n": {
+        "nl": {
+          "name": "Reanimatietijd",
+          "description": "Tijd nodig om te reanimeren (seconden); lager is sneller."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "Pointer offsets from the newest public Cheat Engine table (v0.10.0.1, 2026). The hook AOB matches Steam build 24803703 (1 hit on disk), but pointer offsets cannot be checked on disk. Wrong offsets just read garbage or nothing; writing a wrong address can crash the game. Solo worlds only.",
+      "requires": [
+        "game_data"
+      ],
+      "min": 0,
+      "max": 60,
+      "step": 0.5,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:pBase",
+        "offsets": [
+          4680,
+          56,
+          0,
+          48,
+          848,
+          712,
+          1192,
+          248,
+          52
         ],
         "valueType": "float"
       }

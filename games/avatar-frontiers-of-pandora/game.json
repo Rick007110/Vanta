@@ -386,6 +386,334 @@
           }
         ]
       }
+    },
+    {
+      "id": "coord_hook",
+      "name": "Coordinates hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). AOB checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk. afop.exe is protected by Denuvo, so check the running game with Vanta.exe --verify avatar-frontiers-of-pandora --live. Not tested in-game yet. Captures the player position object (x at +0x80, height at +0x84, y at +0x88; the game code at this address reads exactly these three fields). Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "coord": {
+            "patterns": [
+              {
+                "aob": "F3 0F 10 80 80 00 00 00 F3 0F 10 90"
+              }
+            ],
+            "overwrite": 8
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "coord"
+        },
+        "asm": [
+          "newmem:",
+          "mov [coord_ptr],rax",
+          "movss xmm0,[rax+00000080]",
+          "jmp coord_ret",
+          "coord_ptr:",
+          "dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "coord",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "coord_ptr"
+        ]
+      }
+    },
+    {
+      "id": "pos_x",
+      "name": "Position X",
+      "section": "wereld",
+      "type": "number",
+      "icon": "map",
+      "description": "Your X coordinate. Change it to teleport. Side effects: the game may move you back, you can end up inside rocks or fall from a height (turn on God Mode first). Fast travel if you get stuck.",
+      "i18n": {
+        "nl": {
+          "name": "Positie X",
+          "description": "Je X-coördinaat. Wijzig hem om te teleporteren. Bijwerkingen: de game kan je terugzetten, je kunt in rotsen belanden of van grote hoogte vallen (zet eerst Godmode aan). Gebruik fast travel als je vastzit."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). The hook AOB has exactly 1 hit on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28), but whether the captured object is always the player cannot be checked on disk. Denuvo: check with --verify --live. Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "coord_hook"
+      ],
+      "min": -100000,
+      "max": 100000,
+      "step": 10,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:coord_ptr",
+        "offsets": [
+          128
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "pos_y",
+      "name": "Position Y",
+      "section": "wereld",
+      "type": "number",
+      "icon": "map",
+      "description": "Your Y coordinate. Change it to teleport. Side effects: the game may move you back, you can end up inside rocks or fall from a height (turn on God Mode first). Fast travel if you get stuck.",
+      "i18n": {
+        "nl": {
+          "name": "Positie Y",
+          "description": "Je Y-coördinaat. Wijzig hem om te teleporteren. Bijwerkingen: de game kan je terugzetten, je kunt in rotsen belanden of van grote hoogte vallen (zet eerst Godmode aan). Gebruik fast travel als je vastzit."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). The hook AOB has exactly 1 hit on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28), but whether the captured object is always the player cannot be checked on disk. Denuvo: check with --verify --live. Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "coord_hook"
+      ],
+      "min": -100000,
+      "max": 100000,
+      "step": 10,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:coord_ptr",
+        "offsets": [
+          136
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "pos_height",
+      "name": "Height (Z)",
+      "section": "wereld",
+      "type": "number",
+      "icon": "jump",
+      "description": "Your height. Raise it a little to get unstuck, or set it high to fly up. Side effects: the game may move you back, you can end up inside rocks or fall from a height (turn on God Mode first). Fast travel if you get stuck.",
+      "i18n": {
+        "nl": {
+          "name": "Hoogte (Z)",
+          "description": "Je hoogte. Verhoog hem een beetje om los te komen, of zet hem hoog om omhoog te vliegen. Bijwerkingen: de game kan je terugzetten, je kunt in rotsen belanden of van grote hoogte vallen (zet eerst Godmode aan). Gebruik fast travel als je vastzit."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). The hook AOB has exactly 1 hit on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28), but whether the captured object is always the player cannot be checked on disk. Denuvo: check with --verify --live. Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "coord_hook"
+      ],
+      "min": -10000,
+      "max": 10000,
+      "step": 5,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:coord_ptr",
+        "offsets": [
+          132
+        ],
+        "valueType": "float"
+      }
+    },
+    {
+      "id": "daytime_hook",
+      "name": "Day/night hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). AOB checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk. afop.exe is protected by Denuvo, so check the running game with Vanta.exe --verify avatar-frontiers-of-pandora --live. Not tested in-game yet. Captures the day-period object. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "day": {
+            "patterns": [
+              {
+                "aob": "48 8B 13 48 8B CB 48 8B F0 FF 52 28"
+              }
+            ],
+            "overwrite": 6
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "day"
+        },
+        "asm": [
+          "newmem:",
+          "mov [day_ptr],rbx",
+          "mov rdx,[rbx]",
+          "mov rcx,rbx",
+          "jmp day_ret",
+          "day_ptr:",
+          "dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "day",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "day_ptr"
+        ]
+      }
+    },
+    {
+      "id": "night",
+      "name": "Night Time",
+      "section": "wereld",
+      "type": "toggle",
+      "icon": "clock",
+      "hotkey": "Numpad6",
+      "description": "Switches the world to night; turning it off switches back to day. Useful for plants and items you can only harvest at a certain time. The switch is sometimes not picked up; toggle it again.",
+      "i18n": {
+        "nl": {
+          "name": "Nacht",
+          "description": "Zet de wereld op nacht; uitzetten zet hem terug op dag. Handig voor planten en items die je alleen op een bepaald moment kunt oogsten. Soms wordt de wissel niet opgepikt; zet hem dan opnieuw."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (Paul44 v2.0 for game v2.5, January 2026). The hook AOB has exactly 1 hit on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28), but the day-period flag (+0xB0, 0 = day, 1 = night) comes from the same table and cannot be checked on disk. Denuvo: check with --verify --live. Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "daytime_hook"
+      ],
+      "impl": {
+        "type": "pointer",
+        "base": "sym:day_ptr",
+        "offsets": [
+          176
+        ],
+        "valueType": "byte",
+        "onValue": 1,
+        "offValue": 0
+      }
+    },
+    {
+      "id": "craft_900",
+      "name": "Crafting Materials Set to 900",
+      "section": "inventaris",
+      "type": "toggle",
+      "icon": "hammer",
+      "hotkey": "Numpad7",
+      "description": "When a crafting material / spare count changes, it is set to 900. Side effects: it can also hit other counters written by the same code; the table author uses it as a crafting override. Cannot be used together with Lock Consumables (Vanta refuses the second one).",
+      "i18n": {
+        "nl": {
+          "name": "Craftmaterialen op 900",
+          "description": "Als het aantal van een craftmateriaal / onderdeel verandert, wordt het op 900 gezet. Bijwerkingen: het kan ook andere tellers raken die door dezelfde code geschreven worden; de maker van de tabel gebruikt het als craft-override. Niet samen te gebruiken met Verbruiksartikelen vastzetten (Vanta weigert de tweede)."
+        }
+      },
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (f55667 'Crafting (override)', 2025). AOB checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk. afop.exe is protected by Denuvo, so check the running game with Vanta.exe --verify avatar-frontiers-of-pandora --live. Not tested in-game yet. Same code as the table ('mov bl,0' as in the original). Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "craft": {
+            "patterns": [
+              {
+                "aob": "4C 89 59 18 B3 01"
+              }
+            ],
+            "overwrite": 6
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "craft"
+        },
+        "asm": [
+          "newmem:",
+          "mov r11,#900",
+          "mov [rcx+18],r11",
+          "mov bl,0",
+          "jmp craft_ret"
+        ],
+        "hooks": [
+          {
+            "site": "craft",
+            "label": "newmem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "favour_hook",
+      "name": "Clan favour hook",
+      "section": "extra",
+      "type": "toggle",
+      "hidden": true,
+      "confidence": "untested",
+      "confidenceNote": "From a public Cheat Engine table (f55667, 2025). AOB checked on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28): exactly 1 hit on disk. afop.exe is protected by Denuvo, so check the running game with Vanta.exe --verify avatar-frontiers-of-pandora --live. Not tested in-game yet. Captures the clan favour value when a trader compares it with a price. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "impl": {
+        "type": "aobInject",
+        "sites": {
+          "fav": {
+            "patterns": [
+              {
+                "aob": "4C 8B 51 18 48 8B 1C 24"
+              }
+            ],
+            "overwrite": 8
+          }
+        },
+        "alloc": {
+          "size": 256,
+          "near": "fav"
+        },
+        "asm": [
+          "newmem:",
+          "mov [fav_ptr],rcx",
+          "mov r10,[rcx+18]",
+          "mov rbx,[rsp]",
+          "jmp fav_ret",
+          "fav_ptr:",
+          "dq 0"
+        ],
+        "hooks": [
+          {
+            "site": "fav",
+            "label": "newmem"
+          }
+        ],
+        "exports": [
+          "fav_ptr"
+        ]
+      }
+    },
+    {
+      "id": "clan_favour",
+      "name": "Clan Favour",
+      "section": "punten",
+      "type": "number",
+      "icon": "coin",
+      "description": "Your clan favour at a trader. Open a clan trader and look at an item first so the value can be found; check that the shown value matches your favour before changing it.",
+      "i18n": {
+        "nl": {
+          "name": "Clangunst",
+          "description": "Je clangunst bij een handelaar. Open eerst een clanhandelaar en bekijk een item zodat de waarde gevonden wordt; controleer of de getoonde waarde klopt met je gunst voordat je hem wijzigt."
+        }
+      },
+      "confidence": "experimental",
+      "confidenceNote": "From a public Cheat Engine table (f55667, 2025). The hook AOB has exactly 1 hit on Steam build 22429549 (afop.exe 1.0.2.2, 2026-09-28), but the same compare code may be used for other values than clan favour, so the captured value can be something else. Denuvo: check with --verify --live. Not tested in-game. Fails safe: if the AOB is not found exactly once, Vanta patches nothing.",
+      "requires": [
+        "favour_hook"
+      ],
+      "min": 0,
+      "max": 1000000,
+      "step": 100,
+      "impl": {
+        "type": "pointer",
+        "base": "sym:fav_ptr",
+        "offsets": [
+          24
+        ],
+        "valueType": "int32"
+      }
     }
   ]
 }
