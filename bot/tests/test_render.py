@@ -42,3 +42,11 @@ def test_top_and_digest():
     d = digest_embed({"reports_period": 1, "broken_period": 1, "new_users": 0, "top": [], "fixed": [{"cheat_id": "a", "game_id": "g", "fixed_in_version": "0.3"}]}, "2026-W40")
     assert "1 melding deze week" in d.description and "0 nieuwe gebruikers" in d.description
     assert "✅ a — g (0.3)" in d.fields[1].value
+
+
+def test_digest_lists_top_requests():
+    d = digest_embed({"reports_period": 0, "broken_period": 0, "new_users": 0, "top": [], "fixed": [],
+                      "requests": [{"name": "Subnautica", "votes": 12, "votes_7d": 3, "status": "planned"}, {"name": "Terraria", "votes": 1, "status": "open"}, {"votes": 9}]}, "2026-W40")
+    f = next(x for x in d.fields if x.name == "Meest gevraagde games")
+    assert f.value.splitlines() == ["1. Subnautica — 12 stemmen (+3 deze week) · gepland", "2. Terraria — 1 stem"]
+    assert all(x.name != "Meest gevraagde games" for x in digest_embed({"top": [], "fixed": []}, "w").fields)

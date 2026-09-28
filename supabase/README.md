@@ -9,6 +9,7 @@ Installatie voor beheerders: [docs/SETUP.md](../docs/SETUP.md) (stap 2). Hier de
 | `migrations/20260927120000_community_schema.sql` | schema `vanta`, tabellen, RLS-policies, profiel-trigger op `auth.users` |
 | `migrations/20260927120100_community_functions.sql` | validatie, rate-limits, score, RPC's voor de app |
 | `migrations/20260927120200_bot_api.sql` | RPC's voor de bot (alleen `service_role`) |
+| `migrations/20260928120000_game_requests_admin.sql` | game-aanvragen met stemmen, beheerderstabel, RPC's voor het beheerdashboard op de website |
 | `supabase-setup.sql` | alle migraties in één bestand voor de SQL Editor; maken met `sh build-setup-sql.sh` |
 
 Alles is idempotent en veilig in een bestaand project: alleen het schema `vanta`, functies `public.vanta_*` en de
@@ -23,6 +24,13 @@ Het schema `vanta` wordt niet via de Data API ontsloten; `anon` heeft er geen re
   geblokkeerde gebruikers niets.
 - **Bot** (secret key = `service_role`): `vanta_bot_events`, `_state`, `_set_message`, `_set_status`, `_ban`, `_top`,
   `_cheat`, `_game`, `_stats`, `_digest`, `_cleanup`. Elke functie controleert zelf nog eens de rol.
+- **Game-aanvragen**: `vanta_game_requests` (lijst, ook anoniem), `vanta_request_game` (aanvragen/stemmen) en
+  `vanta_unvote_game` (ingelogd). Eén stem per gebruiker per game (Steam-appid); geblokkeerde gebruikers kunnen niet
+  stemmen en hun stemmen tellen niet mee. Limieten: 30 stemacties per uur, 10 nieuwe aanvragen per dag per gebruiker.
+- **Beheer** (website `admin/`): `vanta_is_admin` en `vanta_admin_*` (meldingen, status, ban/unban, aanvragen,
+  statistieken). Beheerder = Supabase-gebruiker met een Discord-identiteit (`auth.identities.provider_id`) die in
+  `vanta.admins` staat; die tabel is niet leesbaar via de API. Beheerder toevoegen (SQL Editor):
+  `insert into vanta.admins (discord_id) values ('<discord-id>');`
 - Fouten komen terug als HTTP-status met de foutcode als `message` (bijv. 429 `rate_limited`, detail
   `retry_after=N`; 403 `banned`; 400 `invalid_status`).
 

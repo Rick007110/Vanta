@@ -3,7 +3,7 @@
 set -eu
 cd "$(dirname "$0")"
 {
-  echo "-- Vanta community reports: complete database setup for Supabase."
+  echo "-- Vanta community reports, game requests and admin API: complete database setup for Supabase."
   echo "-- Paste into Dashboard > SQL Editor > New query and click Run. Safe to run again (idempotent) and safe in an"
   echo "-- existing project: it only creates the schema \"vanta\", functions named public.vanta_* and a trigger named"
   echo "-- vanta_profile_sync on auth.users. It never drops or changes your own tables."

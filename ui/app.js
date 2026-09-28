@@ -34,6 +34,8 @@
     const bt = b === 1 ? t('comm.broken1') : t('comm.broken', { n: b }), wt = w === 1 ? t('comm.works1') : t('comm.works', { n: w });
     return b >= w ? bt + (w ? ` · ${w}× ${t('rep.works').toLowerCase()}` : '') : wt + (b ? ` · ${b}× ${t('rep.broken').toLowerCase()}` : '');
   };
+  const reqErr = (code) => window.I18N.has('req.err.' + code) ? t('req.err.' + code) : accErr(code);
+  const fmtSize = (b) => b >= 1048576 ? (b / 1048576).toLocaleString(window.I18N.locale(), { maximumFractionDigits: 1 }) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
   const accErr = (code) => code ? (window.I18N.has && window.I18N.has('acc.err.' + code) ? t('acc.err.' + code) : t('acc.err', { c: code })) : '';
 
   const T = {
@@ -181,7 +183,8 @@
       const busy = u.state === 'downloading' || u.state === 'installing';
       const title = { available: t('upd.available', { v: u.version }), downloading: t('upd.downloading', { v: u.version }), installing: t('upd.installing'),
         pending: t('upd.pending', { v: u.version }), updated: t('upd.updated', { v: u.version }), failed: t('upd.failed', { v: u.version }), error: t('upd.error') }[u.state] || '';
-      const body = u.state === 'available' ? (u.notes || '') : u.state === 'error' ? (u.message || '') : u.state === 'pending' ? t('upd.pending.body') : u.state === 'failed' ? t('upd.failed.body') : u.state === 'installing' ? t('upd.installing.body') : '';
+      // compact: no changelog in the toast; "What's new" opens the full release notes in a modal (T.whatsNew)
+      const body = u.state === 'error' ? (u.message || '') : u.state === 'pending' ? t('upd.pending.body') : u.state === 'failed' ? t('upd.failed.body') : u.state === 'installing' ? t('upd.installing.body') : '';
       const p = u.state === 'installing' ? 1 : Math.max(0, Math.min(1, u.progress || 0));
       return `
         <span class="toast-ic">${I(u.state === 'error' || u.state === 'failed' ? 'alert' : u.state === 'updated' ? 'check' : 'sparkles', 18)}</span>
@@ -189,12 +192,82 @@
           <p class="toast-title"><span class="toast-title-text">${esc(title)}</span>${u.state === 'downloading' ? `<span class="toast-pct" data-bind="toast-pct">${Math.round(p * 100)}%</span>` : ''}</p>
           ${body ? `<div class="toast-body">${esc(body).replace(/\n/g, '<br>')}</div>` : ''}
           ${busy ? `<div class="toast-bar${u.state === 'installing' ? ' is-indeterminate' : ''}"><i data-bind="toast-bar" style="transform:scaleX(${p})"></i></div>` : ''}
+        </div>
           ${u.state === 'available' ? `<div class="toast-actions">
             <button class="btn" data-kind="primary" type="button" data-action="update-now">${I('refresh', 15)}<span>${esc(t('upd.now'))}</span></button>
-            <button class="btn-ghost" type="button" data-action="update-later">${esc(t('upd.later'))}</button>
-            ${u.url ? `<button class="btn-ghost" type="button" data-action="open-url" data-url="${esc(u.url)}">${esc(t('upd.notes'))}</button>` : ''}</div>` : ''}
-        </div>
+            <button class="btn-ghost" type="button" data-action="whats-new" aria-haspopup="dialog">${I('notes', 14)}<span>${esc(t('upd.notes'))}</span></button>
+            <button class="btn-ghost" type="button" data-action="update-later">${esc(t('upd.later'))}</button></div>` : ''}
         ${busy ? '' : `<button class="winbtn toast-x" type="button" data-action="update-close" aria-label="${esc(t('win.close'))}">${I('x', 14)}</button>`}`;
+    },
+    whatsNew: (u, html) => `
+      <div class="modal-backdrop" data-action="modal-backdrop">
+        <div class="modal modal-notes" role="dialog" aria-modal="true" aria-labelledby="wn-title">
+          <header class="modal-head"><span class="modal-logo wn-ic">${I('sparkles', 18)}</span>
+            <div class="wn-head"><h3 id="wn-title">${esc(t('upd.notes.title', { v: u.version }))}</h3>${u.size ? `<span class="wn-sub mono">${esc(fmtSize(u.size))}</span>` : ''}</div>
+            <button class="winbtn modal-x" type="button" data-action="modal-close" aria-label="${esc(t('win.close'))}">${I('x', 16)}</button></header>
+          <div class="modal-body md" data-role="notes" tabindex="0">${html || `<p class="muted">${esc(t('upd.notes.empty'))}</p>`}</div>
+          <footer class="modal-foot">
+            ${u.url ? `<button class="btn-ghost wn-gh" type="button" data-action="open-url" data-url="${esc(u.url)}">${I('globe', 14)}<span>${esc(t('upd.notes.github'))}</span></button>` : ''}
+            <span class="foot-spacer"></span>
+            <button class="btn-ghost" type="button" data-action="modal-close">${esc(t('req.close'))}</button>
+            ${u.state === 'available' ? `<button class="btn" data-kind="primary" type="button" data-action="update-now">${I('refresh', 15)}<span>${esc(t('upd.now'))}</span></button>` : ''}
+          </footer>
+        </div>
+      </div>`,
+    // "Request a game": the shell is rendered once (the search box keeps focus); results and list are patched in place.
+    requests: (r, a) => `
+      <div class="modal-backdrop" data-action="modal-backdrop">
+        <div class="modal modal-requests" role="dialog" aria-modal="true" aria-labelledby="req-title">
+          <header class="modal-head"><span class="modal-logo">${Brand.mark(28)}</span><h3 id="req-title">${esc(t('req.title'))}</h3>
+            <button class="winbtn modal-x" type="button" data-action="modal-close" aria-label="${esc(t('win.close'))}">${I('x', 16)}</button></header>
+          <div class="modal-body">
+            <p class="req-intro">${esc(t('req.intro'))}</p>
+            <label class="req-search">${I('search', 15)}<input class="input" data-role="req-search" type="search" maxlength="120" autocomplete="off" spellcheck="false"
+              placeholder="${esc(t('req.search.ph'))}" aria-label="${esc(t('req.search.ph'))}" value="${esc(r.term || '')}"></label>
+            <div data-bind="req-results">${T.reqResults(r, a)}</div>
+            <div data-bind="req-login">${T.reqLogin(r, a)}</div>
+            <h4 class="pane-sub req-sub">${esc(t('req.top'))}</h4>
+            <div class="req-list" data-bind="req-list">${T.reqList(r, a)}</div>
+          </div>
+          <footer class="modal-foot"><span class="foot-spacer"></span><button class="btn-ghost" type="button" data-action="modal-close">${esc(t('req.close'))}</button></footer>
+        </div>
+      </div>`,
+    reqLogin: (r, a) => (r.loggedIn || a.loggedIn) ? '' : `<div class="req-login"><span>${esc(t('req.login'))}</span>
+      ${a.configured ? `<button class="btn acct-login" data-kind="primary" type="button" data-action="account-login"${a.busy ? ' disabled' : ''}>${I('user', 15)}<span>${esc(a.busy ? t('acc.waiting') : t('acc.login'))}</span></button>` : ''}</div>`,
+    reqResults: (r, a) => {
+      const s = r.search;
+      if (!s || !s.term) return '';
+      if (s.loading && !(s.items || []).length) return `<p class="req-note">${esc(t('req.searching'))}</p>`;
+      if (s.error) return `<p class="req-note acct-err">${esc(reqErr(s.error))}</p>`;
+      if (!(s.items || []).length) return `<p class="req-note">${esc(t('req.noresults', { q: s.term }))}</p>`;
+      return `<div class="req-results" role="list" aria-label="${esc(t('req.results'))}">${s.items.map((x) => {
+        const known = (r.items || []).find((i) => i.appid === x.appid);
+        return T.reqRow(Object.assign({ votes: 0, voted: false, status: null }, known || {}, { appid: x.appid, name: x.name, cover: x.cover, image: x.image, search: true }), r, a);
+      }).join('')}</div>`;
+    },
+    reqList: (r, a) => {
+      if (r.error) return `<p class="req-note acct-err">${esc(reqErr(r.error))}</p>`;
+      if (!r.items) return `<p class="req-note">${esc(t('req.loading'))}</p>`;
+      if (!r.items.length) return `<p class="req-note">${esc(t('req.empty'))}</p>`;
+      return r.items.map((x, i) => T.reqRow(x, r, a, i + 1)).join('');
+    },
+    reqRow: (x, r, a, rank) => {
+      const have = TrainerCore.util.inCatalog(x.appid);
+      const busy = r.busy && r.busy.has(x.appid);
+      const closed = x.status === 'added' || x.status === 'rejected';
+      const pic = TrainerCore.util.headerArt(x.appid, x.image || x.cover);
+      const btn = have ? `<span class="req-chip is-have">${I('check', 12)}${esc(t('req.have'))}</span>`
+        : closed ? '' : `<button class="btn req-vote${x.voted ? ' is-voted' : ''}" type="button" data-kind="${x.voted ? 'secondary' : 'primary'}" data-action="req-vote"
+            data-appid="${x.appid}" data-name="${esc(x.name)}" data-cover="${esc(x.cover || '')}" aria-pressed="${!!x.voted}"${busy ? ' disabled' : ''}
+            title="${esc(x.voted ? t('req.unvote') : '')}">${I(x.voted ? 'check' : 'plus', 14)}<span>${esc(x.voted ? t('req.voted') : x.votes || !x.search ? t('req.vote') : t('req.request'))}</span></button>`;
+      return `<div class="req-row" role="listitem" data-appid="${x.appid}"${x.voted ? ' data-voted=""' : ''}>
+        ${rank ? `<span class="req-rank mono">${rank}</span>` : ''}
+        <span class="req-cover">${pic ? img(pic, 'req-img') : ''}${I('grid', 16)}</span>
+        <span class="req-main"><span class="req-name">${esc(x.name)}</span>
+          <span class="req-meta">${x.status && x.status !== 'open' ? `<span class="req-chip" data-status="${esc(x.status)}">${esc(t('req.status.' + x.status))}</span>` : ''}
+          ${x.search && !x.votes ? `<span class="mono">app ${x.appid}</span>` : `<span data-bind="req-votes">${esc(x.votes === 1 ? t('req.votes1') : t('req.votes', { n: x.votes || 0 }))}</span>`}
+          ${x.note ? `<span class="req-note-inline" title="${esc(x.note)}">${esc(x.note)}</span>` : ''}</span></span>
+        ${btn}</div>`;
     },
     settings: (s, info) => `
       <div class="modal-backdrop" data-action="modal-backdrop">

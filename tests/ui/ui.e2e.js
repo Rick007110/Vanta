@@ -17,7 +17,7 @@ global.window = {};
 eval(fs.readFileSync(path.join(UI, 'shared', 'devdata.js'), 'utf8'));
 const DEV = global.window.VantaDev;
 
-function hostScript({ many = 0, status = 'attached', blocked = false, account = null } = {}) {
+function hostScript({ many = 0, status = 'attached', blocked = false, account = null, reqDown = false } = {}) {
   const lib = JSON.parse(JSON.stringify(DEV.library));
   for (let i = 0; i < many; i++) lib.games.push({ id: `game-${i}`, name: `Testgame ${String(i + 1).padStart(4, '0')}`, short: 'TG', badge: 'v1.' + (i % 9), version: '', cheatCount: 3 + (i % 20),
     steamAppId: null, categories: [['survival', 'rpg', 'shooter', 'strategy', 'racing', 'sim'][i % 6]], antiCheat: i % 97 === 0, onlineOnly: false, group: 'all', art: null, process: `Game${i}.exe`, cheats: [], lazy: true });
@@ -38,6 +38,8 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
   const st = { status: ${JSON.stringify(status)} };
   const acc = ${JSON.stringify(account)};
   const accMsg = () => Object.assign({ type: 'account', busy: false, error: null, pending: 0, shareUsage: false }, acc, { user: acc && acc.loggedIn ? { id: '400000000000000001', username: 'tester', avatarUrl: 'https://cdn.discordapp.com/embed/avatars/1.png' } : null });
+  const REQ = { down: ${JSON.stringify(!!reqDown)}, items: [{ appid: 264710, name: 'Subnautica', cover: null, status: 'planned', note: null, votes: 12, votes7d: 3, voted: false },
+    { appid: 105600, name: 'Terraria', cover: null, status: 'open', note: 'Na de volgende update', votes: 4, votes7d: 1, voted: false }] };
   const COMM = { inf_health: { works: 3, broken: 12, status: 'open', fixedInVersion: null }, no_weight: { works: 0, broken: 0, status: 'fixed', fixedInVersion: '0.2.3' } };
   window.__hostSend = send;
   window.chrome = { webview: {
@@ -103,6 +105,15 @@ window.vantaHost = { library: ${JSON.stringify(lib)} };
         return ack();
       }
       if (acc && m.type === 'getCommunity') { send({ type: 'community', gameId: gid, fingerprint: 'fileVersion=0.8.5.651238', available: true, cheats: COMM }); return ack(); }
+      if (m.type === 'getRequests') { setTimeout(() => send({ type: 'requests', ok: !REQ.down, error: REQ.down ? 'server_not_ready' : null, loggedIn: !!(acc && acc.loggedIn), items: REQ.down ? null : REQ.items }), 40); return ack(); }
+      if (m.type === 'steamSearch') { send({ type: 'steamSearch', term: m.term, ok: true, error: null, items: [{ appid: 264710, name: 'Subnautica', image: null, cover: null }, { appid: 848450, name: 'Subnautica: Below Zero <b>x</b>', image: null, cover: null }] }); return ack(); }
+      if (m.type === 'requestVote' || m.type === 'requestUnvote') {
+        let r = REQ.items.find((x) => x.appid === m.appid);
+        if (!r) { r = { appid: m.appid, name: m.name, cover: null, status: 'open', note: null, votes: 0, votes7d: 0, voted: false }; REQ.items.push(r); }
+        r.voted = m.type === 'requestVote'; r.votes += r.voted ? 1 : -1;
+        setTimeout(() => { send({ type: 'requestVoteResult', appid: m.appid, unvote: !r.voted, ok: true, error: null, request: Object.assign({}, r) }); send({ type: 'requests', ok: true, error: null, loggedIn: true, items: REQ.items.slice().sort((a, b) => b.votes - a.votes) }); }, 60);
+        return ack();
+      }
       if (m.type === 'checkUpdate') { send({ type: 'updateStatus', state: { state: 'uptodate', version: '0.2.0' } }); return ack(); }
       if (m.type === 'updateNow') { send({ type: 'updateStatus', state: 'downloading', progress: 0.42, version: '0.3.0' }); return ack(); }
       if (m.type === 'getSettings') { send({ type: 'settings', settings: { language: 'nl', catalogDir: '', catalogUrl: '', autoAttach: true }, catalog: { source: 'games', games: window.vantaHost.library.games.length }, dataDir: '%LOCALAPPDATA%\\\\Vanta', version: '0.1.0' }); return ack(); }
@@ -282,10 +293,40 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await load();
   await page.evaluate(() => window.__hostSend({ type: 'update', manual: false, current: '0.2.0', release: { state: 'available', version: '0.3.0', notes: '- Nieuwe game: Voorbeeld\n- Snellere AOB-scan', url: 'https://github.com/Rick007110/Vanta/releases/tag/v0.3.0', size: 64000000 } }));
   await sleep(300);
-  const toast = await page.evaluate(() => { const e = document.querySelector('.toast'); return e && { title: e.querySelector('.toast-title').textContent, body: e.querySelector('.toast-body').innerHTML, btns: [...e.querySelectorAll('button')].map((b) => b.textContent.trim()) }; });
-  check('update-toast: titel, changelog, Nu updaten/Later', () => assert.ok(toast && toast.title === 'Update beschikbaar: v0.3.0' && /Snellere AOB-scan/.test(toast.body) && toast.btns.includes('Nu updaten') && toast.btns.includes('Later'), JSON.stringify(toast)));
+  const toast = await page.evaluate(() => { const e = document.querySelector('.toast'); return e && { title: e.querySelector('.toast-title').textContent, body: !!e.querySelector('.toast-body'), text: e.textContent, btns: [...e.querySelectorAll('button')].map((b) => b.textContent.trim()).filter(Boolean) }; });
+  check('update-toast compact: titel + Nu updaten/Wat is er nieuw/Later, geen changelog', () => assert.ok(toast && toast.title === 'Update beschikbaar: v0.3.0' && !toast.body && !/Snellere AOB-scan/.test(toast.text)
+    && JSON.stringify(toast.btns) === JSON.stringify(['Nu updaten', 'Wat is er nieuw', 'Later']), JSON.stringify(toast)));
   await page.mouse.move(0, 0);
   await shot(`vanta-${VER}-update.png`);
+
+  // 6c1. "Wat is er nieuw": centered modal with the rendered notes; links go to the host, X/Esc/backdrop close
+  await page.evaluate(() => window.__hostSend({ type: 'update', manual: true, current: '0.3.0', release: { state: 'available', version: '0.3.0',
+    notes: '## Nieuw\n- **Snellere** AOB-scan\n- Zie [release](https://github.com/Rick007110/Vanta/releases/tag/v0.3.0)\n<img src=x onerror=alert(1)>\n' + Array.from({ length: 40 }, (_, i) => '- regel ' + i).join('\n'),
+    url: 'https://github.com/Rick007110/Vanta/releases/tag/v0.3.0', size: 64000000 } }));
+  await sleep(200);
+  await page.click('[data-action=whats-new]');
+  await sleep(300);
+  const wn = await page.evaluate(() => { const m = document.querySelector('.modal-notes'), b = m && m.querySelector('[data-role=notes]'); const r = m && m.getBoundingClientRect();
+    return m && { h: b.querySelector('h4') && b.querySelector('h4').textContent, strong: (b.querySelector('li strong') || {}).textContent, img: !!b.querySelector('img'), link: (b.querySelector('.md-link') || { dataset: {} }).dataset.url,
+      scroll: b.scrollHeight > b.clientHeight && getComputedStyle(b).overflowY === 'auto', centered: Math.abs(r.left + r.width / 2 - innerWidth / 2) < 2 && Math.abs(r.top + r.height / 2 - innerHeight / 2) < 2,
+      update: !!m.querySelector('.modal-foot [data-action=update-now]'), sameToast: document.querySelectorAll('.toast').length === 1 }; });
+  check('Wat is er nieuw: gecentreerd, markdown (kop/vet/link), scrollbaar, veilig, Update-knop', () => assert.deepStrictEqual(wn, { h: 'Nieuw', strong: 'Snellere', img: false,
+    link: 'https://github.com/Rick007110/Vanta/releases/tag/v0.3.0', scroll: true, centered: true, update: true, sameToast: true }));
+  await shot(`vanta-${VER}-wat-is-er-nieuw.png`);
+  const before = await page.evaluate(() => window.__posted.length);
+  await page.click('.md-link'); await sleep(100);
+  const lk = await page.evaluate((n) => window.__posted.slice(n).filter((m) => m.type === 'openUrl').map((m) => m.url), before);
+  check('link in release-opmerkingen: openUrl naar host (externe browser)', () => assert.deepStrictEqual(lk, ['https://github.com/Rick007110/Vanta/releases/tag/v0.3.0']));
+  await page.keyboard.press('Escape'); await sleep(100);
+  const escClosed = await page.evaluate(() => ({ modal: !document.querySelector('.modal-notes'), focus: document.activeElement && document.activeElement.dataset.action }));
+  check('Esc sluit, focus terug op Wat is er nieuw', () => assert.deepStrictEqual(escClosed, { modal: true, focus: 'whats-new' }));
+  await page.click('[data-action=whats-new]'); await sleep(200);
+  await page.mouse.click(8, 8); await sleep(100);
+  const bdClosed = await page.evaluate(() => !document.querySelector('.modal-notes'));
+  await page.click('[data-action=whats-new]'); await sleep(200);
+  await page.click('.modal-notes .modal-x'); await sleep(100);
+  const xClosed = await page.evaluate(() => !document.querySelector('.modal-notes'));
+  check('achtergrond en X sluiten de modal', () => assert.deepStrictEqual([bdClosed, xClosed], [true, true]));
   await page.click('[data-action=update-now]');
   await sleep(250);
   const dl = await page.evaluate(() => ({ sent: window.__posted.filter((m) => m.type === 'updateNow').length, title: document.querySelector('.toast-title-text').textContent, pct: document.querySelector('[data-bind=toast-pct]').textContent, bar: (document.querySelector('.toast-bar i') || { style: {} }).style.transform }));
@@ -338,6 +379,33 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.click('[data-action=update-close]'); await sleep(150);
   const dis = await page.evaluate(() => window.__posted.filter((m) => m.type === 'updateDismiss').map((m) => m.version));
   check('sluitknop: updateDismiss met versie naar host', () => assert.deepStrictEqual(dis, ['0.3.0']));
+
+  // 6c4. "Game aanvragen": list, Steam search (host-side), vote; logged out = sign-in prompt; not deployed = friendly message
+  await load({ account: { configured: true, loggedIn: false } });
+  await page.click('[data-action=open-requests]'); await sleep(250);
+  const rq0 = await page.evaluate(() => ({ rows: [...document.querySelectorAll('.req-list .req-row')].map((r) => r.dataset.appid), login: !!document.querySelector('.req-login [data-action=account-login]'),
+    focus: document.activeElement && document.activeElement.dataset.role, sent: window.__posted.filter((m) => m.type === 'getRequests').length }));
+  check('aanvragen: lijst geladen, zoekveld focus, inlog-prompt als uitgelogd', () => assert.deepStrictEqual(rq0, { rows: ['264710', '105600'], login: true, focus: 'req-search', sent: 1 }));
+  await page.click('.req-list [data-action=req-vote]'); await sleep(450);
+  const rq1 = await page.evaluate(() => ({ votes: window.__posted.filter((m) => m.type === 'requestVote').length, login: window.__posted.filter((m) => m.type === 'accountLogin').length,
+    refetch: window.__posted.filter((m) => m.type === 'getRequests').length, prompt: !!document.querySelector('.req-login') }));
+  check('aanvragen: stemmen zonder login start Discord-login, daarna lijst opnieuw geladen', () => assert.deepStrictEqual(rq1, { votes: 0, login: 1, refetch: 2, prompt: false }));
+  await page.type('[data-role=req-search]', 'subn'); await sleep(700);
+  const rq2 = await page.evaluate(() => ({ search: window.__posted.filter((m) => m.type === 'steamSearch').map((m) => m.term), rows: [...document.querySelectorAll('.req-results .req-row')].map((r) => r.querySelector('.req-name').innerHTML),
+    focus: document.activeElement && document.activeElement.dataset.role }));
+  check('aanvragen: Steam-zoeken via host (debounced), HTML ontsnapt, focus blijft', () => assert.deepStrictEqual(rq2, { search: ['subn'], rows: ['Subnautica', 'Subnautica: Below Zero &lt;b&gt;x&lt;/b&gt;'], focus: 'req-search' }));
+  await page.click('.req-results [data-appid="848450"] [data-action=req-vote]'); await sleep(300);
+  const rq3 = await page.evaluate(() => ({ sent: window.__posted.filter((m) => m.type === 'requestVote').map((m) => [m.appid, m.name]), list: [...document.querySelectorAll('.req-list .req-row')].map((r) => r.dataset.appid + (r.hasAttribute('data-voted') ? '*' : '')) }));
+  check('aanvragen: stem op zoekresultaat -> requestVote, lijst bijgewerkt', () => assert.deepStrictEqual(rq3, { sent: [[848450, 'Subnautica: Below Zero <b>x</b>']], list: ['264710', '105600', '848450*'] }));
+  await page.click('.req-list [data-appid="848450"] [data-action=req-vote]'); await sleep(300);
+  const rq4 = await page.evaluate(() => window.__posted.filter((m) => m.type === 'requestUnvote').map((m) => m.appid));
+  check('aanvragen: nogmaals klikken trekt stem in', () => assert.deepStrictEqual(rq4, [848450]));
+  await page.keyboard.press('Escape'); await sleep(100);
+  await load({ reqDown: true });
+  await page.click('[data-action=open-requests]'); await sleep(250);
+  const rqDown = await page.evaluate(() => (document.querySelector('.req-list') || {}).textContent.trim());
+  check('aanvragen: SQL nog niet toegepast -> nette melding', () => assert.strictEqual(rqDown, 'Game aanvragen is nog niet beschikbaar. Probeer het later opnieuw.'));
+  await page.keyboard.press('Escape'); await sleep(100);
   await load();
   await page.click('[data-action=open-settings]');
   await sleep(200);

@@ -1,8 +1,17 @@
-VANTA v0.3.1 - trainer voor singleplayer-games
+VANTA v0.3.2 - trainer voor singleplayer-games
 =============================================
 
 Vanta is een losstaand programma (geen Cheat Engine nodig). Het werkt alleen voor
 singleplayer/offline games. Games met online anti-cheat worden bewust geweigerd.
+
+NIEUW IN v0.3.2
+  - Game aanvragen: knop "Game aanvragen" linksonder. Zoek een game op Steam (op
+    naam, Steam-app-ID of storelink) en stem erop. Zo zie je welke games de
+    community het liefst in Vanta wil. Stemmen kan na inloggen met Discord; de
+    lijst met meest gevraagde games is voor iedereen zichtbaar.
+  - De update-melding rechtsonder is compacter: alleen de versie en de knoppen
+    Nu updaten, Wat is er nieuw en Later. "Wat is er nieuw" opent een venster met
+    de volledige release-opmerkingen (sluiten met X, Esc of ernaast klikken).
 
 NIEUW IN v0.3.1
   - Far Cry 6: bijgewerkt voor de nieuwste game-update (Steam-build 11359732).

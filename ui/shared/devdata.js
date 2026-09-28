@@ -3,7 +3,7 @@ window.VantaDev = { library: {
   "type": "library",
   "app": {
     "name": "Vanta",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "production": true,
     "lang": "nl",
     "ackTimeout": 30000

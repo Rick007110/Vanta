@@ -27,6 +27,7 @@
     selectedId: D.selectedGameId, query: '', category: '', tab: 'cheats',
     status: {}, cheats: {}, dismissedUpdates: new Set(), log: D.log, settings: null, catalog: null, dataDir: '', capture: null, modal: null,
     account: { configured: false, loggedIn: false, user: null, busy: false, error: null, pending: 0 }, community: {}, report: null, confirmDelete: false,
+    requests: null, update: null,
   };
   D.games.forEach((g) => { state.cheats[g.id] = {}; (g.cheats || []).forEach((c) => (state.cheats[g.id][c.id] = Object.assign({}, c))); });
 
@@ -46,6 +47,13 @@
     if (!g || !g.steamAppId) return null;
     return PROD ? `https://vanta.example/art/${g.steamAppId}/${kind}` : `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamAppId}/${CDN[kind]}`;
   }
+  // Steam header image for any app id (game requests): through the host's art cache in the app (CSP allows no CDN),
+  // straight from the CDN in the browser preview.
+  function headerArt(appid, fallback) {
+    if (!(appid > 0)) return null;
+    return PROD ? `https://vanta.example/art/${appid}/header` : (fallback || `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/header.jpg`);
+  }
+  const inCatalog = (appid) => appid > 0 && D.games.some((g) => Number(g.steamAppId) === Number(appid));
   root.vantaArt = {
     fail: (img) => { const p = img.parentNode; img.remove(); if (p) p.classList.remove('has-img'); },
     ok: (img) => { const p = img.parentNode; if (p) p.classList.add('has-img'); },
@@ -457,6 +465,16 @@
     const slot = $('[data-slot=modal]');
     if (!state.modal) { slot.innerHTML = ''; slot.hidden = true; return; }
     slot.hidden = false;
+    if (state.modal === 'whatsnew' && T.whatsNew) {
+      const u = state.update;
+      if (!u) { state.modal = null; slot.innerHTML = ''; slot.hidden = true; return; }
+      const body = $('[data-role=notes]', slot), top = body ? body.scrollTop : 0;
+      slot.innerHTML = T.whatsNew(u, root.VantaMd ? root.VantaMd.render(u.notes || '') : esc(u.notes || ''));
+      const nb = $('[data-role=notes]', slot);
+      if (body) nb.scrollTop = top; else { nb.focus({ preventScroll: true }); }
+      return;
+    }
+    if (state.modal === 'requests' && T.requests) return renderRequests(slot);
     if (state.modal === 'report' && T.report) {
       const r = state.report, c = r && (state.cheats[r.gameId] || {})[r.id];
       if (!c) { state.modal = null; slot.innerHTML = ''; slot.hidden = true; return; }
@@ -471,7 +489,86 @@
     slot.innerHTML = T.settings(state.settings || { language: root.I18N.lang, catalogDir: '', catalogUrl: '', autoAttach: true }, { catalog: state.catalog, dataDir: state.dataDir, version: D.app.version, update: state.updateCheck, account: state.account, confirmDelete: state.confirmDelete });
     const first = $('[data-set=language]', slot); if (first) first.focus();
   }
-  function closeModal() { state.modal = null; state.report = null; state.confirmDelete = false; renderModal(); }
+  function closeModal() {
+    const back = state.modalOpener; state.modalOpener = null;
+    if (state.modal === 'requests' && state.requests) { clearTimeout(state.requests.timer); state.requests.search = null; state.requests.term = ''; }
+    state.modal = null; state.report = null; state.confirmDelete = false; renderModal();
+    if (back && back.isConnected && back.focus) back.focus({ preventScroll: true });   // e.g. back to the toast's "What's new"
+  }
+  function openModal(name, opener) { state.modalOpener = opener || null; state.modal = name; renderModal(); }
+
+  // ---------- game requests ----------
+  function openRequests(opener) {
+    if (!state.requests) state.requests = { items: null, error: null, loggedIn: false, term: '', search: null, busy: new Set(), timer: 0 };
+    state.requests.error = null;
+    openModal('requests', opener);
+    root.Bridge.send({ type: 'getRequests' });
+  }
+  function renderRequests(slot) {
+    const r = state.requests, a = state.account;
+    if (!$('.modal-requests', slot)) {
+      slot.innerHTML = T.requests(r, a);
+      const inp = $('[data-role=req-search]', slot); if (inp) inp.focus();
+      return;
+    }
+    const patch = (bind, html) => { const el = $(`[data-bind=${bind}]`, slot); if (el && el._html !== html) { el.innerHTML = html; el._html = html; } };
+    patch('req-results', T.reqResults(r, a));
+    patch('req-login', T.reqLogin(r, a));
+    patch('req-list', T.reqList(r, a));
+  }
+  function patchRequests() { if (state.modal === 'requests') renderModal(); }
+  function onReqSearchInput(v) {
+    const r = state.requests; if (!r) return;
+    r.term = v;
+    clearTimeout(r.timer);
+    const term = v.trim();
+    if (term.length < 2 && !/^\d+$/.test(term)) { r.search = null; return patchRequests(); }
+    r.search = { term, items: (r.search && r.search.items) || [], loading: true, error: null };
+    patchRequests();
+    r.timer = setTimeout(() => root.Bridge.send({ type: 'steamSearch', term }), 350);
+  }
+  function voteRequest(btn) {
+    const r = state.requests; if (!r) return;
+    if (!state.account.loggedIn && !r.loggedIn) {
+      if (state.account.configured) { state.account = Object.assign({}, state.account, { busy: true, error: null }); patchAccount(); patchRequests(); root.Bridge.send({ type: 'accountLogin' }); }
+      return;
+    }
+    const appid = Number(btn.dataset.appid), unvote = btn.getAttribute('aria-pressed') === 'true';
+    if (!(appid > 0) || r.busy.has(appid)) return;
+    r.busy.add(appid);
+    // optimistic: flip the vote locally; the host answers with requestVoteResult and a fresh list
+    const known = (r.items || []).find((x) => x.appid === appid);
+    if (known) { known.voted = !unvote; known.votes = Math.max(0, (known.votes || 0) + (unvote ? -1 : 1)); }
+    else if (!unvote && r.items) r.items.push({ appid, name: btn.dataset.name, cover: btn.dataset.cover || null, status: 'open', votes: 1, voted: true, _local: true });
+    patchRequests();
+    root.Bridge.send(unvote ? { type: 'requestUnvote', appid } : { type: 'requestVote', appid, name: btn.dataset.name, cover: btn.dataset.cover || null });
+  }
+  function onRequests(m) {
+    if (!state.requests) return;
+    const r = state.requests;
+    if (m.ok) { r.items = (m.items || []).filter((x) => x && x.appid > 0); r.error = null; r.loggedIn = !!m.loggedIn; }
+    else { r.error = m.error || 'failed'; if (!r.items) r.items = null; }
+    patchRequests();
+  }
+  function onSteamSearch(m) {
+    const r = state.requests; if (!r || !r.search || m.term !== r.search.term) return;   // stale answer
+    r.search = { term: m.term, items: m.ok ? (m.items || []).filter((x) => x && x.appid > 0) : [], loading: false, error: m.ok ? null : (m.error || 'steam_error') };
+    patchRequests();
+  }
+  function onRequestVoteResult(m) {
+    const r = state.requests; if (!r) return;
+    r.busy.delete(m.appid);
+    const x = (r.items || []).find((i) => i.appid === m.appid);
+    if (m.ok) {
+      if (m.request && x) Object.assign(x, m.request, { _local: false });
+      state.log = { time: '', text: t(m.unvote ? 'req.removed' : 'req.sent', { n: (m.request && m.request.name) || (x && x.name) || m.appid }), level: 'info' }; patchLog();
+    } else {
+      if (x) { if (x._local) r.items = r.items.filter((i) => i !== x); else { x.voted = !!m.unvote; x.votes = Math.max(0, (x.votes || 0) + (m.unvote ? 1 : -1)); } }
+      state.log = { time: '', text: (root.I18N.has('req.err.' + m.error) ? t('req.err.' + m.error) : accErrText(m.error)), level: 'warn' }; patchLog();
+      if (m.error === 'session_expired' || m.error === 'not_logged_in') r.loggedIn = false;
+    }
+    patchRequests();
+  }
   function saveSettingsFromModal() {
     const slot = $('[data-slot=modal]');
     const s = {
@@ -493,7 +590,7 @@
   // The toast element is created once per appearance: its enter animation must not restart on every progress message
   // (that caused the flicker/jumping while downloading). A state change swaps only the children; progress updates only
   // the bar transform and the percentage text.
-  const toastKey = (u) => [u.state, u.version, u.message || '', u.notes || '', u.url || ''].join('|');
+  const toastKey = (u) => [u.state, u.version, u.message || '', u.url || ''].join('|');   // notes live in the "What's new" modal, not in the toast
   function renderToast() {
     const slot = $('[data-slot=toast]'); if (!slot || !T.updateToast) return;
     const u = state.update;
@@ -534,6 +631,7 @@
       if (!state.update && s.state === 'pending' && s.version && state.dismissedUpdates.has(s.version)) return;   // already postponed this session
       state.update = Object.assign({}, state.update || {}, s);
       renderToast();
+      if (state.modal === 'whatsnew' && s.state !== 'downloading') renderModal();
     }
   }
 
@@ -556,6 +654,9 @@
       if (a === 'tab') { state.tab = act.dataset.value; if (state.capture) setCapture(null); return renderTab(); }
       if (a === 'open-hotkeys') { state.tab = 'hotkeys'; return renderTab(); }
       if (a === 'open-settings') return openSettings();
+      if (a === 'open-requests') return openRequests(act);
+      if (a === 'whats-new') return openModal('whatsnew', act);
+      if (a === 'req-vote') return voteRequest(act);
       if (a === 'modal-close') return closeModal();
       if (a === 'account-login') { state.account = Object.assign({}, state.account, { busy: true, error: null }); patchAccount(); return root.Bridge.send({ type: 'accountLogin' }); }
       if (a === 'account-cancel') return root.Bridge.send({ type: 'accountCancel' });
@@ -581,9 +682,9 @@
       if (a === 'hotkey-chip') { state.tab = 'hotkeys'; return renderTab(); }
       if (a === 'retry') return toggle(act.closest('[data-cheat]').dataset.cheat, true);
       if (a === 'run') { const id = act.closest('[data-cheat]').dataset.cheat; flash(id); return root.Bridge.send({ type: 'button', gameId: state.selectedId, id }); }
-      if (a === 'open-url') return root.Bridge.send({ type: 'openUrl', url: act.dataset.url });
+      if (a === 'open-url') { e.preventDefault(); return root.Bridge.send({ type: 'openUrl', url: act.dataset.url }); }
       if (a === 'check-update') { onUpdateStatus({ state: 'checking' }); return root.Bridge.send({ type: 'checkUpdate' }); }
-      if (a === 'update-now') { state.update = Object.assign({}, state.update, { state: 'downloading', progress: 0 }); renderToast(); return root.Bridge.send({ type: 'updateNow' }); }
+      if (a === 'update-now') { if (state.modal === 'whatsnew') { state.modalOpener = null; closeModal(); } if (!state.update || state.update.state !== 'available') return; state.update = Object.assign({}, state.update, { state: 'downloading', progress: 0 }); renderToast(); return root.Bridge.send({ type: 'updateNow' }); }
       if (a === 'update-later') { const v = dismissUpdate(); state.update = null; renderToast(); return root.Bridge.send({ type: 'updateLater', version: v }); }
       if (a === 'update-close') { const v = dismissUpdate(); state.update = null; renderToast(); if (v) root.Bridge.send({ type: 'updateDismiss', version: v }); return; }
       if (a === 'step') return;
@@ -623,6 +724,7 @@
     R.addEventListener('input', (e) => {
       const tg = e.target;
       if (tg.matches('[data-role=search]')) { state.query = tg.value; renderLibrary(); }
+      if (tg.matches('[data-role=req-search]')) onReqSearchInput(tg.value);
       if (tg.matches('[data-role=report-note]')) { const n = $('[data-bind=rep-count]'); if (n) n.textContent = String(tg.value.length); if (state.report) state.report.note = tg.value; }
       if (tg.matches('[data-role=value-input]')) tg.value = tg.value.replace(/[^\d.,-]/g, '');
       if (tg.matches('[data-role=slider]')) setValue(tg.closest('[data-cheat]').dataset.cheat, Number(tg.value), { commit: false });
@@ -710,7 +812,7 @@
       if (state.update && state.update.version === r.version && state.update.state !== 'available' && !m.manual) return;   // already downloading/installing
       state.update = { state: 'available', version: r.version, notes: r.notes, url: r.url, size: r.size };
       onUpdateStatus({ state: 'available', version: r.version });
-      if (state.modal === 'settings') renderModal();
+      if (state.modal === 'settings' || state.modal === 'whatsnew') renderModal();
       renderToast();
     });
     root.Bridge.on('statusExport', onStatusExport);
@@ -722,9 +824,13 @@
       else if (m.error && m.error !== was.error) { state.log = { time: '', text: accErrText(m.error), level: 'warn' }; patchLog(); }
       patchAccount();
       if (state.account.configured && !was.configured && state.tab === 'notes') requestCommunity(state.selectedId);
+      if (state.modal === 'requests') { if (was.loggedIn !== state.account.loggedIn) root.Bridge.send({ type: 'getRequests' }); if (!state.account.loggedIn) state.requests.loggedIn = false; patchRequests(); }
     });
     root.Bridge.on('accountDeleted', () => { state.community = {}; state.log = { time: '', text: t('acc.deleted'), level: 'info' }; patchLog(); if (state.tab === 'notes') renderTab(); });
     root.Bridge.on('reportResult', onReportResult);
+    root.Bridge.on('requests', onRequests);
+    root.Bridge.on('steamSearch', onSteamSearch);
+    root.Bridge.on('requestVoteResult', onRequestVoteResult);
     root.Bridge.on('community', (m) => {
       if (!m.available) return;
       state.community[m.gameId] = { fingerprint: m.fingerprint, cheats: m.cheats || {} };
@@ -756,6 +862,9 @@
       if (p.get('tab')) { state.tab = p.get('tab'); renderTab(); }
       if (p.get('capture')) { state.capture = p.get('capture'); renderTab(); }
       if (p.get('settings')) openSettings();
+      if (p.get('update')) root.Bridge._receive({ type: 'update', manual: true, release: { version: p.get('update'), notes: root.VantaMockReleaseNotes || '', url: 'https://github.com/Rick007110/Vanta/releases', size: 71000000 } });
+      if (p.get('whatsnew')) openModal('whatsnew');
+      if (p.get('requests')) { openRequests(); if (p.get('reqsearch')) setTimeout(() => { const i = $('[data-role=req-search]'); if (i) { i.value = p.get('reqsearch'); onReqSearchInput(i.value); } }, 300); }
       (p.get('hover') || '').split(',').filter(Boolean).forEach((h) => { const [k, v] = h.split(':'); const el = k === 'cheat' ? $(`[data-cheat="${v}"]`) : k === 'game' ? $(`[data-game="${v}"]`) : $(h); if (el) el.classList.add('is-hover'); });
       if (p.get('flash')) p.get('flash').split(',').forEach((id) => { const el = $(`[data-cheat="${id}"]`); if (el) el.classList.add('is-flash', 'is-flash-static'); });
       if (p.get('log')) { state.log = { time: '23:44', text: p.get('log'), level: p.get('loglevel') || 'info' }; patchLog(); }
@@ -776,7 +885,7 @@
       applyParams();
       document.documentElement.classList.add('is-ready');
     },
-    util: { esc, fmt, STATUS, artUrl, keyName, comboOf },
+    util: { esc, fmt, STATUS, artUrl, headerArt, inCatalog, keyName, comboOf },
     state, toggle, flash, setValue, select, setStatus, openContextMenu, closeContextMenu, openReport, production: PROD,
   };
 })(window);

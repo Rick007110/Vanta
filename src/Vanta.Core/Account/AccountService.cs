@@ -282,6 +282,42 @@ public sealed class AccountService : IDisposable
         catch (AccountException e) { _log("account: community " + e.Code); lock (_gate) return _community.TryGetValue(key, out var old) ? old.data : null; }
     }
 
+    // ---------------- game requests ----------------
+    /// <summary>Top requests. Signed in: with the "voted" flags (falls back to the public list if the session is unusable).</summary>
+    public async Task<(List<GameRequest>? items, bool loggedIn, string? error)> GameRequestsAsync()
+    {
+        if (Client == null) return (null, false, "not_configured");
+        string? token = null;
+        if (Session != null) { try { token = await TokenAsync().ConfigureAwait(false); } catch (AccountException) { token = null; } }
+        try
+        {
+            var (items, li) = await Client.GameRequestsAsync(token).ConfigureAwait(false);
+            return (items, li || (token != null && Session != null), null);
+        }
+        catch (AccountException e) when (e.Status == 401 && token != null)
+        {
+            try { var (items, _) = await Client.GameRequestsAsync(null).ConfigureAwait(false); return (items, false, null); }
+            catch (AccountException e2) { return (null, false, e2.Code); }
+        }
+        catch (AccountException e) { _log("account: requests " + e.Code); return (null, Session != null, e.Code); }
+    }
+
+    /// <summary>Vote for (or request) a game, or remove the vote.</summary>
+    public async Task<(bool ok, GameRequest? request, string? error)> VoteGameAsync(int appId, string? name, string? coverUrl, bool unvote)
+    {
+        if (Client == null) return (false, null, "not_configured");
+        if (Session == null) return (false, null, "not_logged_in");
+        if (appId <= 0) return (false, null, "invalid_appid");
+        try
+        {
+            var r = unvote ? await WithTokenAsync(t => Client.UnvoteGameAsync(t, appId)).ConfigureAwait(false)
+                           : await WithTokenAsync(t => Client.RequestGameAsync(t, appId, name ?? "", SteamStore.SteamImage(coverUrl))).ConfigureAwait(false);
+            return (true, r, null);
+        }
+        catch (AccountException e) when (e.Status == 401 && e.Code is "session_expired" or "unauthorized" or "jwt_invalid") { if (Session != null) Expire(); return (false, null, "session_expired"); }
+        catch (AccountException e) { _log($"account: aanvraag {appId} mislukt ({e.Code})"); return (false, null, e.Code); }
+    }
+
     // ---------------- anonymous usage (opt-in) ----------------
     public void CountUsage(string gameId, string cheatId)
     {

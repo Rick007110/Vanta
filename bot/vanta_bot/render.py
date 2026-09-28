@@ -144,4 +144,14 @@ def digest_embed(d: Dict[str, Any], week: str) -> discord.Embed:
     fixed = d.get("fixed") or []
     if fixed:
         e.add_field(name="Gefixt", value="\n".join(f"✅ {cheat_title(f)} — {game_title(f)}" + (f" ({clean(f.get('fixed_in_version'), 20)})" if f.get("fixed_in_version") else "") for f in fixed[:10])[:1024], inline=False)
+    reqs = [r for r in (d.get("requests") or []) if isinstance(r, dict) and r.get("name")]
+    if reqs:
+        e.add_field(name="Meest gevraagde games", value="\n".join(
+            f"{i}. {clean(r.get('name'), 60)} — {plural(int(r.get('votes') or 0), 'stem', 'stemmen')}"
+            + (f" (+{int(r.get('votes_7d') or 0)} deze week)" if r.get("votes_7d") else "")
+            + (f" · {REQ_STATUS[r.get('status')]}" if r.get("status") in REQ_STATUS else "")
+            for i, r in enumerate(reqs[:5], 1))[:1024], inline=False)
     return e
+
+
+REQ_STATUS = {"planned": "gepland", "in_progress": "mee bezig"}

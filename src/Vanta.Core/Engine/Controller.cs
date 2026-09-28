@@ -52,6 +52,9 @@ public sealed class TrainerController
     public event Action? HotkeysChanged;
     /// <summary>Accounts, community reports and anonymous usage (null = feature off, e.g. in tests).</summary>
     public Account.AccountService? Account { get; set; }
+    /// <summary>Steam store lookups for "Request a game" (replaceable in tests).</summary>
+    public Account.SteamStore Steam { get => _steam ??= new Account.SteamStore(); set => _steam = value; }
+    private Account.SteamStore? _steam;
 
     public TrainerController(ICatalogSource catalog, IProcessProvider procs, Settings settings, Action<object> send,
         Func<string, Task>? openUrl = null, Action<Settings>? saveSettings = null, StoreDetector? stores = null, StatusStore? status = null)
@@ -176,6 +179,48 @@ public sealed class TrainerController
             var d = await Account.CommunityAsync(g.Id, fp, force).ConfigureAwait(false);
             _send(new { type = "community", gameId, fingerprint = fp, available = d != null,
                 cheats = d?.ToDictionary(x => x.Key, x => (object)new { works = x.Value.Works, broken = x.Value.Broken, status = x.Value.Status, fixedInVersion = x.Value.FixedInVersion }) });
+        });
+        return null;
+    }
+
+    // ---------------- game requests ----------------
+    private string? Requests()
+    {
+        if (Account == null) return "account niet beschikbaar";
+        _ = Task.Run(async () =>
+        {
+            var (items, loggedIn, error) = await Account.GameRequestsAsync().ConfigureAwait(false);
+            _send(new { type = "requests", ok = items != null, error, loggedIn, items = items?.Select(x => x.ToUi()).ToList() });
+        });
+        return null;
+    }
+
+    private void SteamSearch(string term)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var items = await Steam.SearchAsync(term).ConfigureAwait(false);
+                _send(new { type = "steamSearch", term, ok = true, error = (string?)null, items = items.Select(x => x.ToUi()).ToList() });
+            }
+            catch (Exception e)
+            {
+                var code = e is Account.AccountException ae ? ae.Code : "steam_error";
+                HostLog?.Invoke("[warn] steam search: " + e.Message);
+                _send(new { type = "steamSearch", term, ok = false, error = code, items = Array.Empty<object>() });
+            }
+        });
+    }
+
+    private string? RequestVote(int appId, string? name, string? cover, bool unvote)
+    {
+        if (Account == null) return "account niet beschikbaar";
+        _ = Task.Run(async () =>
+        {
+            var (ok, req, error) = await Account.VoteGameAsync(appId, name, cover, unvote).ConfigureAwait(false);
+            _send(new { type = "requestVoteResult", appid = appId, unvote, ok, error, request = req?.ToUi() });
+            if (ok) Requests();
         });
         return null;
     }
@@ -346,6 +391,22 @@ public sealed class TrainerController
                 {
                     bool force = m.TryGetProperty("force", out var fc) && fc.ValueKind == JsonValueKind.True;
                     return Community(gameId!, force) is string e8 ? Ack(false, e8) : Ack(true);
+                }
+                case "getRequests":
+                    return Requests() is string e9 ? Ack(false, e9) : Ack(true);
+                case "steamSearch":
+                {
+                    string term = m.TryGetProperty("term", out var tm) && tm.ValueKind == JsonValueKind.String ? tm.GetString() ?? "" : "";
+                    SteamSearch(term); return Ack(true);
+                }
+                case "requestVote":
+                case "requestUnvote":
+                {
+                    int appid = m.TryGetProperty("appid", out var ap) && ap.ValueKind == JsonValueKind.Number && ap.TryGetInt32(out var aid) ? aid : 0;
+                    string? nm = m.TryGetProperty("name", out var rn2) && rn2.ValueKind == JsonValueKind.String ? rn2.GetString() : null;
+                    string? cover = m.TryGetProperty("cover", out var rc) && rc.ValueKind == JsonValueKind.String ? rc.GetString() : null;
+                    if (appid <= 0) return Ack(false, "invalid_appid");
+                    return RequestVote(appid, nm, cover, type == "requestUnvote") is string e10 ? Ack(false, e10) : Ack(true);
                 }
                 case "saveSettings":
                     SaveSettings(m.GetProperty("settings")); return Ack(true);

@@ -37,7 +37,7 @@
 
   // ---- Mock host (browser only): simulates the Vanta host with the dev fixture ----
   const Mock = {
-    status: {}, settings: { language: 'nl', catalogDir: '', catalogUrl: '', autoAttach: true }, hotkeys: {},
+    status: {}, settings: { language: (root.location && new URLSearchParams(root.location.search).get('lang')) || 'nl', catalogDir: '', catalogUrl: '', autoAttach: true }, hotkeys: {},
     now() { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); },
     later(fn, ms = 160) { setTimeout(fn, ms); },
     log(text, level = 'info') { receive({ type: 'log', time: Mock.now(), text, level }); },
@@ -87,10 +87,48 @@
           Mock.later(() => { Mock.handle({ type: 'getSettings' }); Mock.sendGame(root.TrainerCore.state.selectedId); });
           return ack();
         }
+        case 'getRequests': Mock.later(() => receive({ type: 'requests', ok: true, error: null, loggedIn: true, items: Mock.requests.slice().sort((a, b) => b.votes - a.votes) }), 220); return ack();
+        case 'steamSearch': {
+          const q = String(m.term || '').toLowerCase(), id = Number(q.replace(/\D/g, '')) || 0;
+          const items = Mock.steam.filter((x) => x.appid === id || x.name.toLowerCase().includes(q)).slice(0, 8)
+            .map((x) => Object.assign({}, x, { image: `https://cdn.cloudflare.steamstatic.com/steam/apps/${x.appid}/capsule_231x87.jpg`, cover: `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${x.appid}/header.jpg` }));
+          Mock.later(() => receive({ type: 'steamSearch', term: m.term, ok: true, error: null, items }), 380); return ack();
+        }
+        case 'requestVote':
+        case 'requestUnvote': {
+          let r = Mock.requests.find((x) => x.appid === m.appid);
+          if (!r && m.type === 'requestVote') { r = { appid: m.appid, name: m.name, cover: m.cover, status: 'open', note: null, votes: 0, votes7d: 0, voted: false }; Mock.requests.push(r); }
+          if (r && r.voted !== (m.type === 'requestVote')) { r.voted = !r.voted; r.votes += r.voted ? 1 : -1; r.votes7d = Math.max(0, r.votes7d + (r.voted ? 1 : -1)); }
+          if (r && !r.votes && r.status === 'open') Mock.requests = Mock.requests.filter((x) => x !== r);
+          Mock.later(() => { receive({ type: 'requestVoteResult', appid: m.appid, unvote: m.type === 'requestUnvote', ok: true, error: null, request: r ? Object.assign({}, r) : null }); Mock.handle({ type: 'getRequests' }); }, 260);
+          return ack();
+        }
         default: return ack();
       }
     },
+    // dev fixture for "Request a game" (public Steam app ids)
+    requests: [
+      { appid: 264710, name: 'Subnautica', status: 'planned', note: null, votes: 41, votes7d: 9, voted: true },
+      { appid: 105600, name: 'Terraria', status: 'open', note: null, votes: 27, votes7d: 6, voted: false },
+      { appid: 413150, name: 'Stardew Valley', status: 'in_progress', note: 'Eerst geld en energie.', votes: 23, votes7d: 4, voted: false },
+      { appid: 367520, name: 'Hollow Knight', status: 'open', note: null, votes: 14, votes7d: 3, voted: false },
+      { appid: 632360, name: 'Risk of Rain 2', status: 'open', note: null, votes: 6, votes7d: 1, voted: false },
+    ].map((x) => Object.assign({ cover: null }, x)),
+    steam: [
+      { appid: 264710, name: 'Subnautica' }, { appid: 848450, name: 'Subnautica: Below Zero' }, { appid: 105600, name: 'Terraria' },
+      { appid: 413150, name: 'Stardew Valley' }, { appid: 367520, name: 'Hollow Knight' }, { appid: 632360, name: 'Risk of Rain 2' },
+      { appid: 1145360, name: 'Hades' }, { appid: 892970, name: 'Valheim' }, { appid: 252490, name: 'Rust' },
+    ],
   };
+
+  // dev preview only: sample release notes for ?update=x.y.z&whatsnew=1
+  root.VantaMockReleaseNotes = [
+    '## Nieuw', '', '- **Game aanvragen**: zoek een game op Steam en stem erop via *Game aanvragen* linksonder.',
+    '- Compacte update-melding; de volledige release-opmerkingen staan onder **Wat is er nieuw**.', '',
+    '## Verbeterd', '', '1. Stemmen kan na inloggen met Discord, de lijst is voor iedereen zichtbaar.', '2. Links openen in je eigen browser.',
+    '   - Ook lange lijsten scrollen netjes.', '', '### Let op', '', '> Updaten zet alle cheats uit en herstelt je games.', '',
+    '---', '', '**Full Changelog**: https://github.com/Rick007110/Vanta/compare/v0.3.1...v0.3.2',
+  ].join('\n');
 
   T.init();
 

@@ -14,5 +14,5 @@ public static class Branding
     /// <summary>The project's public publishable key (sb_publishable_...) or legacy anon key. Never the secret/service_role key
     /// (Vanta refuses those). Override: "supabaseKey" in settings.json or VANTA_SUPABASE_KEY.</summary>
     public const string SupabaseKey = "sb_publishable_x1Kh8U1AbRkcjKMRYG5wxQ_hj2Tr0q3";
-    public static string Version => typeof(Branding).Assembly.GetName().Version?.ToString(3) ?? "0.3.1";
+    public static string Version => typeof(Branding).Assembly.GetName().Version?.ToString(3) ?? "0.3.2";
 }

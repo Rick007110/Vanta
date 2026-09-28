@@ -217,6 +217,23 @@ public sealed class AccountClient
     public Task UsageAsync(string gameId, IReadOnlyDictionary<string, int> counts, CancellationToken ct = default) =>
         Rpc("vanta_count_usage", null, new { p_game_id = gameId, p_counts = counts }, ct);
 
+    // ---------------- game requests ----------------
+    /// <summary>Top active requests; with a token the "voted" flag is filled in.</summary>
+    public async Task<(List<GameRequest> items, bool loggedIn)> GameRequestsAsync(string? token, int limit = 50, CancellationToken ct = default)
+    {
+        var j = await Rpc("vanta_game_requests", token, new { p_status = (string?)null, p_limit = limit }, ct).ConfigureAwait(false);
+        var list = (j?["items"] as JsonArray)?.Select(GameRequest.Parse).OfType<GameRequest>().ToList() ?? new();
+        return (list, j?["logged_in"] is JsonValue v && v.TryGetValue<bool>(out var b) && b);
+    }
+
+    /// <summary>Requests a game (first time) or votes for it.</summary>
+    public async Task<GameRequest?> RequestGameAsync(string token, int appId, string name, string? coverUrl, CancellationToken ct = default) =>
+        GameRequest.Parse((await Rpc("vanta_request_game", token, new { p_appid = appId, p_name = name, p_cover_url = coverUrl }, ct).ConfigureAwait(false))?["request"]);
+
+    /// <summary>Removes the caller's vote.</summary>
+    public async Task<GameRequest?> UnvoteGameAsync(string token, int appId, CancellationToken ct = default) =>
+        GameRequest.Parse((await Rpc("vanta_unvote_game", token, new { p_appid = appId }, ct).ConfigureAwait(false))?["request"]);
+
     private static CommunityEntry ParseEntry(JsonNode c) => new(c["works"]?.GetValue<int>() ?? 0, c["broken"]?.GetValue<int>() ?? 0,
         c["status"]?.GetValue<string>() ?? "open", c["fixed_in_version"]?.GetValue<string?>());
 
