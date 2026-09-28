@@ -721,9 +721,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   check('categoriefilter (racing = 200)', () => assert.strictEqual(racing, 200));
   await page.select('[data-role=category]', '');
   await page.type('[data-role=search]', 'online');
-  await sleep(100);
-  await page.click('[data-game=online-shooter]');
-  await sleep(300);
+  await sleep(350);
+  // focused search = centred palette over a dimmed backdrop; the matches are listed under the field
+  const sp0 = await page.evaluate(() => { const b = document.querySelector('[data-search]').getBoundingClientRect(), p = document.querySelector('.spot-pop');
+    return { floating: document.querySelector('[data-search]').classList.contains('is-floating'), dim: !document.querySelector('.spot-dim').hidden, pop: !p.hidden,
+      centred: Math.abs(b.left + b.width / 2 - innerWidth / 2) < 2, picks: [...p.querySelectorAll('.spot-item')].map((e) => e.dataset.pick) }; });
+  check('zoekpalet: veld gecentreerd, achtergrond gedimd, treffers in lijst', () => assert.deepStrictEqual(sp0, { floating: true, dim: true, pop: true, centred: true, picks: ['online-shooter'] }));
+  await page.click('.spot-item[data-pick=online-shooter]');
+  await sleep(400);
+  const sp1 = await page.evaluate(() => ({ floating: document.querySelector('[data-search]').classList.contains('is-floating'), dim: document.querySelector('.spot-dim').hidden, focus: document.activeElement.dataset.role || null }));
+  check('zoekpalet: klik op treffer sluit palet', () => assert.deepStrictEqual(sp1, { floating: false, dim: true, focus: null }));
   const bl = { label: await text('[data-bind=status-label]'), disabled: await page.$eval('[data-action=primary]', (b) => b.disabled) };
   check('anti-cheat game: Niet ondersteund, knop uit', () => assert.deepStrictEqual(bl, { label: 'Niet ondersteund', disabled: true }));
   await shot(`vanta-${VER}-geblokkeerd.png`);
@@ -731,6 +738,24 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.click('[data-game=game-3]');
   await sleep(300);
   await shot(`vanta-${VER}-catalogus-1200.png`);
+  // Ctrl+K opens the palette, arrows move, Enter opens the highlighted game, Esc closes and clears
+  await page.keyboard.down('Control'); await page.keyboard.press('k'); await page.keyboard.up('Control');
+  await sleep(350);
+  await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowUp');
+  const sp2 = await page.evaluate(() => ({ open: document.querySelector('[data-search]').classList.contains('is-floating'), n: document.querySelectorAll('.spot-item').length,
+    active: document.querySelector('.spot-item[aria-selected=true]').dataset.pick }));
+  check('zoekpalet: Ctrl+K opent, pijltjes navigeren', () => assert.deepStrictEqual(sp2, { open: true, n: 60, active: 'game-1' }));
+  await page.keyboard.press('Enter'); await sleep(400);
+  const sp3 = await page.evaluate(() => ({ open: document.querySelector('[data-search]').classList.contains('is-floating'), sel: document.querySelector('.lib-item.is-selected').dataset.game }));
+  check('zoekpalet: Enter opent game', () => assert.deepStrictEqual(sp3, { open: false, sel: 'game-1' }));
+  await page.focus('[data-role=search]'); await sleep(350);
+  await page.mouse.click(120, 600); await sleep(350);
+  const sp4 = await page.evaluate(() => ({ open: document.querySelector('[data-search]').classList.contains('is-floating'), dim: document.querySelector('.spot-dim').hidden, q: document.querySelector('[data-role=search]').value }));
+  check('zoekpalet: klik op achtergrond sluit, zoekterm blijft', () => assert.deepStrictEqual(sp4, { open: false, dim: true, q: 'testgame 00' }));
+  await page.focus('[data-role=search]'); await sleep(350);
+  await page.keyboard.press('Escape'); await sleep(350);
+  const sp5 = await page.evaluate(() => ({ open: document.querySelector('[data-search]').classList.contains('is-floating'), q: document.querySelector('[data-role=search]').value, ghost: !!document.querySelector('.search-ghost') }));
+  check('zoekpalet: Esc sluit en wist', () => assert.deepStrictEqual(sp5, { open: false, q: '', ghost: false }));
   const t0 = Date.now();
   await load({ many: 1200 });
   check('laadtijd UI met 1200 games < 3 s', () => assert.ok(Date.now() - t0 < 3000, String(Date.now() - t0)));

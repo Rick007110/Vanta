@@ -586,3 +586,37 @@ p.conf-comm { margin: 0; }
 .req-login { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r); font-size: 12.5px; color: var(--text-2); background: var(--accent-soft); border: 1px solid rgba(116,102,255,.25); }
 .req-login span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .req-login .btn { flex: none; height: 32px; padding: 0 12px 0 10px; font-size: 12.5px; }
+
+/* ---------------- Search palette (sidebar search lifted to the centre on focus, see app.js) ---------------- */
+:root { --spot-w: min(560px, 80vw); --spot-top: 15vh; --spot-h: 50px; }
+.search-ghost { flex: none; margin: 4px 16px 12px; }
+.search.is-floating { position: fixed; z-index: 62; top: var(--spot-top); left: calc(50% - var(--spot-w) / 2); width: var(--spot-w); height: var(--spot-h); margin: 0;
+  gap: 10px; padding: 0 12px 0 16px; border-radius: var(--r-lg); background: var(--surface-2); box-shadow: 0 0 0 3px var(--accent-soft), 0 24px 60px -16px rgba(0,0,0,.7); }
+.search.is-floating input { font-size: 15px; }
+.search.is-floating .search-ic { color: var(--text-2); }
+.search.is-landing { position: relative; z-index: 62; }
+.spot-dim { position: fixed; inset: 0; z-index: 60; background: rgba(4,5,8,.5); backdrop-filter: blur(2px); opacity: 0; transition: opacity 220ms var(--ease); }
+.spot-dim.is-in { opacity: 1; }
+.spot-dim[hidden], .spot-pop[hidden] { display: none; }
+.spot-pop { position: fixed; z-index: 62; top: calc(var(--spot-top) + var(--spot-h) + 8px); left: calc(50% - var(--spot-w) / 2); width: var(--spot-w);
+  display: flex; flex-direction: column; max-height: calc(100vh - var(--spot-top) - var(--spot-h) - 8px - var(--status-h) - 32px);
+  background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-lg); box-shadow: 0 24px 60px -16px rgba(0,0,0,.7); overflow: hidden;
+  opacity: 0; transform: translateY(-6px); transition: opacity 180ms var(--ease), transform 220ms var(--ease); }
+.spot-pop.is-in { opacity: 1; transform: none; transition-delay: 100ms; }
+.spot-list { overflow-y: auto; padding: 6px; min-height: 0; }
+.spot-item { display: flex; align-items: center; gap: 12px; padding: 6px 10px 6px 8px; border-radius: var(--r); cursor: pointer; }
+.spot-item[aria-selected=true] { background: rgba(116,102,255,.12); }
+.spot-item[aria-selected=true] .spot-name { color: var(--text); }
+.spot-item.is-current .spot-name::after { content: ''; display: inline-block; width: 5px; height: 5px; margin-left: 8px; border-radius: 50%; background: var(--accent); vertical-align: middle; }
+.spot-item.is-blocked .spot-name { color: var(--text-3); }
+.spot-text { min-width: 0; display: grid; gap: 2px; }
+.spot-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #DCE1EA; }
+.spot-empty { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 22px 12px; color: var(--text-3); font-size: 13px; }
+.spot-foot { flex: none; display: flex; align-items: center; gap: 16px; padding: 9px 14px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--text-3); }
+.spot-foot span { display: inline-flex; align-items: center; gap: 4px; }
+.spot-foot kbd { font: 500 10.5px var(--mono); color: var(--text-2); border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 5px; margin-right: 2px; }
+.spot-more { margin-left: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .spot-pop, .spot-pop.is-in { transform: none; transition: none; }
+  .spot-dim { transition: none; }
+}

@@ -358,4 +358,139 @@
     templates: T,
     onGameChange: (g) => document.documentElement.style.setProperty('--game-tint', Art.artOf(g).tint),
   });
+
+  // Search palette. Focusing the sidebar search (click or Ctrl+K) moves the field to the centre of the window over a
+  // dimmed backdrop and lists the matching games under it. core.js still owns the query and filters the sidebar; the
+  // list mirrors the rendered sidebar items, and picking an entry clicks that sidebar item (same path as a mouse click).
+  (function searchPalette() {
+    const app = document.getElementById('app');
+    const box = app.querySelector('[data-search]');
+    const input = box && box.querySelector('[data-role=search]');
+    const lib = app.querySelector('[data-slot=library]');
+    const modal = app.querySelector('[data-slot=modal]');
+    if (!input || !lib) return;
+    const kbd = box.querySelector('.search-kbd'), kbdText = kbd ? kbd.textContent : '';
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const DUR = 240, EASE = 'cubic-bezier(.2,.8,.2,1)', MAX = 60;
+
+    const ghost = document.createElement('div');
+    ghost.className = 'search-ghost'; ghost.setAttribute('aria-hidden', 'true');
+    const dim = document.createElement('div');
+    dim.className = 'spot-dim'; dim.hidden = true;
+    const pop = document.createElement('div');
+    pop.className = 'spot-pop'; pop.hidden = true;
+    pop.innerHTML = '<div class="spot-list" id="spot-list" role="listbox"></div><div class="spot-foot" aria-hidden="true"></div>';
+    app.append(dim, pop);
+    const list = pop.querySelector('.spot-list'), foot = pop.querySelector('.spot-foot');
+    input.setAttribute('aria-controls', 'spot-list');
+    input.setAttribute('aria-expanded', 'false');
+
+    let open = false, items = [], active = 0, anim = null, hideTimer = 0;
+
+    const sourceItems = () => {
+      const seen = new Set();
+      return [...lib.querySelectorAll('.lib-item')].filter((b) => !seen.has(b.dataset.game) && seen.add(b.dataset.game));
+    };
+    function build() {
+      const all = sourceItems();
+      items = all.slice(0, MAX).map((b) => b.dataset.game);
+      active = Math.max(0, Math.min(active, items.length - 1));
+      list.innerHTML = !items.length ? `<div class="spot-empty">${I('search', 16)}<span>${esc(t('lib.empty.title'))}</span></div>`
+        : all.slice(0, MAX).map((b, i) => {
+          const cover = b.querySelector('.lib-cover'), name = b.querySelector('.lib-name'), meta = b.querySelector('.lib-meta');
+          return `<div class="spot-item${b.classList.contains('is-blocked') ? ' is-blocked' : ''}${b.classList.contains('is-selected') ? ' is-current' : ''}" role="option" id="spot-opt-${i}" data-pick="${esc(b.dataset.game)}" data-i="${i}" aria-selected="${i === active}">
+            ${cover ? cover.outerHTML : ''}<span class="spot-text"><span class="spot-name">${esc(name ? name.textContent : '')}</span><span class="lib-meta">${meta ? meta.innerHTML : ''}</span></span></div>`;
+        }).join('');
+      const more = all.length - items.length;
+      foot.innerHTML = `<span><kbd>↑</kbd><kbd>↓</kbd>${esc(t('spot.nav'))}</span><span><kbd>Enter</kbd>${esc(t('spot.open'))}</span><span><kbd>Esc</kbd>${esc(t('spot.close'))}</span>`
+        + (more > 0 ? `<span class="spot-more">${esc(t('spot.more', { n: more }))}</span>` : '');
+      mark();
+    }
+    function mark(scroll) {
+      list.querySelectorAll('.spot-item').forEach((el, i) => el.setAttribute('aria-selected', String(i === active)));
+      const el = items.length && document.getElementById('spot-opt-' + active);
+      if (el) { input.setAttribute('aria-activedescendant', el.id); if (scroll) el.scrollIntoView({ block: 'nearest' }); }
+      else input.removeAttribute('aria-activedescendant');
+    }
+
+    // FLIP: measure the field before and after the layout change, then play the difference back to zero.
+    // Position moves by transform; width/height are animated directly so the text never stretches.
+    function flip(first, last, done) {
+      if (reduce.matches || !box.animate) return done && done();
+      anim = box.animate([
+        { transform: `translate(${first.left - last.left}px, ${first.top - last.top}px)`, width: first.width + 'px', height: first.height + 'px' },
+        { transform: 'translate(0, 0)', width: last.width + 'px', height: last.height + 'px' },
+      ], { duration: DUR, easing: EASE });
+      anim.onfinish = () => { anim = null; if (done) done(); };
+    }
+    function show() {
+      if (open || (modal && !modal.hidden)) return;
+      open = true;
+      clearTimeout(hideTimer);
+      const first = box.getBoundingClientRect();
+      if (anim) { anim.cancel(); anim = null; }
+      ghost.style.height = box.offsetHeight + 'px';
+      if (!ghost.isConnected) box.after(ghost);
+      box.classList.remove('is-landing');
+      box.classList.add('is-floating');
+      app.classList.add('is-spot');
+      if (kbd) kbd.textContent = 'Esc';
+      dim.hidden = pop.hidden = false;
+      active = 0; build();
+      input.setAttribute('aria-expanded', 'true');
+      void dim.offsetWidth;                                    // commit the hidden state so the fade runs
+      dim.classList.add('is-in'); pop.classList.add('is-in');
+      flip(first, box.getBoundingClientRect());
+    }
+    function hide() {
+      if (!open) return;
+      open = false;
+      const first = box.getBoundingClientRect();
+      if (anim) { anim.cancel(); anim = null; }
+      box.classList.remove('is-floating');
+      box.classList.add('is-landing');
+      ghost.remove();
+      app.classList.remove('is-spot');
+      if (kbd) kbd.textContent = kbdText;
+      dim.classList.remove('is-in'); pop.classList.remove('is-in');
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      if (document.activeElement === input) input.blur();
+      flip(first, box.getBoundingClientRect(), () => box.classList.remove('is-landing'));
+      hideTimer = setTimeout(() => { if (!open) { dim.hidden = pop.hidden = true; list.innerHTML = ''; } }, reduce.matches ? 0 : DUR);
+    }
+    function pick(i) {
+      const id = items[i];
+      if (id == null) return;
+      hide();
+      const b = lib.querySelector(`.lib-item[data-game="${CSS.escape(id)}"]`);
+      if (b) b.click();
+    }
+
+    input.addEventListener('focus', show);
+    input.addEventListener('focusout', () => setTimeout(() => {
+      if (open && document.hasFocus() && document.activeElement !== input) hide();   // tabbed away / clicked elsewhere
+    }, 0));
+    // Runs on the input itself, before core.js' document handler (which clears the query on Esc).
+    input.addEventListener('keydown', (e) => {
+      if (!open) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!items.length) return;
+        active = (active + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+        mark(true);
+      } else if (e.key === 'Enter') { e.preventDefault(); pick(active); }
+      else if (e.key === 'Escape') hide();
+      else if (e.key === 'Tab') hide();
+    });
+    dim.addEventListener('mousedown', (e) => { e.preventDefault(); hide(); });
+    pop.addEventListener('mousedown', (e) => e.preventDefault());       // keep focus in the field
+    pop.addEventListener('mousemove', (e) => {
+      const el = e.target.closest('.spot-item');
+      if (el && Number(el.dataset.i) !== active) { active = Number(el.dataset.i); mark(); }
+    });
+    pop.addEventListener('click', (e) => { const el = e.target.closest('.spot-item'); if (el) pick(Number(el.dataset.i)); });
+    // core.js re-renders the sidebar on every keystroke (and on catalog/status updates): mirror it while open.
+    new MutationObserver(() => { if (open) build(); }).observe(lib, { childList: true });
+  })();
 })();
