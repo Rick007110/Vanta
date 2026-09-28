@@ -395,12 +395,15 @@ public class AccountTests : IDisposable
         Assert.Equal(new SupabaseConfig(new Uri("https://from-env.supabase.co"), "sb_publishable_env"), AccountService.ResolveSupabase(s, "https://from-env.supabase.co", "sb_publishable_env"));
         Assert.Equal("https://from-settings.supabase.co/", AccountService.ResolveSupabase(s, null, null)!.Url.ToString());
         Assert.Equal("http://127.0.0.1:54321/", AccountService.ResolveSupabase(new Settings { SupabaseUrl = "http://127.0.0.1:54321", SupabaseKey = Jwt("anon") }, null, null)!.Url.ToString());
-        Assert.Null(AccountService.ResolveSupabase(new Settings { SupabaseUrl = "http://evil.example", SupabaseKey = "sb_publishable_x" }, null, null) is { } u && u.Url.Host == "evil.example" ? u : null);
+        Assert.Null(AccountService.ResolveSupabase(new Settings { SupabaseUrl = "http://evil.example", SupabaseKey = "sb_publishable_x" }, null, null));
         var logs = new List<string>();
         Assert.Null(AccountService.ResolveSupabase(new Settings { SupabaseUrl = "https://p.supabase.co", SupabaseKey = "sb_secret_x" }, null, null, logs.Add));
         Assert.Null(AccountService.ResolveSupabase(new Settings { SupabaseUrl = "https://p.supabase.co", SupabaseKey = Jwt("service_role") }, null, null));
         Assert.Single(logs);
-        Assert.Null(AccountService.ResolveSupabase(new Settings { SupabaseUrl = "https://p.supabase.co" }, null, "") is { } w && w.Url.Host == "p.supabase.co" ? w : null);
+        Assert.Null(AccountService.ResolveSupabase(new Settings { SupabaseUrl = "https://p.supabase.co" }, null, ""));   // never the built-in key for another project
+        Assert.Equal(new SupabaseConfig(new Uri("https://p.supabase.co"), "sb_publishable_env"), AccountService.ResolveSupabase(new Settings { SupabaseUrl = "https://p.supabase.co" }, null, "sb_publishable_env"));
+        Assert.Equal(new SupabaseConfig(new Uri(Branding.SupabaseUrl), Branding.SupabaseKey), AccountService.ResolveSupabase(new Settings(), null, null));   // built-in defaults
+        Assert.True(AccountService.IsPublicKey(Branding.SupabaseKey));
     }
 
     [Fact]

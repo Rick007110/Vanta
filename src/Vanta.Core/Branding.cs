@@ -10,9 +10,9 @@ public static class Branding
     public const string MutexName = "Local\\Vanta.SingleInstance";
     /// <summary>Community reports (Supabase): project URL, e.g. "https://abcd1234.supabase.co". Empty = accounts/reports off.
     /// Can be overridden per PC with "supabaseUrl" in settings.json or the VANTA_SUPABASE_URL environment variable.</summary>
-    public const string SupabaseUrl = "";
+    public const string SupabaseUrl = "https://zwglyogpkcynnopafvsb.supabase.co";
     /// <summary>The project's public publishable key (sb_publishable_...) or legacy anon key. Never the secret/service_role key
     /// (Vanta refuses those). Override: "supabaseKey" in settings.json or VANTA_SUPABASE_KEY.</summary>
-    public const string SupabaseKey = "";
-    public static string Version => typeof(Branding).Assembly.GetName().Version?.ToString(3) ?? "0.2.2";
+    public const string SupabaseKey = "sb_publishable_x1Kh8U1AbRkcjKMRYG5wxQ_hj2Tr0q3";
+    public static string Version => typeof(Branding).Assembly.GetName().Version?.ToString(3) ?? "0.3.0";
 }

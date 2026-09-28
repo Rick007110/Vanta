@@ -56,16 +56,16 @@ public sealed class AccountService : IDisposable
     /// </summary>
     public static SupabaseConfig? ResolveSupabase(Settings s, string? envUrl, string? envKey, Action<string>? log = null)
     {
-        Uri? url = null;
-        foreach (var raw in new[] { envUrl, s.SupabaseUrl, Branding.SupabaseUrl })
-        {
-            if (string.IsNullOrWhiteSpace(raw)) continue;
-            if (Uri.TryCreate(raw.Trim(), UriKind.Absolute, out var u) &&
-                (u.Scheme == Uri.UriSchemeHttps || (u.Scheme == Uri.UriSchemeHttp && u.IsLoopback)) && string.IsNullOrEmpty(u.Query))
-            { url = u; break; }
-        }
-        var key = new[] { envKey, s.SupabaseKey, Branding.SupabaseKey }.FirstOrDefault(k => !string.IsNullOrWhiteSpace(k))?.Trim();
-        if (url == null || key == null) return null;
+        // The key must come from the same source as the URL or a higher-priority one, so a custom URL is never paired
+        // with the built-in key of another project. An invalid URL disables accounts instead of silently falling back.
+        string?[] urls = { envUrl, s.SupabaseUrl, Branding.SupabaseUrl }, keys = { envKey, s.SupabaseKey, Branding.SupabaseKey };
+        int i = Array.FindIndex(urls, x => !string.IsNullOrWhiteSpace(x));
+        if (i < 0) return null;
+        if (!Uri.TryCreate(urls[i]!.Trim(), UriKind.Absolute, out var url) ||
+            !(url.Scheme == Uri.UriSchemeHttps || (url.Scheme == Uri.UriSchemeHttp && url.IsLoopback)) || !string.IsNullOrEmpty(url.Query))
+        { log?.Invoke("account: ongeldige Supabase-URL (https vereist)"); return null; }
+        var key = keys.Take(i + 1).FirstOrDefault(k => !string.IsNullOrWhiteSpace(k))?.Trim();
+        if (key == null) return null;
         if (!IsPublicKey(key)) { log?.Invoke("account: geweigerd: dit is geen publishable/anon key (secret keys horen nooit in Vanta)"); return null; }
         return new SupabaseConfig(url, key);
     }
