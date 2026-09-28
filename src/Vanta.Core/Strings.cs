@@ -8,6 +8,7 @@ public static class Strings
     private static readonly Dictionary<string, (string nl, string en)> T = new()
     {
         ["aob.none"] = ("{0}: geen unieke AOB gevonden ({1}). Niets gepatcht.", "{0}: no unique AOB found ({1}). Nothing patched."),
+        ["aob.hooked"] = ("{0}: staat al aan in het spel (achtergebleven van een eerdere Vanta-sessie). Niets gepatcht. Herstart het spel om de cheat weer te kunnen gebruiken.", "{0}: is already active in the game (left over from an earlier Vanta session). Nothing patched. Restart the game to use the cheat again."),
         ["aob.report"] = ("patroon {0}: {1} treffer(s)", "pattern {0}: {1} hit(s)"),
         ["module.missing"] = ("Module {0} niet gevonden in het proces.", "Module {0} not found in the process."),
         ["read.fail"] = ("Kan geheugen niet lezen op {0:X}. Niets gepatcht.", "Cannot read memory at {0:X}. Nothing patched."),

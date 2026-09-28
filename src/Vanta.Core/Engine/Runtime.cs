@@ -55,7 +55,24 @@ public sealed class CheatRuntime
             Trace?.Invoke($"{cheat.Id}/{siteName}: pattern {i} -> {hits.Count} hit(s)");
             if (hits.Count == 1) { _siteCache[key] = hits[0]; return hits[0]; }
         }
+        if (LeftoverHook(mod, site)) throw new CheatException(Strings.Get("aob.hooked", cheat.Name));
         throw new CheatException(Strings.Get("aob.none", cheat.Name, string.Join(", ", report)));
+    }
+
+    /// <summary>True when the site is already hooked (jmp rel32 out of the module + NOP padding where the first
+    /// pattern expects the original bytes), e.g. left behind by an earlier session that could not restore.</summary>
+    private bool LeftoverHook(ModuleInfo mod, SiteDef site)
+    {
+        if (site.Overwrite < 5 || site.Patterns.Count == 0 || site.Patterns[0].Offset != 0) return false;
+        var tokens = site.Patterns[0].Aob.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Length < site.Overwrite) return false;
+        var hooked = new List<string> { "E9", "??", "??", "??", "??" };
+        hooked.AddRange(Enumerable.Repeat("90", site.Overwrite - 5));
+        hooked.AddRange(tokens.Skip(site.Overwrite));
+        var hits = AobScanner.ScanModule(_mem, mod, new AobPattern(string.Join(' ', hooked)), site.AnyMemory, 2);
+        if (hits.Count != 1 || !_mem.TryReadI32(hits[0] + 1, out var rel)) return false;
+        ulong target = (ulong)((long)hits[0] + 5 + rel);
+        return target < mod.Base || target >= mod.Base + mod.Size;
     }
 
     private bool Matches(ulong addr, AobPattern expect)

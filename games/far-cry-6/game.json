@@ -24,8 +24,13 @@
   "scope": "Alleen voor de solo-campagne. Niet gebruiken in co-op of online.",
   "supportedVersions": [
     {
-      "label": "1.8.0 (build 20-07-2025, Ubisoft Connect/Steam)",
-      "fileSize": 518275080
+      "label": "Steam-build 11359732 (28-09-2026)",
+      "fileVersion": "1, 0, 0, 0",
+      "fileSize": 521313320,
+      "headSha256": "8ef6454a09d4adf5f59de0bfe17b86f4d4c75e54630cca3711f7cafbc5bdf868",
+      "tailSha256": "496327e984e9947319a48d638df5d2b0160e4a07c374a0710548bcce084ec730",
+      "peTimestamp": 1682685300,
+      "moduleSize": 535326720
     }
   ],
   "antiCheat": false,
@@ -37,7 +42,7 @@
   "badge": "1.8.0",
   "notes": [
     "Far Cry 6 heeft geen anti-cheat (alleen Denuvo/VMProtect-DRM). Gebruik de cheats alleen solo: co-op-sessies zijn online en daar hoort niemand last van jou te hebben.",
-    "Alle cheats zijn nog niet getest in build 1.8.0. Controleer eerst met: Vanta.exe --verify far-cry-6",
+    "Alle AOB's zijn gecontroleerd op Steam-build 11359732 (28-09-2026); nog niet allemaal in-game getest. Controleer eerst met: Vanta.exe --verify far-cry-6",
     "Zet de hash-vingerafdruk uit het --verify-rapport in supportedVersions zodra de build bevestigd is.",
     "Maak een backup van je save: Ubisoft Connect\\savegames\\<account>\\5266 (Steam-versie: map 920)."
   ],
@@ -64,7 +69,7 @@
       "hotkey": "Numpad1",
       "description": "Je neemt geen schade: de aanroep die schade op de speler toepast wordt overgeslagen.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -107,14 +112,14 @@
       "hotkey": "Numpad2",
       "description": "Sprinten en klimmen kosten geen uithoudingsvermogen.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021). Tabel is ouder dan de huidige build; de kans dat de AOB nog klopt is kleiner. Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021), AOB opnieuw gezocht voor Steam-build 11359732 (28-09-2026): vtable-offset 528 is 530 geworden, patch ongewijzigd. Precies 1 treffer in FC_m64d3d12.dll van die build. Nog niet in-game getest. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobPatch",
         "sites": {
           "infinitestamina": {
             "patterns": [
               {
-                "aob": "FF 50 38 48 8B 07 48 8B CF FF 90 28"
+                "aob": "FF 50 38 48 8B 07 48 8B CF FF 90 30 05 00 00 0F B6"
               }
             ]
           }
@@ -140,14 +145,14 @@
       "hotkey": "Numpad3",
       "description": "Zuurstof onder water raakt niet op.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021). Tabel is ouder dan de huidige build; de kans dat de AOB nog klopt is kleiner. Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021), AOB opnieuw gezocht voor Steam-build 11359732 (28-09-2026): de ucomiss na de call is verdwenen, nu gevolgd door movss [rbx+4C8]; call-doel aangepast (site-2A73331, zelfde functie als bij uithoudingsvermogen). Offsets +18/+1C in het zuurstofobject niet te controleren zonder in-game test. Precies 1 treffer in FC_m64d3d12.dll van die build. Nog niet in-game getest. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
           "infiniteoxygen": {
             "patterns": [
               {
-                "aob": "48 8B F8 E8 54 35 6E FD"
+                "aob": "48 8B F8 E8 C7 CC 58 FD F3 0F 11 83 C8 04 00 00"
               }
             ],
             "overwrite": 8
@@ -163,7 +168,7 @@
           "fstp [rcx+0018]",
           "code:",
           "mov rdi,rax",
-          "call infiniteoxygen-291CAA4",
+          "call infiniteoxygen-2A73331",
           "jmp infiniteoxygen_ret"
         ],
         "hooks": [
@@ -186,7 +191,7 @@
       "hotkey": "Numpad4",
       "description": "Het magazijn van je wapen blijft gevuld (zet de huidige clip op 99).",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer met originele bytes); de melding \"0 treffers\" kwam door een achtergebleven hook van een eerdere sessie. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -229,14 +234,14 @@
       "hotkey": "Ctrl+Numpad4",
       "description": "Het magazijn wordt niet leeg, dus je hoeft niet te herladen.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021). Tabel is ouder dan de huidige build; de kans dat de AOB nog klopt is kleiner. Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021), AOB opnieuw gezocht voor Steam-build 11359732 (28-09-2026): registers veranderd (cmovb edi,eax / mov [rbx+17C],edi), patch nu mov edi,eax. Precies 1 treffer in FC_m64d3d12.dll van die build. Nog niet in-game getest. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobPatch",
         "sites": {
           "noreload": {
             "patterns": [
               {
-                "aob": "0F 42 D8 89 9F 7C 01 00 00"
+                "aob": "0F 42 F8 89 BB 7C 01 00 00"
               }
             ]
           }
@@ -245,7 +250,7 @@
           {
             "site": "noreload",
             "offset": 0,
-            "bytes": "89 C3 90 89 9F 7C 01 00 00"
+            "bytes": "89 C7 90 89 BB 7C 01 00 00"
           }
         ]
       }
@@ -262,7 +267,7 @@
       "hotkey": "Numpad5",
       "description": "Werpwapens (granaten, molotovs) en handelsgoederen worden niet afgetrokken. Volgens de auteur kun je zo ook handelswaar blijven verkopen voor Yaran-peso's.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -304,7 +309,7 @@
       "hotkey": "Numpad6",
       "description": "Wapens hebben geen terugslag.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -346,7 +351,7 @@
       "hotkey": "Ctrl+Numpad6",
       "description": "Kogelspreiding wordt vastgezet op een lage waarde.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -396,7 +401,7 @@
       "hotkey": "Numpad7",
       "description": "Geluiddempers (en wapenhitte op dezelfde waarde) blijven op 0.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer met originele bytes); de melding \"0 treffers\" kwam door een achtergebleven hook van een eerdere sessie. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -440,7 +445,7 @@
       "hotkey": "Numpad8",
       "description": "De Supremo-rugzak laadt niet leeg; je kunt de speciale aanval steeds gebruiken.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer met originele bytes); de melding \"0 treffers\" kwam door een achtergebleven hook van een eerdere sessie. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -483,7 +488,7 @@
       "hotkey": "Numpad9",
       "description": "Voertuigen nemen geen schade. Let op: dit kan ook voor voertuigen van vijanden gelden.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -525,7 +530,7 @@
       "hotkey": "Ctrl+Numpad1",
       "description": "Upgrades en uitrusting maken kost geen materialen.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021, game-versie 1.1). Tabel is ouder dan de huidige build; de kans dat de AOB nog klopt is kleiner. Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021, game-versie 1.1). Tabel is ouder dan de huidige build; de kans dat de AOB nog klopt is kleiner. AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -569,14 +574,14 @@
       "hotkey": "Ctrl+Numpad2",
       "description": "Opgepakte grondstoffen en geld worden vermenigvuldigd (standaard x2; stel hieronder in).",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021, game-versie 1.1). Tabel is ouder dan de huidige build; de kans dat de AOB nog klopt is kleiner. Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (2021), AOB opnieuw gezocht voor Steam-build 11359732 (28-09-2026): registers veranderd (r14 -> rsi, r15 -> r13). Offset +30 (type-id voor alleen-geld) niet te controleren zonder in-game test; standaard staat alleen-geld uit. Precies 1 treffer in FC_m64d3d12.dll van die build. Nog niet in-game getest. Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
           "aobpickres": {
             "patterns": [
               {
-                "aob": "F3 49 0F 2A FE"
+                "aob": "F3 48 0F 2A FE 0F 28 F7 FF 50 70"
               }
             ],
             "overwrite": 5
@@ -589,10 +594,10 @@
         "asm": [
           "newmem:",
           "code:",
-          "cvtsi2ss xmm7,r14",
+          "cvtsi2ss xmm7,rsi",
           "cmp [bOnlyMoney],1",
           "jne short LabelAll",
-          "cmp dword ptr[r15+30],9",
+          "cmp dword ptr[r13+30],9",
           "jne short NoMul",
           "mulss xmm7,[fMul]",
           "NoMul:",
@@ -653,7 +658,7 @@
       "hotkey": "Ctrl+Numpad3",
       "description": "Telt extra XP op bij elke XP-winst (standaard +100). Volgens de auteur werkt het vooral bij het vernietigen van voertuigen.",
       "confidence": "experimental",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Experimenteel: de tabel roept een vaste adres-offset aan; Vanta rekent die om naar een adres relatief aan de AOB. Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Experimenteel: de tabel roept een vaste adres-offset aan; Vanta rekent die om naar een adres relatief aan de AOB. AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -747,7 +752,7 @@
       "hotkey": "Ctrl+Numpad7",
       "description": "Past je bewegingssnelheid aan (waarde hieronder).",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -821,7 +826,7 @@
       "hotkey": "Ctrl+Numpad8",
       "description": "Je springt hoger.",
       "confidence": "untested",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -869,7 +874,7 @@
       "hotkey": "Ctrl+Numpad9",
       "description": "Vijanden merken je niet op.",
       "confidence": "experimental",
-      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Experimenteel: het script springt naar een vaste adres-offset in de module; als de build afwijkt kan de game crashen. Sla eerst op. Niet getest in build 1.8.0 (20-07-2025). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
+      "confidenceNote": "Uit een openbare Cheat Engine-tabel (maart 2025). Experimenteel: het script springt naar een vaste adres-offset in de module; als de build afwijkt kan de game crashen. Sla eerst op. AOB klopt in Steam-build 11359732 (28-09-2026) (1 treffer). Faalt veilig: als de AOB niet precies één keer gevonden wordt, patcht Vanta niets.",
       "impl": {
         "type": "aobInject",
         "sites": {
@@ -889,7 +894,7 @@
         "asm": [
           "newmem:",
           "code:",
-          "jmp FC_m64d3d12.dll+36EF06C",
+          "jmp stealth+37",
           "jmp stealth_ret"
         ],
         "hooks": [

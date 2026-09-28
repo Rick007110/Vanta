@@ -1,4 +1,4 @@
-# Vanta v0.3.0 (developer notes)
+# Vanta v0.3.1 (developer notes)
 
 Standalone Windows trainer for **single-player/offline** games. It has no Cheat Engine dependency.
 Games marked `antiCheat` or `onlineOnly` are listed but refused (never opened, never launched).
@@ -136,7 +136,7 @@ from several imports).
 
 ## Far Cry 5 / Far Cry 6 (v0.2)
 * FC6: no anti-cheat (Denuvo/VMProtect DRM only). Module `FC_m64d3d12.dll`; Steam 2369390 (often only a Ubisoft Connect
-  stub), Ubisoft ids 5266 and 920. Target build: "1.8.0" (20-07-2025, FC_m64d3d12.dll 518,275,080 bytes).
+  stub), Ubisoft ids 5266 and 920. Target build: Steam build 11359732 (28-09-2026, FC_m64d3d12.dll 521,313,320 bytes); all AOBs verified against a memory dump of that build.
 * FC5: EasyAntiCheat was removed in the final patch (Nov 2019). Old installs that still have EAC files are refused via
   `antiCheatFiles`/`antiCheatModules`. Module `FC_m64.dll`; Steam 552520; target Steam build 18766066 (July 2025, which
   rebuilt FC_m64.dll, so 2018 AOBs may no longer match). Ubisoft id 856 is unconfirmed.

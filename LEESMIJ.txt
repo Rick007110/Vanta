@@ -1,8 +1,15 @@
-VANTA v0.3.0 - trainer voor singleplayer-games
+VANTA v0.3.1 - trainer voor singleplayer-games
 =============================================
 
 Vanta is een losstaand programma (geen Cheat Engine nodig). Het werkt alleen voor
 singleplayer/offline games. Games met online anti-cheat worden bewust geweigerd.
+
+NIEUW IN v0.3.1
+  - Far Cry 6: bijgewerkt voor de nieuwste game-update (Steam-build 11359732).
+    Oneindig uithoudingsvermogen, Oneindig zuurstof, Niet herladen en de
+    Grondstoffen- en geldvermenigvuldiger werken weer (nog niet getest in-game).
+  - Staat een cheat nog aan vanuit een eerdere Vanta-sessie, dan meldt Vanta dat
+    nu duidelijk in plaats van "geen unieke AOB gevonden". Herstart dan het spel.
 
 NIEUW IN v0.3.0
   - Inloggen met Discord (optioneel): Instellingen > Account > Inloggen met Discord.

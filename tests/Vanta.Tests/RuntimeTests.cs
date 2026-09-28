@@ -112,6 +112,19 @@ public class RuntimeTests
     }
 
     [Fact]
+    public void Leftover_hook_from_earlier_session_is_reported_and_nothing_written()
+    {
+        var g = TestUtil.Tlc();
+        var (proc, _, _) = TestUtil.TlcProcess(g);
+        var c = g.Cheats.First(x => x.Impl.Type == "aobInject" && (x.Impl.Hooks?.Count ?? 0) == 1 && x.Impl.Sites!.Count == 1);
+        new CheatRuntime(proc, g) { FreeDelay = TimeSpan.Zero }.Apply(c);   // earlier session, never restored
+        var hooked = Image(proc);
+        var e = Assert.Throws<CheatException>(() => new CheatRuntime(proc, g).Apply(c));
+        Assert.Contains("staat al aan in het spel", e.Message);
+        Assert.Equal(hooked, Image(proc));
+    }
+
+    [Fact]
     public void Expect_and_checks_filter_candidates()
     {
         var g = TestUtil.Tlc();
