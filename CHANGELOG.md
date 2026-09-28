@@ -3,10 +3,13 @@
 All notable changes to Vanta. English is the primary language; the Dutch version is in `LEESMIJ.txt`.
 Releases: https://github.com/Rick007110/Vanta/releases
 
+## v0.3.6 (2026-09-28)
+
+- Games without cheats are no longer listed in the catalog. Every game in Vanta has at least one cheat.
+
 ## v0.3.5 (2026-09-28)
 
 - New games: Mafia III: Definitive Edition (10 cheats), Windrose (Early Access, 5 cheats) and Avatar: Frontiers of Pandora (5 cheats). Every AOB was checked against the current Steam build and is found exactly once; the cheats have not been tested in-game yet. The Windrose value editors (health, stamina, walk speed, jump height) use pointer offsets from an older build and are experimental.
-- Phasmophobia is listed but blocked: the game detects cheat tools, bans on reports and is mostly played in co-op, so Vanta refuses to attach.
 - Windrose and Avatar: only use cheats in a solo world or the solo campaign, never in co-op.
 - The Last Caretaker: fixed Unlimited Jump staying active after turning it off. The old version wrote a maximum jump count of 99 into your character, and turning the cheat off did not undo that. It now only changes the jump counter instruction, which is fully restored when you turn it off (fixed in code, not yet tested in-game). If you used the old version, reload your save once to get the normal jump count back.
 

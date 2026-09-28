@@ -31,6 +31,17 @@ public class FarCryCatalogTests
     }
 
     [Fact]
+    public void Every_catalog_game_has_at_least_one_visible_cheat()
+    {
+        // Rule: games without cheats are not added to the catalog at all.
+        foreach (var f in Directory.GetFiles(Path.Combine(TestUtil.RepoRoot, "games"), "game.json", SearchOption.AllDirectories))
+        {
+            var g = VJson.LoadGame(f);
+            Assert.True(g.Cheats.Any(c => !c.Hidden), $"{g.Id} has no visible cheats");
+        }
+    }
+
+    [Fact]
     public void Fc5_refuses_old_eac_installs()
     {
         var g = Load("far-cry-5");

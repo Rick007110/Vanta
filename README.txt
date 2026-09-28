@@ -1,4 +1,4 @@
-VANTA v0.3.5 - trainer for single-player games
+VANTA v0.3.6 - trainer for single-player games
 ==============================================
 
 Vanta is a standalone program (no Cheat Engine required). It only works for
@@ -7,14 +7,16 @@ single-player/offline games. Games with online anti-cheat are refused on purpose
 Nederlandse versie: see LEESMIJ.txt. In Vanta: Settings > Language > Nederlands.
 Full version history: CHANGELOG.md.
 
+NEW IN v0.3.6
+  - Games without cheats are no longer listed in the catalog. Every game in
+    Vanta has at least one cheat.
+
 NEW IN v0.3.5
   - 3 new games: Mafia III: Definitive Edition (10 cheats), Windrose (Early Access,
     5 cheats) and Avatar: Frontiers of Pandora (5 cheats). Every AOB was checked
     against the current Steam build (found exactly once); the cheats are not yet
     tested in-game. The Windrose value editors (health, stamina, speed, jump) are
     experimental.
-  - Phasmophobia is listed but blocked: it detects cheat tools and is mostly co-op,
-    so Vanta refuses to attach.
   - Windrose and Avatar: only use cheats in a solo world/campaign, never in co-op.
   - The Last Caretaker: Unlimited Jump no longer stays active after turning it off
     (fixed in code, not yet tested in-game). Used the old version? Reload your

@@ -71,7 +71,7 @@ public class LanguageTests : IDisposable
         Assert.Equal("Niet geverifieerd voor deze versie.", Cheat(nl, "inf_stamina").GetProperty("note").GetString());
     }
 
-    [Theory, InlineData("the-last-caretaker"), InlineData("far-cry-5"), InlineData("far-cry-6"), InlineData("mafia-3-de"), InlineData("windrose"), InlineData("phasmophobia"), InlineData("avatar-frontiers-of-pandora")]
+    [Theory, InlineData("the-last-caretaker"), InlineData("far-cry-5"), InlineData("far-cry-6"), InlineData("mafia-3-de"), InlineData("windrose"), InlineData("avatar-frontiers-of-pandora")]
     public void Every_visible_text_has_a_dutch_translation_or_is_the_same(string id)
     {
         var g = Load(id);

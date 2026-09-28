@@ -27,11 +27,10 @@ Version history: [CHANGELOG.md](CHANGELOG.md).
 | Mafia III: Definitive Edition (Steam build 5121098) | 10 | AOBs verified on disk, untested in-game |
 | Windrose (Early Access, Steam build 24803703) | 5 | Infinite Jumps verified; value editors experimental |
 | Avatar: Frontiers of Pandora (Steam build 22429549) | 5 | AOBs verified on disk (Denuvo: check `--verify --live`), untested in-game |
-| Phasmophobia | 0 | blocked: cheat-tool detection, co-op |
 
 Far Cry 5/6: solo campaign only, not in co-op or online. Far Cry 6 has no anti-cheat; Far Cry 5 had EasyAntiCheat removed
 in its last patch (2019). If Vanta still finds anti-cheat files, it refuses.
-Windrose and Avatar: solo world/campaign only, never in co-op. Phasmophobia is listed but Vanta refuses to attach.
+Windrose and Avatar: solo world/campaign only, never in co-op.
 
 ## What Vanta does
 

@@ -3,7 +3,7 @@ window.VantaDev = { library: {
   "type": "library",
   "app": {
     "name": "Vanta",
-    "version": "0.3.5",
+    "version": "0.3.6",
     "production": true,
     "lang": "en",
     "ackTimeout": 30000
@@ -123,35 +123,6 @@ window.VantaDev = { library: {
         "ground": "#080405"
       },
       "process": "Mafia3DefinitiveEdition.exe",
-      "cheats": [],
-      "lazy": true
-    },
-    {
-      "id": "phasmophobia",
-      "name": "Phasmophobia",
-      "short": "PH",
-      "badge": "blocked",
-      "version": "Steam build 25327237 (2026-09-16)",
-      "cheatCount": 0,
-      "steamAppId": 739630,
-      "categories": [
-        "horror",
-        "co-op"
-      ],
-      "antiCheat": true,
-      "onlineOnly": false,
-      "group": "all",
-      "art": {
-        "tint": "#94A3B8",
-        "motif": "ridge",
-        "sky": [
-          "#05070A",
-          "#1B2530"
-        ],
-        "horizon": "#9FB7C9",
-        "ground": "#030405"
-      },
-      "process": "Phasmophobia.exe",
       "cheats": [],
       "lazy": true
     },
@@ -1326,45 +1297,6 @@ window.VantaDev = { library: {
       }
     ]
   },
-  "phasmophobia": {
-    "id": "phasmophobia",
-    "name": "Phasmophobia",
-    "short": "PH",
-    "badge": "blocked",
-    "version": "Steam build 25327237 (2026-09-16)",
-    "process": "Phasmophobia.exe",
-    "steamAppId": 739630,
-    "categories": [
-      "horror",
-      "co-op"
-    ],
-    "antiCheat": true,
-    "onlineOnly": false,
-    "cheatCount": 0,
-    "notes": [
-      "Vanta does not offer cheats for Phasmophobia. The game detects cheat tools (it closes when it finds Cheat Engine-like programs), bans are handed out based on reports, and its terms forbid modifying the game.",
-      "Every public table needs an anti-cheat bypass first. Vanta will not bypass anti-cheat.",
-      "The game is built with Unity IL2CPP: its code lives in GameAssembly.dll and changes with every update. Vanta has no IL2CPP metadata support, so stable cheats are not possible yet.",
-      "Most sessions are co-op; cheats there affect other players. The game is listed so it is recognised, but Vanta refuses to attach."
-    ],
-    "scope": "Not supported: co-op game with cheat-tool detection.",
-    "install": {
-      "owned": [],
-      "all": []
-    },
-    "art": {
-      "tint": "#94A3B8",
-      "motif": "ridge",
-      "sky": [
-        "#05070A",
-        "#1B2530"
-      ],
-      "horizon": "#9FB7C9",
-      "ground": "#030405"
-    },
-    "statusVersion": "label:Steam build 25327237 (2026-09-16)",
-    "cheats": []
-  },
   "the-last-caretaker": {
     "id": "the-last-caretaker",
     "name": "The Last Caretaker",
@@ -1820,7 +1752,7 @@ window.VantaDev = { library: {
   "type": "library",
   "app": {
     "name": "Vanta",
-    "version": "0.3.5",
+    "version": "0.3.6",
     "production": true,
     "lang": "nl",
     "ackTimeout": 30000
@@ -1940,35 +1872,6 @@ window.VantaDev = { library: {
         "ground": "#080405"
       },
       "process": "Mafia3DefinitiveEdition.exe",
-      "cheats": [],
-      "lazy": true
-    },
-    {
-      "id": "phasmophobia",
-      "name": "Phasmophobia",
-      "short": "PH",
-      "badge": "blocked",
-      "version": "Steam build 25327237 (2026-09-16)",
-      "cheatCount": 0,
-      "steamAppId": 739630,
-      "categories": [
-        "horror",
-        "co-op"
-      ],
-      "antiCheat": true,
-      "onlineOnly": false,
-      "group": "all",
-      "art": {
-        "tint": "#94A3B8",
-        "motif": "ridge",
-        "sky": [
-          "#05070A",
-          "#1B2530"
-        ],
-        "horizon": "#9FB7C9",
-        "ground": "#030405"
-      },
-      "process": "Phasmophobia.exe",
       "cheats": [],
       "lazy": true
     },
@@ -3142,45 +3045,6 @@ window.VantaDev = { library: {
         "enabled": false
       }
     ]
-  },
-  "phasmophobia": {
-    "id": "phasmophobia",
-    "name": "Phasmophobia",
-    "short": "PH",
-    "badge": "blocked",
-    "version": "Steam-build 25327237 (16-09-2026)",
-    "process": "Phasmophobia.exe",
-    "steamAppId": 739630,
-    "categories": [
-      "horror",
-      "co-op"
-    ],
-    "antiCheat": true,
-    "onlineOnly": false,
-    "cheatCount": 0,
-    "notes": [
-      "Vanta biedt geen cheats voor Phasmophobia. De game detecteert cheat-tools (hij sluit als hij programma's zoals Cheat Engine vindt), bans worden uitgedeeld op basis van meldingen en de voorwaarden verbieden het aanpassen van de game.",
-      "Elke openbare tabel heeft eerst een anti-cheat-bypass nodig. Vanta omzeilt geen anti-cheat.",
-      "De game is gebouwd met Unity IL2CPP: de code zit in GameAssembly.dll en verandert bij elke update. Vanta heeft geen IL2CPP-metadata-ondersteuning, dus stabiele cheats zijn nog niet mogelijk.",
-      "De meeste sessies zijn co-op; cheats hebben daar invloed op andere spelers. De game staat in de lijst zodat hij herkend wordt, maar Vanta weigert te koppelen."
-    ],
-    "scope": "Niet ondersteund: co-op-game met detectie van cheat-tools.",
-    "install": {
-      "owned": [],
-      "all": []
-    },
-    "art": {
-      "tint": "#94A3B8",
-      "motif": "ridge",
-      "sky": [
-        "#05070A",
-        "#1B2530"
-      ],
-      "horizon": "#9FB7C9",
-      "ground": "#030405"
-    },
-    "statusVersion": "label:Steam build 25327237 (2026-09-16)",
-    "cheats": []
   },
   "the-last-caretaker": {
     "id": "the-last-caretaker",
